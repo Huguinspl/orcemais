@@ -42,6 +42,12 @@ class HomeBody extends StatelessWidget {
                             label: 'Novo Orçamento',
                             icon: Icons.add,
                             color: Colors.blueAccent,
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.novoOrcamento,
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -120,9 +126,10 @@ class HomeBody extends StatelessWidget {
     required String label,
     required IconData icon,
     required Color color,
+    void Function()? onTap,
   }) {
     return ElevatedButton.icon(
-      onPressed: () => _onCardTap(ctx, label),
+      onPressed: onTap ?? () => _onCardTap(ctx, label),
       icon: Icon(icon),
       label: Text(label),
       style: ElevatedButton.styleFrom(
