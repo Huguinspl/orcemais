@@ -1,4 +1,5 @@
 // lib/conditional_desktop.dart
+import 'dart:io';
 import 'dart:ui'; // Rect & Size
 import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:window_size/window_size.dart';
@@ -6,6 +7,9 @@ import 'package:window_size/window_size.dart';
 /// Ajustes de janela – só é compilado em desktop/mobile.
 /// Chame **apenas** depois de WidgetsFlutterBinding.ensureInitialized().
 void configureDesktopWindow() {
+  if (!Platform.isWindows) {
+    return;
+  }
   try {
     setWindowTitle('Gestorfy');
 
