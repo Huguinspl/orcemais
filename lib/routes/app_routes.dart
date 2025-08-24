@@ -19,6 +19,13 @@ class AppRoutes {
   static const novoPecaMaterial = '/novo-peca-material';
   static const orcamentos = '/orcamentos';
   static const novoOrcamento = '/novo-orcamento';
+  static const agendamentos = '/agendamentos';
+  static const novoAgendamento = '/novo-agendamento';
+  static const recibos = '/recibos';
+  static const novoRecibo = '/novo-recibo';
+  static const novoValorRecebido = '/novo-valor-recebido';
+  static const despesas = '/despesas';
+  static const novaDespesa = '/nova-despesa';
 
   static const selecionarServicos = '/selecionar-servicos'; // ✅ nova rota
 }

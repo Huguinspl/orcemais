@@ -1,6 +1,7 @@
 // lib/pages/home/tabs/meu_negocio_page.dart
 import 'package:flutter/material.dart';
 import 'package:gestorfy/routes/app_routes.dart';
+import 'personalizar_orcamento_page.dart';
 
 /// Página/aba **“Meu negócio”**
 class MeuNegocioPage extends StatelessWidget {
@@ -62,6 +63,52 @@ class MeuNegocioPage extends StatelessWidget {
                           SizedBox(height: 4),
                           Text(
                             'Preencha os dados do seu negócio',
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.black45),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PersonalizarOrcamentoPage(),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.tune, size: 32, color: Colors.blueAccent),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'Personalizar orçamento',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Configurar Pix e assinatura',
                             style: TextStyle(color: Colors.black54),
                           ),
                         ],

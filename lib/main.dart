@@ -36,6 +36,16 @@ import 'pages/home/orcamentos/orcamentos_page.dart';
 import 'pages/home/orcamentos/novo_orcamento_page.dart';
 import 'pages/home/orcamentos/novo_orcamento/selecionar_servicos_page.dart';
 import 'package:gestorfy/providers/orcamentos_provider.dart';
+import 'providers/agendamentos_provider.dart';
+import 'pages/home/agendamentos/agendamentos_page.dart';
+import 'pages/home/agendamentos/novo_agendamento_page.dart';
+import 'providers/recibos_provider.dart';
+import 'pages/home/recibos/recibos_page.dart';
+import 'pages/home/recibos/novo_recibo_page.dart';
+import 'pages/home/recibos/novo_valor_recebido_page.dart';
+import 'providers/despesas_provider.dart';
+import 'pages/home/despesas/despesas_page.dart';
+import 'pages/home/despesas/nova_despesa_page.dart';
 
 import 'firebase_options.dart';
 
@@ -67,6 +77,9 @@ class GestorfyRoot extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ServicesProvider()),
         ChangeNotifierProvider(create: (_) => PecasProvider()),
         ChangeNotifierProvider(create: (_) => OrcamentosProvider()),
+        ChangeNotifierProvider(create: (_) => AgendamentosProvider()),
+        ChangeNotifierProvider(create: (_) => RecibosProvider()),
+        ChangeNotifierProvider(create: (_) => DespesasProvider()),
       ],
       child: const GestorfyApp(),
     );
@@ -104,6 +117,7 @@ class GestorfyApp extends StatelessWidget {
         '/servicos': (_) => const ServicosPage(),
         AppRoutes.pecasMateriais: (_) => const PecasMateriaisPage(),
         AppRoutes.orcamentos: (_) => const OrcamentosPage(), // ✅ adicionada
+        AppRoutes.agendamentos: (_) => const AgendamentosPage(),
         AppRoutes.novoPecaMaterial: (context) {
           final peca =
               ModalRoute.of(context)!.settings.arguments as PecaMaterial?;
@@ -111,6 +125,12 @@ class GestorfyApp extends StatelessWidget {
         },
         AppRoutes.novoOrcamento: (_) => const NovoOrcamentoPage(),
         AppRoutes.selecionarServicos: (_) => const SelecionarServicosPage(),
+        AppRoutes.novoAgendamento: (_) => const NovoAgendamentoPage(),
+        AppRoutes.recibos: (_) => const RecibosPage(),
+        AppRoutes.novoRecibo: (_) => const NovoReciboPage(),
+        AppRoutes.novoValorRecebido: (_) => const NovoValorRecebidoPage(),
+        AppRoutes.despesas: (_) => const DespesasPage(),
+        AppRoutes.novaDespesa: (_) => const NovaDespesaPage(),
       },
     );
   }

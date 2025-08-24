@@ -4,28 +4,24 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-import '../models/cliente.dart';
-import '../models/orcamento.dart'; // Importe o modelo de Orçamento
+import '../models/recibo.dart';
+import '../models/valor_recebido.dart';
 import '../providers/business_provider.dart';
 
-class OrcamentoPdfGenerator {
-  // ✅ CORREÇÃO 1: O método agora recebe o objeto Orcamento completo
+class ReciboPdfGenerator {
   static Future<Uint8List> generate(
-    Orcamento orcamento,
+    Recibo recibo,
     BusinessProvider businessProvider,
   ) async {
     final pdf = pw.Document();
-    // Garante que dados da empresa estejam carregados
+    // Carrega dados da empresa e logo uma vez
     try {
       await businessProvider.carregarDoFirestore();
     } catch (_) {}
     final logoBytes = await businessProvider.getLogoBytes();
     final assinaturaBytes = await businessProvider.getAssinaturaBytes();
-
-    final currencyFormat = NumberFormat.currency(
-      locale: 'pt_BR',
-      symbol: 'R\$',
-    );
+    final currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+    final dateFormat = DateFormat('dd/MM/yyyy');
     final font = await PdfGoogleFonts.robotoRegular();
     final boldFont = await PdfGoogleFonts.robotoBold();
     final italicFont = await PdfGoogleFonts.robotoItalic();
@@ -35,35 +31,54 @@ class OrcamentoPdfGenerator {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build:
-            (context) => [
+            (ctx) => [
               _buildHeader(
-                orcamento,
+                recibo,
                 businessProvider,
                 boldFont,
                 font,
+                dateFormat,
                 logoBytes,
               ),
-              pw.Divider(height: 40),
-              _buildClientInfo(orcamento.cliente, boldFont, font),
               pw.SizedBox(height: 24),
-              pw.Text(
-                'Itens do Orçamento',
-                style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  font: boldFont,
-                  fontSize: 16,
+              _buildClientInfo(recibo, boldFont, font),
+              pw.SizedBox(height: 24),
+              if (recibo.itens.isNotEmpty)
+                pw.Column(
+                  children: [
+                    pw.Text(
+                      'Itens / Serviços',
+                      style: pw.TextStyle(font: boldFont, fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 12),
+                    _buildItemsTable(
+                      recibo,
+                      currency,
+                      boldFont,
+                      font,
+                      italicFont,
+                    ),
+                    pw.SizedBox(height: 24),
+                  ],
+                )
+              else
+                pw.Column(
+                  children: [
+                    pw.Text(
+                      'Valores Recebidos',
+                      style: pw.TextStyle(font: boldFont, fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 12),
+                    _buildValoresRecebidosTable(
+                      recibo.valoresRecebidos,
+                      currency,
+                      boldFont,
+                      font,
+                    ),
+                    pw.SizedBox(height: 24),
+                  ],
                 ),
-              ),
-              pw.SizedBox(height: 16),
-              _buildItemsTable(
-                orcamento.itens,
-                currencyFormat,
-                boldFont,
-                font,
-                italicFont,
-              ),
-              pw.SizedBox(height: 24),
-              _buildTotals(orcamento, currencyFormat, boldFont, font),
+              _buildTotals(recibo, currency, boldFont, font),
               if (assinaturaBytes != null && assinaturaBytes.isNotEmpty) ...[
                 pw.SizedBox(height: 40),
                 _buildAssinaturaSection(assinaturaBytes, boldFont, font),
@@ -71,16 +86,15 @@ class OrcamentoPdfGenerator {
             ],
       ),
     );
-
     return pdf.save();
   }
 
-  // ✅ CORREÇÃO 2: Os helpers agora extraem os dados do objeto Orcamento
   static pw.Widget _buildHeader(
-    Orcamento orcamento,
-    BusinessProvider provider,
-    pw.Font boldFont,
-    pw.Font regularFont,
+    Recibo r,
+    BusinessProvider b,
+    pw.Font bold,
+    pw.Font regular,
+    DateFormat df,
     Uint8List? logoBytes,
   ) {
     pw.ImageProvider? logoImage;
@@ -88,8 +102,8 @@ class OrcamentoPdfGenerator {
       logoImage = pw.MemoryImage(logoBytes);
     }
     return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       crossAxisAlignment: pw.CrossAxisAlignment.start,
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
         pw.Expanded(
           child: pw.Row(
@@ -107,19 +121,15 @@ class OrcamentoPdfGenerator {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      provider.nomeEmpresa,
-                      style: pw.TextStyle(font: boldFont, fontSize: 20),
+                      b.nomeEmpresa,
+                      style: pw.TextStyle(font: bold, fontSize: 20),
                     ),
-                    pw.SizedBox(height: 8),
-                    if (provider.telefone.isNotEmpty)
+                    if (b.telefone.isNotEmpty)
+                      pw.Text(b.telefone, style: pw.TextStyle(font: regular)),
+                    if (b.emailEmpresa.isNotEmpty)
                       pw.Text(
-                        provider.telefone,
-                        style: pw.TextStyle(font: regularFont),
-                      ),
-                    if (provider.emailEmpresa.isNotEmpty)
-                      pw.Text(
-                        provider.emailEmpresa,
-                        style: pw.TextStyle(font: regularFont),
+                        b.emailEmpresa,
+                        style: pw.TextStyle(font: regular),
                       ),
                   ],
                 ),
@@ -132,13 +142,13 @@ class OrcamentoPdfGenerator {
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Text(
-              'Orçamento #${orcamento.numero.toString().padLeft(4, '0')}',
-              style: pw.TextStyle(font: boldFont, fontSize: 14),
+              'Recibo #${r.numero.toString().padLeft(4, '0')}',
+              style: pw.TextStyle(font: bold, fontSize: 14),
             ),
             pw.SizedBox(height: 4),
             pw.Text(
-              'Data: ${DateFormat('dd/MM/yyyy').format(orcamento.dataCriacao.toDate())}',
-              style: pw.TextStyle(font: regularFont, fontSize: 10),
+              'Data: ${df.format(r.criadoEm.toDate())}',
+              style: pw.TextStyle(font: regular, fontSize: 10),
             ),
             pw.SizedBox(height: 4),
             pw.Container(
@@ -146,7 +156,7 @@ class OrcamentoPdfGenerator {
               width: 40,
               child: pw.BarcodeWidget(
                 barcode: pw.Barcode.qrCode(),
-                data: 'Orçamento #${orcamento.numero}',
+                data: 'Recibo #${r.numero}',
               ),
             ),
           ],
@@ -155,48 +165,38 @@ class OrcamentoPdfGenerator {
     );
   }
 
-  static pw.Widget _buildClientInfo(
-    Cliente cliente,
-    pw.Font boldFont,
-    pw.Font regularFont,
-  ) {
+  static pw.Widget _buildClientInfo(Recibo r, pw.Font bold, pw.Font regular) {
+    final c = r.cliente;
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text(
-          'Cliente:',
-          style: pw.TextStyle(font: regularFont, fontSize: 10),
-        ),
-        pw.Text(
-          cliente.nome,
-          style: pw.TextStyle(font: boldFont, fontSize: 14),
-        ),
-        if (cliente.celular.isNotEmpty)
-          pw.Text(cliente.celular, style: pw.TextStyle(font: regularFont)),
-        if (cliente.email.isNotEmpty)
-          pw.Text(cliente.email, style: pw.TextStyle(font: regularFont)),
+        pw.Text('Cliente:', style: pw.TextStyle(font: regular, fontSize: 10)),
+        pw.Text(c.nome, style: pw.TextStyle(font: bold, fontSize: 14)),
+        if (c.celular.isNotEmpty)
+          pw.Text(c.celular, style: pw.TextStyle(font: regular)),
+        if (c.email.isNotEmpty)
+          pw.Text(c.email, style: pw.TextStyle(font: regular)),
       ],
     );
   }
 
   static pw.Widget _buildItemsTable(
-    List<Map<String, dynamic>> itens,
-    NumberFormat currencyFormat,
-    pw.Font boldFont,
-    pw.Font regularFont,
-    pw.Font italicFont,
+    Recibo r,
+    NumberFormat currency,
+    pw.Font bold,
+    pw.Font regular,
+    pw.Font italic,
   ) {
-    const tableHeaders = ['Descrição', 'Qtd.', 'Total'];
+    const headers = ['Descrição', 'Qtd.', 'Total'];
     return pw.Table.fromTextArray(
-      headers: tableHeaders,
-      data: List<List<dynamic>>.generate(itens.length, (index) {
-        final item = itens[index];
+      headers: headers,
+      data: List.generate(r.itens.length, (i) {
+        final item = r.itens[i];
         final nome = item['nome'] ?? 'Item';
-        final descricao = item['descricao'] as String? ?? '';
-        final preco = item['preco'] as double? ?? 0.0;
-        final quantidade = item['quantidade'] as double? ?? 1.0;
-        final totalItem = preco * quantidade;
-
+        final descricao = item['descricao'] ?? '';
+        final preco = (item['preco'] ?? 0).toDouble();
+        final quantidade = (item['quantidade'] ?? 1).toDouble();
+        final total = preco * quantidade;
         return [
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -204,7 +204,7 @@ class OrcamentoPdfGenerator {
               pw.Text(
                 nome,
                 style: pw.TextStyle(
-                  font: regularFont,
+                  font: regular,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
@@ -214,7 +214,7 @@ class OrcamentoPdfGenerator {
                   child: pw.Text(
                     descricao,
                     style: pw.TextStyle(
-                      font: italicFont,
+                      font: italic,
                       fontSize: 9,
                       color: PdfColors.grey600,
                     ),
@@ -223,11 +223,11 @@ class OrcamentoPdfGenerator {
             ],
           ),
           quantidade.toStringAsFixed(2),
-          currencyFormat.format(totalItem),
+          currency.format(total),
         ];
       }),
-      headerStyle: pw.TextStyle(font: boldFont, fontWeight: pw.FontWeight.bold),
-      cellStyle: pw.TextStyle(font: regularFont),
+      headerStyle: pw.TextStyle(font: bold, fontWeight: pw.FontWeight.bold),
+      cellStyle: pw.TextStyle(font: regular),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.grey200),
       cellAlignments: {
         0: pw.Alignment.centerLeft,
@@ -238,57 +238,75 @@ class OrcamentoPdfGenerator {
     );
   }
 
-  static pw.Widget _buildTotals(
-    Orcamento orcamento,
-    NumberFormat currencyFormat,
-    pw.Font boldFont,
-    pw.Font regularFont,
+  static pw.Widget _buildValoresRecebidosTable(
+    List<ValorRecebido> valores,
+    NumberFormat currency,
+    pw.Font bold,
+    pw.Font regular,
   ) {
-    double custoTotal = 0.0;
-    for (var item in orcamento.itens) {
-      final custo = item['custo'] as double? ?? 0.0;
-      custoTotal += custo;
-    }
+    const headers = ['Data', 'Forma', 'Valor'];
+    final df = DateFormat('dd/MM/yyyy');
+    return pw.Table.fromTextArray(
+      headers: headers,
+      data:
+          valores
+              .map(
+                (v) => [
+                  df.format(v.data.toDate()),
+                  v.formaPagamento,
+                  currency.format(v.valor),
+                ],
+              )
+              .toList(),
+      headerStyle: pw.TextStyle(font: bold, fontWeight: pw.FontWeight.bold),
+      cellStyle: pw.TextStyle(font: regular),
+      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey200),
+      cellAlignments: {
+        0: pw.Alignment.centerLeft,
+        1: pw.Alignment.center,
+        2: pw.Alignment.centerRight,
+      },
+    );
+  }
 
-    return pw.Container(
+  static pw.Widget _buildTotals(
+    Recibo r,
+    NumberFormat currency,
+    pw.Font bold,
+    pw.Font regular,
+  ) {
+    return pw.Align(
       alignment: pw.Alignment.centerRight,
       child: pw.SizedBox(
         width: 220,
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text('Subtotal:', style: pw.TextStyle(font: regularFont)),
-                pw.Text(
-                  currencyFormat.format(orcamento.subtotal),
-                  style: pw.TextStyle(font: regularFont),
-                ),
-              ],
-            ),
-            if (custoTotal > 0)
+            if (r.itens.isNotEmpty)
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'Custos Adicionais:',
-                    style: pw.TextStyle(font: regularFont),
+                    'Subtotal Itens:',
+                    style: pw.TextStyle(font: regular),
                   ),
                   pw.Text(
-                    currencyFormat.format(custoTotal),
-                    style: pw.TextStyle(font: regularFont),
+                    currency.format(r.subtotalItens),
+                    style: pw.TextStyle(font: regular),
                   ),
                 ],
-              ),
-            if (orcamento.desconto > 0)
+              )
+            else
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Desconto:', style: pw.TextStyle(font: regularFont)),
                   pw.Text(
-                    '- ${currencyFormat.format(orcamento.desconto)}',
-                    style: pw.TextStyle(font: regularFont),
+                    'Total Recebido:',
+                    style: pw.TextStyle(font: regular),
+                  ),
+                  pw.Text(
+                    currency.format(r.totalValoresRecebidos),
+                    style: pw.TextStyle(font: regular),
                   ),
                 ],
               ),
@@ -298,19 +316,11 @@ class OrcamentoPdfGenerator {
               children: [
                 pw.Text(
                   'Valor Total:',
-                  style: pw.TextStyle(
-                    font: boldFont,
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  style: pw.TextStyle(font: bold, fontSize: 14),
                 ),
                 pw.Text(
-                  currencyFormat.format(orcamento.valorTotal),
-                  style: pw.TextStyle(
-                    font: boldFont,
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  currency.format(r.valorTotal),
+                  style: pw.TextStyle(font: bold, fontSize: 14),
                 ),
               ],
             ),
@@ -322,8 +332,8 @@ class OrcamentoPdfGenerator {
 
   static pw.Widget _buildAssinaturaSection(
     Uint8List assinatura,
-    pw.Font boldFont,
-    pw.Font regularFont,
+    pw.Font bold,
+    pw.Font regular,
   ) {
     final img = pw.MemoryImage(assinatura);
     return pw.Column(
@@ -342,7 +352,7 @@ class OrcamentoPdfGenerator {
         pw.Text(
           'Assinatura',
           style: pw.TextStyle(
-            font: regularFont,
+            font: regular,
             fontSize: 10,
             color: PdfColors.grey700,
           ),

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:typed_data';
 import '../../../providers/business_provider.dart';
+import '../../../models/business_info.dart';
 import '../../../utils/cnpj_validator.dart';
 
 class DadosNegocioPage extends StatefulWidget {
@@ -21,6 +25,9 @@ class _DadosNegocioPageState extends State<DadosNegocioPage> {
 
   // <-- MUDANÇA 1: Renomear para _isLoading por consistência
   bool _isLoading = false;
+  Uint8List? _logoPreviewBytes;
+  String? _logoLocalPath;
+  final _picker = ImagePicker();
 
   @override
   void initState() {
@@ -36,6 +43,7 @@ class _DadosNegocioPageState extends State<DadosNegocioPage> {
         _endCtrl.text = prov.endereco;
         _cnpjCtrl.text = prov.cnpj;
         _emailCtrl.text = prov.emailEmpresa;
+        _logoLocalPath = prov.logoLocalPath;
         setState(() {}); // Força rebuild para preencher os campos
       }
     });
@@ -60,14 +68,20 @@ class _DadosNegocioPageState extends State<DadosNegocioPage> {
     setState(() => _isLoading = true);
 
     try {
-      await context.read<BusinessProvider>().salvarNoFirestore(
+      final prov = context.read<BusinessProvider>();
+      final info = BusinessInfo(
         nomeEmpresa: _nomeCtrl.text.trim(),
         telefone: _telCtrl.text.trim(),
         ramo: _ramoCtrl.text.trim(),
         endereco: _endCtrl.text.trim(),
         cnpj: _cnpjCtrl.text.trim(),
         emailEmpresa: _emailCtrl.text.trim(),
+        logoUrl: prov.logoUrl,
+        pixTipo: prov.pixTipo,
+        pixChave: prov.pixChave,
+        assinaturaUrl: prov.assinaturaUrl,
       );
+      await prov.salvarInfo(info);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -171,6 +185,8 @@ class _DadosNegocioPageState extends State<DadosNegocioPage> {
                 },
               ),
               const SizedBox(height: 32),
+              _buildLogoSection(theme),
+              const SizedBox(height: 32),
               // <-- MUDANÇA 5: Botão de salvar estilizado e com feedback de loading
               SizedBox(
                 width: double.infinity,
@@ -217,6 +233,115 @@ class _DadosNegocioPageState extends State<DadosNegocioPage> {
           fillColor: Colors.white,
         ),
       ),
+    );
+  }
+
+  Widget _buildLogoSection(ThemeData theme) {
+    final prov = context.watch<BusinessProvider>();
+    Widget preview;
+    if (_logoPreviewBytes != null) {
+      preview = Image.memory(
+        _logoPreviewBytes!,
+        height: 100,
+        fit: BoxFit.contain,
+      );
+    } else if (_logoLocalPath != null && File(_logoLocalPath!).existsSync()) {
+      preview = Image.file(
+        File(_logoLocalPath!),
+        height: 100,
+        fit: BoxFit.contain,
+      );
+    } else if (prov.logoUrl != null) {
+      preview = FutureBuilder(
+        future: prov.getLogoBytes(),
+        builder: (ctx, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const SizedBox(
+              height: 60,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            );
+          }
+          if (snap.hasData && snap.data != null) {
+            return Image.memory(snap.data!, height: 100, fit: BoxFit.contain);
+          }
+          return const Text('Logo indisponível');
+        },
+      );
+    } else {
+      preview = const Text('Nenhuma logo adicionada');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Logo da Empresa', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+          ),
+          child: Column(
+            children: [
+              preview,
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 12,
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: const Text('Selecionar'),
+                    onPressed: () => _pickLogo(source: ImageSource.gallery),
+                  ),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Remover'),
+                    onPressed:
+                        prov.logoUrl == null &&
+                                _logoPreviewBytes == null &&
+                                _logoLocalPath == null
+                            ? null
+                            : () async {
+                              setState(() {
+                                _logoPreviewBytes = null;
+                                _logoLocalPath = null;
+                              });
+                              await prov.uploadLogoBytes(Uint8List(0));
+                            },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Adicione sua logo para aparecer nos PDFs de orçamento e recibo.',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickLogo({required ImageSource source}) async {
+    final picked = await _picker.pickImage(
+      source: source,
+      maxWidth: 800,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+    final bytes = await picked.readAsBytes();
+    final filePath = picked.path;
+    setState(() {
+      _logoPreviewBytes = bytes;
+      _logoLocalPath = filePath;
+    });
+    await context.read<BusinessProvider>().uploadLogoBytes(
+      bytes,
+      filePath: filePath,
     );
   }
 }
