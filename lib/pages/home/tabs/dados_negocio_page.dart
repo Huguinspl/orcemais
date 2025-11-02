@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:typed_data';
@@ -245,26 +246,29 @@ class _DadosNegocioPageState extends State<DadosNegocioPage> {
         height: 100,
         fit: BoxFit.contain,
       );
-    } else if (_logoLocalPath != null && File(_logoLocalPath!).existsSync()) {
+    } else if (!kIsWeb &&
+        _logoLocalPath != null &&
+        File(_logoLocalPath!).existsSync()) {
       preview = Image.file(
         File(_logoLocalPath!),
         height: 100,
         fit: BoxFit.contain,
       );
-    } else if (prov.logoUrl != null) {
-      preview = FutureBuilder(
+    } else if (prov.logoUrl != null && prov.logoUrl!.isNotEmpty) {
+      preview = FutureBuilder<Uint8List?>(
         future: prov.getLogoBytes(),
         builder: (ctx, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const SizedBox(
-              height: 60,
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            );
-          }
+          // Preferir bytes quando disponíveis
           if (snap.hasData && snap.data != null) {
             return Image.memory(snap.data!, height: 100, fit: BoxFit.contain);
           }
-          return const Text('Logo indisponível');
+          // Fallback imediato por URL (melhor para Web)
+          return Image.network(
+            prov.logoUrl!,
+            height: 100,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const Text('Logo indisponível'),
+          );
         },
       );
     } else {
@@ -309,7 +313,17 @@ class _DadosNegocioPageState extends State<DadosNegocioPage> {
                                 _logoPreviewBytes = null;
                                 _logoLocalPath = null;
                               });
-                              await prov.uploadLogoBytes(Uint8List(0));
+                              try {
+                                await prov.removerLogo();
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Erro ao remover logo: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
                             },
                   ),
                 ],
@@ -333,15 +347,33 @@ class _DadosNegocioPageState extends State<DadosNegocioPage> {
       imageQuality: 85,
     );
     if (picked == null) return;
-    final bytes = await picked.readAsBytes();
-    final filePath = picked.path;
-    setState(() {
-      _logoPreviewBytes = bytes;
-      _logoLocalPath = filePath;
-    });
-    await context.read<BusinessProvider>().uploadLogoBytes(
-      bytes,
-      filePath: filePath,
-    );
+    try {
+      final bytes = await picked.readAsBytes();
+      final filePath = kIsWeb ? null : picked.path;
+      if (!mounted) return;
+      setState(() {
+        _logoPreviewBytes = bytes;
+        _logoLocalPath = filePath;
+      });
+      await context.read<BusinessProvider>().uploadLogoBytes(
+        bytes,
+        filePath: filePath,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logo atualizada!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Falha ao enviar logo: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

@@ -48,6 +48,12 @@ class OrcamentosProvider with ChangeNotifier {
         valorTotal: orcamento.valorTotal,
         status: orcamento.status,
         dataCriacao: orcamento.dataCriacao,
+        metodoPagamento: orcamento.metodoPagamento,
+        parcelas: orcamento.parcelas,
+        laudoTecnico: orcamento.laudoTecnico,
+        condicoesContratuais: orcamento.condicoesContratuais,
+        garantia: orcamento.garantia,
+        informacoesAdicionais: orcamento.informacoesAdicionais,
       );
 
       // 3. Dentro da mesma transação, salva o novo orçamento e atualiza o contador
@@ -81,6 +87,12 @@ class OrcamentosProvider with ChangeNotifier {
         valorTotal: orcamentoAntigo.valorTotal,
         status: novoStatus, // <-- novo status
         dataCriacao: orcamentoAntigo.dataCriacao,
+        metodoPagamento: orcamentoAntigo.metodoPagamento,
+        parcelas: orcamentoAntigo.parcelas,
+        laudoTecnico: orcamentoAntigo.laudoTecnico,
+        condicoesContratuais: orcamentoAntigo.condicoesContratuais,
+        garantia: orcamentoAntigo.garantia,
+        informacoesAdicionais: orcamentoAntigo.informacoesAdicionais,
       );
       notifyListeners();
     }

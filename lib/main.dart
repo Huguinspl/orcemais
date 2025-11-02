@@ -1,7 +1,7 @@
-// lib/main.dart
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
 
 import 'conditional_desktop.dart' if (dart.library.html) 'stub_desktop.dart';
@@ -12,6 +12,11 @@ import 'providers/business_provider.dart';
 import 'providers/clients_provider.dart';
 import 'providers/services_provider.dart';
 import 'providers/pecas_provider.dart';
+import 'providers/assinatura_provider.dart';
+import 'package:gestorfy/providers/orcamentos_provider.dart';
+import 'providers/agendamentos_provider.dart';
+import 'providers/recibos_provider.dart';
+import 'providers/despesas_provider.dart';
 
 // Rotas & páginas
 import 'routes/app_routes.dart';
@@ -31,27 +36,54 @@ import 'pages/home/tabs/detalhe_cliente_page.dart';
 import 'pages/home/tabs/servicos_page.dart';
 import 'pages/home/tabs/pecas_materiais_page.dart';
 import 'pages/home/tabs/novo_peca_material_page.dart';
-import 'models/peca_material.dart';
 import 'pages/home/orcamentos/orcamentos_page.dart';
 import 'pages/home/orcamentos/novo_orcamento_page.dart';
 import 'pages/home/orcamentos/novo_orcamento/selecionar_servicos_page.dart';
-import 'package:gestorfy/providers/orcamentos_provider.dart';
-import 'providers/agendamentos_provider.dart';
 import 'pages/home/agendamentos/agendamentos_page.dart';
 import 'pages/home/agendamentos/novo_agendamento_page.dart';
-import 'providers/recibos_provider.dart';
 import 'pages/home/recibos/recibos_page.dart';
 import 'pages/home/recibos/novo_recibo_page.dart';
 import 'pages/home/recibos/novo_valor_recebido_page.dart';
-import 'providers/despesas_provider.dart';
 import 'pages/home/despesas/despesas_page.dart';
 import 'pages/home/despesas/nova_despesa_page.dart';
+import 'models/peca_material.dart';
 
 import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // App Check: Web só ativa se a site key for fornecida. Mobile/Desktop em modo debug.
+  try {
+    if (kIsWeb) {
+      final siteKey = const String.fromEnvironment(
+        'APP_CHECK_WEB_RECAPTCHA_KEY',
+      );
+      final providerKind = const String.fromEnvironment(
+        'APP_CHECK_PROVIDER',
+      ); // 'v3' (default) ou 'enterprise'
+      if (siteKey.isNotEmpty) {
+        final webProvider =
+            (providerKind.toLowerCase() == 'enterprise')
+                ? ReCaptchaEnterpriseProvider(siteKey)
+                : ReCaptchaV3Provider(siteKey);
+        await FirebaseAppCheck.instance.activate(webProvider: webProvider);
+      } else {
+        debugPrint(
+          '[AppCheck] Web não ativado: defina APP_CHECK_WEB_RECAPTCHA_KEY para habilitar.',
+        );
+      }
+    } else {
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.debug,
+        appleProvider: AppleProvider.debug,
+      );
+    }
+  } catch (e) {
+    // Evita quebrar a inicialização em dev
+    debugPrint('Falha ao ativar App Check: $e');
+  }
 
   if (!kIsWeb) {
     configureDesktopWindow();
@@ -73,6 +105,7 @@ class GestorfyRoot extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => BusinessProvider()..carregarDoFirestore(),
         ),
+        ChangeNotifierProvider(create: (_) => AssinaturaProvider()..carregar()),
         ChangeNotifierProvider(create: (_) => ClientsProvider()),
         ChangeNotifierProvider(create: (_) => ServicesProvider()),
         ChangeNotifierProvider(create: (_) => PecasProvider()),
@@ -116,7 +149,7 @@ class GestorfyApp extends StatelessWidget {
         AppRoutes.detalheCliente: (_) => const DetalheClientePage(),
         '/servicos': (_) => const ServicosPage(),
         AppRoutes.pecasMateriais: (_) => const PecasMateriaisPage(),
-        AppRoutes.orcamentos: (_) => const OrcamentosPage(), // ✅ adicionada
+        AppRoutes.orcamentos: (_) => const OrcamentosPage(),
         AppRoutes.agendamentos: (_) => const AgendamentosPage(),
         AppRoutes.novoPecaMaterial: (context) {
           final peca =

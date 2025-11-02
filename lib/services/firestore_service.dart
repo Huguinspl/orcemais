@@ -15,10 +15,15 @@ class FirestoreService {
 
   /// Cria o documento do usuário no Firestore.
   Future<void> createUser({
+    required String uid,
     required String email,
     String nome = '',
     String cpf = '',
-  }) => _doc.set({'email': email, 'nome': nome, 'cpf': cpf});
+  }) => _db.collection('users').doc(uid).set({
+    'email': email,
+    'nome': nome,
+    'cpf': cpf,
+  });
 
   /// Busca os dados do usuário logado.
   Future<Map<String, dynamic>?> fetchUser() async {

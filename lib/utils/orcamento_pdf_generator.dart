@@ -7,6 +7,7 @@ import 'package:printing/printing.dart';
 import '../models/cliente.dart';
 import '../models/orcamento.dart'; // Importe o modelo de Orçamento
 import '../providers/business_provider.dart';
+import 'pdf_color_utils.dart';
 
 class OrcamentoPdfGenerator {
   // ✅ CORREÇÃO 1: O método agora recebe o objeto Orcamento completo
@@ -15,10 +16,42 @@ class OrcamentoPdfGenerator {
     BusinessProvider businessProvider,
   ) async {
     final pdf = pw.Document();
+    // Paleta com suporte a tema salvo no provider
+    final theme = businessProvider.pdfTheme;
+    // Cores principais do tema
+    final primary = PdfColorUtils.fromArgbInt(
+      theme?['primary'] as int?,
+      PdfColors.blue900,
+    );
+    final onPrimary = PdfColorUtils.fromArgbInt(
+      theme?['onPrimary'] as int?,
+      PdfColors.white,
+    );
+    final secondaryContainer = PdfColorUtils.fromArgbInt(
+      theme?['secondaryContainer'] as int?,
+      PdfColors.grey200,
+    );
+    final onSecondaryContainer = PdfColorUtils.fromArgbInt(
+      theme?['onSecondaryContainer'] as int?,
+      PdfColors.black,
+    );
+    final tertiaryContainer = PdfColorUtils.fromArgbInt(
+      theme?['tertiaryContainer'] as int?,
+      PdfColors.grey300,
+    );
+    final onTertiaryContainer = PdfColorUtils.fromArgbInt(
+      theme?['onTertiaryContainer'] as int?,
+      PdfColors.black,
+    );
+    final outlineVariant = PdfColorUtils.fromArgbInt(
+      theme?['outlineVariant'] as int?,
+      PdfColors.grey400,
+    );
     // Garante que dados da empresa estejam carregados
     try {
       await businessProvider.carregarDoFirestore();
     } catch (_) {}
+    // Carrega mídias
     final logoBytes = await businessProvider.getLogoBytes();
     final assinaturaBytes = await businessProvider.getAssinaturaBytes();
 
@@ -30,29 +63,55 @@ class OrcamentoPdfGenerator {
     final boldFont = await PdfGoogleFonts.robotoBold();
     final italicFont = await PdfGoogleFonts.robotoItalic();
 
+    // Texto opcional da descrição do negócio (usado mais abaixo se existir)
+
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        pageTheme: pw.PageTheme(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.fromLTRB(32, 32, 32, 44),
+        ),
+        // Sem header/footer custom: vamos usar o cabeçalho clássico no conteúdo
         build:
             (context) => [
-              _buildHeader(
-                orcamento,
-                businessProvider,
-                boldFont,
-                font,
-                logoBytes,
-              ),
-              pw.Divider(height: 40),
-              _buildClientInfo(orcamento.cliente, boldFont, font),
-              pw.SizedBox(height: 24),
-              pw.Text(
-                'Itens do Orçamento',
-                style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  font: boldFont,
-                  fontSize: 16,
+              // Cabeçalho clássico com faixa colorida
+              pw.Container(
+                decoration: pw.BoxDecoration(
+                  color: primary,
+                  borderRadius: pw.BorderRadius.circular(12),
                 ),
+                padding: const pw.EdgeInsets.all(16),
+                child: _buildHeader(
+                  orcamento,
+                  businessProvider,
+                  boldFont,
+                  font,
+                  logoBytes,
+                  textColor: onPrimary,
+                ),
+              ),
+              pw.SizedBox(height: 16),
+              _sectionLabel(
+                'Dados do Cliente',
+                bg: secondaryContainer,
+                fg: onSecondaryContainer,
+                font: boldFont,
+              ),
+              pw.SizedBox(height: 8),
+              _buildClientInfo(orcamento.cliente, boldFont, font),
+              if ((businessProvider.descricao ?? '').isNotEmpty) ...[
+                pw.SizedBox(height: 12),
+                pw.Text(
+                  _hyphenatePtBr(businessProvider.descricao!),
+                  style: pw.TextStyle(font: font, fontSize: 10),
+                ),
+              ],
+              pw.SizedBox(height: 24),
+              _sectionLabel(
+                'Itens do Orçamento',
+                bg: tertiaryContainer,
+                fg: onTertiaryContainer,
+                font: boldFont,
               ),
               pw.SizedBox(height: 16),
               _buildItemsTable(
@@ -63,11 +122,30 @@ class OrcamentoPdfGenerator {
                 italicFont,
               ),
               pw.SizedBox(height: 24),
-              _buildTotals(orcamento, currencyFormat, boldFont, font),
-              if (assinaturaBytes != null && assinaturaBytes.isNotEmpty) ...[
-                pw.SizedBox(height: 40),
-                _buildAssinaturaSection(assinaturaBytes, boldFont, font),
-              ],
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                children: [
+                  pw.Container(
+                    decoration: pw.BoxDecoration(
+                      color: secondaryContainer,
+                      borderRadius: pw.BorderRadius.circular(12),
+                      border: pw.Border.all(color: outlineVariant, width: 0.5),
+                    ),
+                    padding: const pw.EdgeInsets.all(16),
+                    child: _buildTotals(
+                      orcamento,
+                      currencyFormat,
+                      boldFont,
+                      font,
+                    ),
+                  ),
+                  if (assinaturaBytes != null &&
+                      assinaturaBytes.isNotEmpty) ...[
+                    pw.SizedBox(height: 24),
+                    _buildAssinaturaSection(assinaturaBytes, boldFont, font),
+                  ],
+                ],
+              ),
             ],
       ),
     );
@@ -75,14 +153,15 @@ class OrcamentoPdfGenerator {
     return pdf.save();
   }
 
-  // ✅ CORREÇÃO 2: Os helpers agora extraem os dados do objeto Orcamento
+  // Cabeçalho clássico com faixa colorida, logo e dados
   static pw.Widget _buildHeader(
     Orcamento orcamento,
     BusinessProvider provider,
     pw.Font boldFont,
     pw.Font regularFont,
-    Uint8List? logoBytes,
-  ) {
+    Uint8List? logoBytes, {
+    PdfColor? textColor,
+  }) {
     pw.ImageProvider? logoImage;
     if (logoBytes != null && logoBytes.isNotEmpty) {
       logoImage = pw.MemoryImage(logoBytes);
@@ -108,18 +187,28 @@ class OrcamentoPdfGenerator {
                   children: [
                     pw.Text(
                       provider.nomeEmpresa,
-                      style: pw.TextStyle(font: boldFont, fontSize: 20),
+                      style: pw.TextStyle(
+                        font: boldFont,
+                        fontSize: 20,
+                        color: textColor,
+                      ),
                     ),
                     pw.SizedBox(height: 8),
                     if (provider.telefone.isNotEmpty)
                       pw.Text(
                         provider.telefone,
-                        style: pw.TextStyle(font: regularFont),
+                        style: pw.TextStyle(
+                          font: regularFont,
+                          color: textColor,
+                        ),
                       ),
                     if (provider.emailEmpresa.isNotEmpty)
                       pw.Text(
                         provider.emailEmpresa,
-                        style: pw.TextStyle(font: regularFont),
+                        style: pw.TextStyle(
+                          font: regularFont,
+                          color: textColor,
+                        ),
                       ),
                   ],
                 ),
@@ -133,20 +222,19 @@ class OrcamentoPdfGenerator {
           children: [
             pw.Text(
               'Orçamento #${orcamento.numero.toString().padLeft(4, '0')}',
-              style: pw.TextStyle(font: boldFont, fontSize: 14),
+              style: pw.TextStyle(
+                font: boldFont,
+                fontSize: 14,
+                color: textColor,
+              ),
             ),
             pw.SizedBox(height: 4),
             pw.Text(
               'Data: ${DateFormat('dd/MM/yyyy').format(orcamento.dataCriacao.toDate())}',
-              style: pw.TextStyle(font: regularFont, fontSize: 10),
-            ),
-            pw.SizedBox(height: 4),
-            pw.Container(
-              height: 40,
-              width: 40,
-              child: pw.BarcodeWidget(
-                barcode: pw.Barcode.qrCode(),
-                data: 'Orçamento #${orcamento.numero}',
+              style: pw.TextStyle(
+                font: regularFont,
+                fontSize: 10,
+                color: textColor,
               ),
             ),
           ],
@@ -320,6 +408,8 @@ class OrcamentoPdfGenerator {
     );
   }
 
+  // (Seção de condições de pagamento removida para voltar ao layout anterior do PDF)
+
   static pw.Widget _buildAssinaturaSection(
     Uint8List assinatura,
     pw.Font boldFont,
@@ -350,4 +440,58 @@ class OrcamentoPdfGenerator {
       ],
     );
   }
+
+  static pw.Widget _sectionLabel(
+    String text, {
+    required PdfColor bg,
+    required PdfColor fg,
+    required pw.Font font,
+  }) {
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        color: bg,
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          font: font,
+          fontWeight: pw.FontWeight.bold,
+          fontSize: 14,
+          color: fg,
+        ),
+      ),
+    );
+  }
+
+  // Hifenização básica PT-BR (heurística): insere Soft Hyphen em palavras muito longas
+  // para permitir quebra de linha automática no PDF sem artefatos visuais.
+  static String _hyphenatePtBr(String text) {
+    if (text.isEmpty) return text;
+    final buf = StringBuffer();
+    final parts = text.split(RegExp(r'(\s+)'));
+    for (final part in parts) {
+      // Mantém separadores (espaços/linhas) intactos
+      if (RegExp(r'^\s+$').hasMatch(part)) {
+        buf.write(part);
+        continue;
+      }
+      // Palavras curtas ficam como estão
+      if (part.length <= 14) {
+        buf.write(part);
+        continue;
+      }
+      // Para palavras longas, insere soft hyphen a cada 8-10 caracteres
+      const chunk = 8;
+      for (int i = 0; i < part.length; i += chunk) {
+        final end = (i + chunk < part.length) ? i + chunk : part.length;
+        buf.write(part.substring(i, end));
+        if (end < part.length) buf.write('\u00AD'); // soft hyphen
+      }
+    }
+    return buf.toString();
+  }
+
+  // Removidas heurísticas de medição/que bra; o MultiPage faz a paginação natural
 }

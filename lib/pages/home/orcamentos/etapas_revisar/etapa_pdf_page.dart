@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/cliente.dart';
 import '../../../../providers/business_provider.dart';
+import '../../../../utils/color_utils.dart';
 
 class EtapaPdfPage extends StatefulWidget {
   final Cliente cliente;
@@ -10,6 +12,12 @@ class EtapaPdfPage extends StatefulWidget {
   final double subtotal;
   final double desconto;
   final double valorTotal;
+  final String? metodoPagamento; // dinheiro, pix, debito, credito, boleto
+  final int? parcelas; // quando crédito
+  final String? laudoTecnico;
+  final String? condicoesContratuais;
+  final String? garantia;
+  final String? informacoesAdicionais;
 
   const EtapaPdfPage({
     super.key,
@@ -18,6 +26,12 @@ class EtapaPdfPage extends StatefulWidget {
     required this.subtotal,
     required this.desconto,
     required this.valorTotal,
+    this.metodoPagamento,
+    this.parcelas,
+    this.laudoTecnico,
+    this.condicoesContratuais,
+    this.garantia,
+    this.informacoesAdicionais,
   });
 
   @override
@@ -36,6 +50,29 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
   @override
   Widget build(BuildContext context) {
     final businessProvider = context.watch<BusinessProvider>();
+    final csBase = Theme.of(context).colorScheme;
+    final theme = businessProvider.pdfTheme;
+    // Cores com override do tema salvo
+    final cs = _ResolvedColors(
+      primary: ColorUtils.fromArgbInt(theme?['primary']) ?? csBase.primary,
+      onPrimary:
+          ColorUtils.fromArgbInt(theme?['onPrimary']) ?? csBase.onPrimary,
+      secondaryContainer:
+          ColorUtils.fromArgbInt(theme?['secondaryContainer']) ??
+          csBase.secondaryContainer,
+      onSecondaryContainer:
+          ColorUtils.fromArgbInt(theme?['onSecondaryContainer']) ??
+          csBase.onSecondaryContainer,
+      tertiaryContainer:
+          ColorUtils.fromArgbInt(theme?['tertiaryContainer']) ??
+          csBase.tertiaryContainer,
+      onTertiaryContainer:
+          ColorUtils.fromArgbInt(theme?['onTertiaryContainer']) ??
+          csBase.onTertiaryContainer,
+      outlineVariant:
+          ColorUtils.fromArgbInt(theme?['outlineVariant']) ??
+          csBase.outlineVariant,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -55,31 +92,248 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (businessProvider.nomeEmpresa.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else
-              _buildHeader(context, businessProvider),
+            // Cabeçalho com faixa colorida
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cs.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child:
+                  (businessProvider.nomeEmpresa.isEmpty)
+                      ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      )
+                      : _buildHeader(
+                        context,
+                        businessProvider,
+                        textColor: cs.onPrimary,
+                      ),
+            ),
             const Divider(height: 40, thickness: 1),
+            _sectionLabel(
+              context,
+              'Dados do Cliente',
+              bg: cs.secondaryContainer,
+              fg: cs.onSecondaryContainer,
+            ),
+            const SizedBox(height: 12),
             _buildClientInfo(context),
+            if ((businessProvider.descricao ?? '').isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                businessProvider.descricao!,
+                style: const TextStyle(color: Colors.black87),
+              ),
+            ],
             const SizedBox(height: 24),
-            Text(
+            _sectionLabel(
+              context,
               'Itens do Orçamento',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              bg: cs.tertiaryContainer,
+              fg: cs.onTertiaryContainer,
             ),
             const SizedBox(height: 16),
             _buildItemsList(context), // Trocamos a tabela por uma lista
             const SizedBox(height: 24),
-            _buildTotals(context),
+            // Secção de pagamento para paridade com o PDF gerado
+            _sectionLabel(
+              context,
+              'Condições de pagamento',
+              bg: cs.secondaryContainer,
+              fg: cs.onSecondaryContainer,
+            ),
+            const SizedBox(height: 8),
+            _buildPagamentoSection(context, businessProvider),
+            const SizedBox(height: 24),
+            if ((widget.laudoTecnico ?? '').trim().isNotEmpty) ...[
+              _sectionLabel(
+                context,
+                'Laudo técnico',
+                bg: cs.tertiaryContainer,
+                fg: cs.onTertiaryContainer,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cs.outlineVariant),
+                ),
+                child: Text(
+                  widget.laudoTecnico!,
+                  style: const TextStyle(fontSize: 13),
+                  softWrap: true,
+                ),
+              ),
+            ],
+            if ((widget.condicoesContratuais ?? '').trim().isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _sectionLabel(
+                context,
+                'Condições contratuais',
+                bg: cs.tertiaryContainer,
+                fg: cs.onTertiaryContainer,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cs.outlineVariant),
+                ),
+                child: Text(
+                  widget.condicoesContratuais!,
+                  style: const TextStyle(fontSize: 13),
+                  softWrap: true,
+                ),
+              ),
+            ],
+            if ((widget.garantia ?? '').trim().isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _sectionLabel(
+                context,
+                'Garantia',
+                bg: cs.tertiaryContainer,
+                fg: cs.onTertiaryContainer,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cs.outlineVariant),
+                ),
+                child: Text(
+                  widget.garantia!,
+                  style: const TextStyle(fontSize: 13),
+                  softWrap: true,
+                ),
+              ),
+            ],
+            if ((widget.informacoesAdicionais ?? '').trim().isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _sectionLabel(
+                context,
+                'Informações adicionais',
+                bg: cs.tertiaryContainer,
+                fg: cs.onTertiaryContainer,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cs.outlineVariant),
+                ),
+                child: Text(
+                  widget.informacoesAdicionais!,
+                  style: const TextStyle(fontSize: 13),
+                  softWrap: true,
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
+            // Caixa de totais com destaque
+            Container(
+              decoration: BoxDecoration(
+                color: cs.secondaryContainer,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: cs.outlineVariant),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: _buildTotals(context),
+            ),
+            const SizedBox(height: 24),
+            _buildAssinaturaSection(context, businessProvider),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPagamentoSection(BuildContext context, BusinessProvider bp) {
+    final metodo = widget.metodoPagamento?.trim() ?? '';
+    final parcelas = widget.parcelas;
+    if (metodo.isEmpty) {
+      return Text(
+        'Não informado',
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+      );
+    }
+
+    String label;
+    switch (metodo) {
+      case 'dinheiro':
+        label = 'Dinheiro';
+        break;
+      case 'pix':
+        label = 'Pix';
+        break;
+      case 'debito':
+        label = 'Débito';
+        break;
+      case 'credito':
+        label =
+            'Crédito' + ((parcelas ?? 1) > 1 ? ' em ${parcelas}x' : ' à vista');
+        break;
+      case 'boleto':
+        label = 'Boleto';
+        break;
+      default:
+        label = metodo;
+    }
+
+    final children = <Widget>[
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Forma de pagamento:',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          Text(label),
+        ],
+      ),
+    ];
+
+    if (metodo == 'pix' && bp.pixChave != null && bp.pixChave!.isNotEmpty) {
+      final tipo = bp.pixTipo ?? 'chave';
+      children.add(const SizedBox(height: 6));
+      children.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.qr_code_2_outlined, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SelectableText(
+                'Chave Pix (${tipo}): ${bp.pixChave!}',
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 
@@ -189,45 +443,88 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
 
   // --- O restante do seu código (helpers, etc.) permanece o mesmo ---
 
-  Widget _buildHeader(BuildContext context, BusinessProvider provider) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                provider.nomeEmpresa,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+  Widget _buildHeader(
+    BuildContext context,
+    BusinessProvider provider, {
+    Color? textColor,
+  }) {
+    return FutureBuilder<Uint8List?>(
+      future: provider.getLogoBytes(),
+      builder: (context, snap) {
+        final logoBytes = snap.data;
+        Widget? logo;
+        if (logoBytes != null && logoBytes.isNotEmpty) {
+          logo = Image.memory(logoBytes, fit: BoxFit.contain);
+        } else if (provider.logoUrl != null && provider.logoUrl!.isNotEmpty) {
+          // Fallback: mostra via URL enquanto os bytes não chegam
+          logo = Image.network(provider.logoUrl!, fit: BoxFit.contain);
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (logo != null)
+              Container(
+                width: 60,
+                height: 60,
+                margin: const EdgeInsets.only(right: 12),
+                child: logo,
               ),
-              const SizedBox(height: 8),
-              if (provider.telefone.isNotEmpty)
-                _buildInfoLinha(Icons.phone_outlined, provider.telefone),
-              if (provider.emailEmpresa.isNotEmpty)
-                _buildInfoLinha(Icons.email_outlined, provider.emailEmpresa),
-              if (provider.endereco.isNotEmpty)
-                _buildInfoLinha(Icons.location_on_outlined, provider.endereco),
-              if (provider.cnpj.isNotEmpty)
-                _buildInfoLinha(Icons.badge_outlined, provider.cnpj),
-            ],
-          ),
-        ),
-        const Icon(Icons.business, size: 50, color: Colors.grey),
-      ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    provider.nomeEmpresa.isNotEmpty
+                        ? provider.nomeEmpresa
+                        : 'Minha Empresa',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (provider.telefone.isNotEmpty)
+                    _buildInfoLinha(
+                      Icons.phone_outlined,
+                      provider.telefone,
+                      color: textColor,
+                    ),
+                  if (provider.emailEmpresa.isNotEmpty)
+                    _buildInfoLinha(
+                      Icons.email_outlined,
+                      provider.emailEmpresa,
+                      color: textColor,
+                    ),
+                  if (provider.endereco.isNotEmpty)
+                    _buildInfoLinha(
+                      Icons.location_on_outlined,
+                      provider.endereco,
+                      color: textColor,
+                    ),
+                  if (provider.cnpj.isNotEmpty)
+                    _buildInfoLinha(
+                      Icons.badge_outlined,
+                      provider.cnpj,
+                      color: textColor,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildInfoLinha(IconData icon, String text) {
+  Widget _buildInfoLinha(IconData icon, String text, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.only(top: 4.0),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: Colors.grey.shade700),
+          Icon(icon, size: 14, color: color ?? Colors.grey.shade700),
           const SizedBox(width: 8),
-          Expanded(child: Text(text)),
+          Expanded(child: Text(text, style: TextStyle(color: color))),
         ],
       ),
     );
@@ -287,15 +584,7 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
     );
   }
 
-  Padding _tableHeader(String text, {TextAlign alignment = TextAlign.left}) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          text,
-          textAlign: alignment,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-      );
+  // Removido: _tableHeader não é mais utilizado após migrar para lista flexível de itens.
   Widget _totalRow(String label, String value, {bool isTotal = false}) {
     final style = TextStyle(
       fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
@@ -309,4 +598,95 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
       ),
     );
   }
+
+  Widget _sectionLabel(
+    BuildContext context,
+    String text, {
+    required Color bg,
+    required Color fg,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAssinaturaSection(
+    BuildContext context,
+    BusinessProvider provider,
+  ) {
+    // Se não houver assinatura cadastrada, não exibe a seção
+    if (provider.assinaturaUrl == null || provider.assinaturaUrl!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return FutureBuilder<Uint8List?>(
+      future: provider.getAssinaturaBytes(),
+      builder: (context, snap) {
+        Widget? assinatura;
+        if (snap.hasData && snap.data != null) {
+          assinatura = Image.memory(snap.data!, fit: BoxFit.contain);
+        } else if (provider.assinaturaUrl != null &&
+            provider.assinaturaUrl!.isNotEmpty) {
+          // Fallback por URL com pequeno cache-buster
+          final url = provider.assinaturaUrl!;
+          final sep = url.contains('?') ? '&' : '?';
+          final busted = '$url${sep}t=${DateTime.now().millisecondsSinceEpoch}';
+          assinatura = Image.network(
+            busted,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          );
+        }
+        if (assinatura == null) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(height: 80, child: Center(child: assinatura)),
+            Container(
+              height: 1,
+              color: Colors.grey.shade400,
+              margin: const EdgeInsets.symmetric(horizontal: 80, vertical: 8),
+            ),
+            Text(
+              'Assinatura',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade700),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ResolvedColors {
+  final Color primary;
+  final Color onPrimary;
+  final Color secondaryContainer;
+  final Color onSecondaryContainer;
+  final Color tertiaryContainer;
+  final Color onTertiaryContainer;
+  final Color outlineVariant;
+
+  const _ResolvedColors({
+    required this.primary,
+    required this.onPrimary,
+    required this.secondaryContainer,
+    required this.onSecondaryContainer,
+    required this.tertiaryContainer,
+    required this.onTertiaryContainer,
+    required this.outlineVariant,
+  });
 }

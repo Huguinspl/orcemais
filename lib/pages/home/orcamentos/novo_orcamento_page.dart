@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../models/cliente.dart';
 import '../../../models/orcamento.dart';
@@ -8,12 +7,17 @@ import '../../../providers/orcamentos_provider.dart';
 import '../tabs/clientes_page.dart';
 import 'novo_orcamento/etapa_cliente.dart';
 import 'novo_orcamento/etapa_itens.dart';
+import 'novo_orcamento/etapa_detalhes.dart';
+import 'novo_orcamento/formas_pagamento_page.dart';
 import 'novo_orcamento/rodape_orcamento.dart';
 import 'novo_orcamento/selecionar_servicos_page.dart';
 import 'novo_orcamento/selecionar_pecas_page.dart'; // ✅ CORREÇÃO 1: Importar a página de peças
 import 'revisar_orcamento_page.dart';
-import 'novo_orcamento/dialogo_desconto.dart';
+import 'novo_orcamento/aplicar_desconto_page.dart';
 import 'novo_orcamento/etapas_bar.dart';
+import 'novo_orcamento/contratos_e_garantia_page.dart';
+import 'novo_orcamento/laudo_tecnico_page.dart';
+import 'novo_orcamento/informacoes_adicionais_page.dart';
 
 enum DescontoTipo { percentual, valor }
 
@@ -36,6 +40,18 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
   double _desconto = 0.0;
   double _valorTotal = 0.0;
 
+  // Resumos/estado simples para etapa Detalhes (placeholders iniciais)
+  String? _resumoFormaPagamento;
+  String? _metodoPagamento; // dinheiro, pix, debito, credito, boleto
+  int? _parcelas; // quando crédito
+  String? _resumoLaudoTecnico;
+  String? _laudoTecnico;
+  String? _resumoCondicoes;
+  String? _resumoGarantiaData;
+  String? _condicoesContratuais;
+  String? _garantia;
+  String? _informacoesAdicionais;
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +60,19 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
       clienteSelecionado = o.cliente;
       _itensDoOrcamento.addAll(List<Map<String, dynamic>>.from(o.itens));
       _desconto = o.desconto;
+      _metodoPagamento = o.metodoPagamento;
+      _parcelas = o.parcelas;
+      _laudoTecnico = o.laudoTecnico;
+      _condicoesContratuais = o.condicoesContratuais;
+      _garantia = o.garantia;
+      _informacoesAdicionais = o.informacoesAdicionais;
+      if (_metodoPagamento != null) {
+        _resumoFormaPagamento =
+            _metodoPagamento == 'credito' && _parcelas != null
+                ? 'Crédito em ${_parcelas}x'
+                : _metodoPagamento!.substring(0, 1).toUpperCase() +
+                    _metodoPagamento!.substring(1);
+      }
       _calcularTotais();
     }
   }
@@ -78,9 +107,11 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
   }
 
   Future<void> _mostrarDialogoDesconto() async {
-    final resultado = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (_) => DialogoDesconto(subtotal: _subtotal),
+    final resultado = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AplicarDescontoPage(subtotal: _subtotal),
+      ),
     );
     if (resultado != null && mounted) {
       final tipo = resultado['tipo'] as DescontoTipo;
@@ -98,6 +129,97 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
         _desconto = descontoCalculado;
       });
       _calcularTotais();
+    }
+  }
+
+  // Placeholders: abra uma página/diálogo no futuro; por ora, só marca um resumo
+  void _editarFormaPagamentoParcelas() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (_) => const FormasPagamentoPage()),
+    );
+    if (result != null && mounted) {
+      setState(() {
+        _resumoFormaPagamento = result['resumo'] as String?;
+        _metodoPagamento = result['metodo'] as String?;
+        _parcelas = result['parcelas'] as int?;
+      });
+    }
+  }
+
+  void _editarLaudoTecnico() async {
+    final texto = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LaudoTecnicoPage(textoInicial: _laudoTecnico),
+      ),
+    );
+    if (!mounted) return;
+    if (texto != null) {
+      setState(() {
+        _laudoTecnico = texto;
+        _resumoLaudoTecnico =
+            texto.length > 60 ? '${texto.substring(0, 60)}…' : texto;
+      });
+    }
+  }
+
+  Future<void> _editarCondicoesContratuais() async {
+    final res = await Navigator.push<Map<String, String>>(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => ContratosEGarantiaPage(
+              condicoesIniciais: _condicoesContratuais,
+              garantiaInicial: _garantia,
+            ),
+      ),
+    );
+    if (!mounted) return;
+    if (res != null) {
+      setState(() {
+        _condicoesContratuais = res['condicoes'];
+        _garantia = res['garantia'];
+        _resumoCondicoes =
+            (_condicoesContratuais ?? '').isNotEmpty
+                ? (_condicoesContratuais!.length > 60
+                    ? '${_condicoesContratuais!.substring(0, 60)}…'
+                    : _condicoesContratuais)
+                : null;
+        _resumoGarantiaData =
+            (_garantia ?? '').isNotEmpty
+                ? (_garantia!.length > 60
+                    ? '${_garantia!.substring(0, 60)}…'
+                    : _garantia)
+                : null;
+      });
+    }
+  }
+
+  void _editarGarantiaEDataVisita() async {
+    // Reusa a mesma página para editar as duas coisas
+    await _editarCondicoesContratuais();
+  }
+
+  void _editarInformacoesAdicionais() async {
+    final texto = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) =>
+                InformacoesAdicionaisPage(textoInicial: _informacoesAdicionais),
+      ),
+    );
+    if (!mounted) return;
+    if (texto != null) {
+      setState(() {
+        _informacoesAdicionais = texto;
+        // Reutiliza o campo de resumo da última carta (antes usada para garantia/data)
+        _resumoGarantiaData =
+            texto.isNotEmpty
+                ? (texto.length > 60 ? '${texto.substring(0, 60)}…' : texto)
+                : null;
+      });
     }
   }
 
@@ -168,6 +290,12 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
         valorTotal: _valorTotal,
         status: widget.orcamento?.status ?? 'Aberto',
         dataCriacao: widget.orcamento?.dataCriacao ?? Timestamp.now(),
+        metodoPagamento: _metodoPagamento,
+        parcelas: _parcelas,
+        laudoTecnico: _laudoTecnico,
+        condicoesContratuais: _condicoesContratuais,
+        garantia: _garantia,
+        informacoesAdicionais: _informacoesAdicionais,
       );
       final provider = context.read<OrcamentosProvider>();
       final Orcamento orcamentoFinal;
@@ -278,6 +406,23 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
           onAdicionarPeca:
               _adicionarPeca, // <-- ✅ CORREÇÃO 3: Conectando a nova função
           onRemoverItem: _removerItem,
+        );
+      case 2:
+        return EtapaDetalhesWidget(
+          onDescontos: _mostrarDialogoDesconto,
+          onFormasPagamentoParcelas: _editarFormaPagamentoParcelas,
+          onLaudoTecnico: _editarLaudoTecnico,
+          onCondicoesContratuais: _editarCondicoesContratuais,
+          onGarantiaEDataVisita: _editarGarantiaEDataVisita,
+          onInformacoesAdicionais: _editarInformacoesAdicionais,
+          resumoDescontos:
+              _desconto > 0
+                  ? 'Desconto aplicado: R\$ ${_desconto.toStringAsFixed(2)}'
+                  : null,
+          resumoFormaPagamento: _resumoFormaPagamento,
+          resumoLaudoTecnico: _resumoLaudoTecnico,
+          resumoCondicoes: _resumoCondicoes,
+          resumoGarantiaData: _resumoGarantiaData,
         );
       default:
         return Center(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/business_provider.dart';
 import 'pix/editar_pix_page.dart';
-import 'signature/coletar_assinatura_page.dart';
+import '../tabs/signature/gerenciar_assinatura_page.dart';
+import 'descricao/editar_descricao_page.dart';
+import 'pdf/personalizar_pdf_page.dart';
 
 class PersonalizarOrcamentoPage extends StatelessWidget {
   const PersonalizarOrcamentoPage({super.key});
@@ -19,6 +21,38 @@ class PersonalizarOrcamentoPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _SectionCard(
+            icon: Icons.description_outlined,
+            title: 'Descrição do negócio',
+            subtitle:
+                (business.descricao != null && business.descricao!.isNotEmpty)
+                    ? 'Descrição cadastrada'
+                    : 'Adicionar uma breve descrição',
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const EditarDescricaoPage(),
+                  ),
+                ),
+          ),
+          const SizedBox(height: 16),
+          _SectionCard(
+            icon: Icons.color_lens_outlined,
+            title: 'Personalizar PDF',
+            subtitle:
+                (business.pdfTheme != null && business.pdfTheme!.isNotEmpty)
+                    ? 'Tema personalizado ativo'
+                    : 'Ajustar cores do PDF',
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PersonalizarPdfPage(),
+                  ),
+                ),
+          ),
+          const SizedBox(height: 16),
           _SectionCard(
             icon: Icons.qr_code_2_outlined,
             title: 'Chave Pix',
@@ -41,52 +75,20 @@ class PersonalizarOrcamentoPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _SectionCard(
-            icon: Icons.draw,
-            title: 'Assinatura',
+            icon: Icons.edit,
+            title: 'Cadastrar assinatura',
             subtitle:
-                business.assinaturaUrl == null
-                    ? 'Adicionar assinatura'
-                    : 'Assinatura cadastrada',
+                (business.assinaturaUrl != null &&
+                        business.assinaturaUrl!.isNotEmpty)
+                    ? 'Assinatura cadastrada'
+                    : 'Adicionar/atualizar a assinatura',
             onTap:
                 () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const ColetarAssinaturaPage(),
+                    builder: (_) => const GerenciarAssinaturaPage(),
                   ),
                 ),
-            trailing:
-                business.assinaturaUrl != null
-                    ? IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () async {
-                        final ok = await showDialog<bool>(
-                          context: context,
-                          builder:
-                              (ctx) => AlertDialog(
-                                title: const Text('Remover assinatura?'),
-                                content: const Text(
-                                  'Essa ação não pode ser desfeita.',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx, false),
-                                    child: const Text('Cancelar'),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () => Navigator.pop(ctx, true),
-                                    child: const Text('Remover'),
-                                  ),
-                                ],
-                              ),
-                        );
-                        if (ok == true) {
-                          await context
-                              .read<BusinessProvider>()
-                              .removerAssinatura();
-                        }
-                      },
-                    )
-                    : null,
           ),
         ],
       ),

@@ -17,6 +17,7 @@ class SignupPage extends StatefulWidget {
 class _SignupPageState extends State<SignupPage> {
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
+
   final _confirmarSenhaController = TextEditingController();
 
   bool _obscureSenha = true;
@@ -41,13 +42,17 @@ class _SignupPageState extends State<SignupPage> {
 
     try {
       /* 1) Autenticação Firebase */
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: senha,
       );
 
-      /* 2) Documento em Firestore (email “fixo”) */
-      await FirestoreService().createUser(email: email);
+      /* 2) Documento em Firestore (usa UID recém-criado) */
+      final uid = cred.user?.uid;
+      if (uid == null) {
+        throw Exception('Falha ao obter UID do usuário recém-criado.');
+      }
+      await FirestoreService().createUser(uid: uid, email: email);
 
       /* 3) Flags locais */
       final prefs = await SharedPreferences.getInstance();

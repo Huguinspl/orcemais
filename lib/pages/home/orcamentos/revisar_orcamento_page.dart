@@ -72,12 +72,44 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
 
   Widget _buildConteudoAba() {
     if (_abaSelecionada == 0) {
-      return EtapaPdfPage(
-        cliente: widget.orcamento.cliente,
-        itens: widget.orcamento.itens,
-        subtotal: widget.orcamento.subtotal,
-        desconto: widget.orcamento.desconto,
-        valorTotal: widget.orcamento.valorTotal,
+      return Column(
+        children: [
+          if (widget.orcamento.metodoPagamento != null)
+            Container(
+              width: double.infinity,
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceVariant.withOpacity(0.3),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.payments_outlined),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _pagamentoResumo(widget.orcamento),
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: EtapaPdfPage(
+              cliente: widget.orcamento.cliente,
+              itens: widget.orcamento.itens,
+              subtotal: widget.orcamento.subtotal,
+              desconto: widget.orcamento.desconto,
+              valorTotal: widget.orcamento.valorTotal,
+              metodoPagamento: widget.orcamento.metodoPagamento,
+              parcelas: widget.orcamento.parcelas,
+              laudoTecnico: widget.orcamento.laudoTecnico,
+              condicoesContratuais: widget.orcamento.condicoesContratuais,
+              garantia: widget.orcamento.garantia,
+              informacoesAdicionais: widget.orcamento.informacoesAdicionais,
+            ),
+          ),
+        ],
       );
     } else {
       return EtapaLinkWebPage(
@@ -87,6 +119,26 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
         desconto: widget.orcamento.desconto,
         valorTotal: widget.orcamento.valorTotal,
       );
+    }
+  }
+
+  String _pagamentoResumo(Orcamento o) {
+    final m = o.metodoPagamento;
+    if (m == null) return '';
+    switch (m) {
+      case 'credito':
+        final p = o.parcelas ?? 1;
+        return 'Forma de pagamento: Crédito em ${p}x';
+      case 'debito':
+        return 'Forma de pagamento: Débito';
+      case 'pix':
+        return 'Forma de pagamento: Pix';
+      case 'dinheiro':
+        return 'Forma de pagamento: Dinheiro';
+      case 'boleto':
+        return 'Forma de pagamento: Boleto';
+      default:
+        return 'Forma de pagamento: $m';
     }
   }
 

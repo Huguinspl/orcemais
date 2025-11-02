@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../routes/app_routes.dart';
 import '../providers/user_provider.dart';
+import '../providers/business_provider.dart';
 import 'package:gestorfy/pages/home/home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -27,6 +28,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     final userProv = context.read<UserProvider>(); // capturado antes de awaits
+    final businessProv = context.read<BusinessProvider>();
 
     try {
       final email = _emailController.text.trim();
@@ -45,6 +47,8 @@ class _LoginPageState extends State<LoginPage> {
       // 3) Provider: email fixo + carga completa do Firestore
       userProv.setEmailCadastro(email);
       await userProv.carregarDoFirestore();
+      // Garante que os dados do negócio do usuário logado sejam recarregados
+      await businessProv.carregarDoFirestore();
 
       // 4) UX extra
       if (mounted) {

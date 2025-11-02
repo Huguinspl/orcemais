@@ -11,6 +11,13 @@ class Orcamento {
   final double valorTotal;
   final String status;
   final Timestamp dataCriacao;
+  // Novos campos: pagamento
+  final String? metodoPagamento; // dinheiro, pix, debito, credito, boleto
+  final int? parcelas; // quando crédito
+  final String? laudoTecnico; // texto livre
+  final String? condicoesContratuais; // texto livre
+  final String? garantia; // texto livre
+  final String? informacoesAdicionais; // texto livre
 
   Orcamento({
     required this.id,
@@ -22,6 +29,12 @@ class Orcamento {
     required this.valorTotal,
     required this.status,
     required this.dataCriacao,
+    this.metodoPagamento,
+    this.parcelas,
+    this.laudoTecnico,
+    this.condicoesContratuais,
+    this.garantia,
+    this.informacoesAdicionais,
   });
 
   factory Orcamento.fromFirestore(DocumentSnapshot doc) {
@@ -36,6 +49,12 @@ class Orcamento {
       valorTotal: (data['valorTotal'] ?? 0.0).toDouble(),
       status: data['status'] ?? 'Aberto',
       dataCriacao: data['dataCriacao'] ?? Timestamp.now(),
+      metodoPagamento: data['metodoPagamento'],
+      parcelas: data['parcelas'],
+      laudoTecnico: data['laudoTecnico'],
+      condicoesContratuais: data['condicoesContratuais'],
+      garantia: data['garantia'],
+      informacoesAdicionais: data['informacoesAdicionais'],
     );
   }
 
@@ -49,6 +68,12 @@ class Orcamento {
       'valorTotal': valorTotal,
       'status': status,
       'dataCriacao': dataCriacao,
+      'metodoPagamento': metodoPagamento,
+      'parcelas': parcelas,
+      'laudoTecnico': laudoTecnico,
+      'condicoesContratuais': condicoesContratuais,
+      'garantia': garantia,
+      'informacoesAdicionais': informacoesAdicionais,
     };
   }
 }
