@@ -117,8 +117,9 @@ class OrcamentosProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      // Ordena por dataCriacao do mais recente para o mais antigo
       final snapshot =
-          await _orcamentosRef.orderBy('numero', descending: true).get();
+          await _orcamentosRef.orderBy('dataCriacao', descending: true).get();
       _orcamentos =
           snapshot.docs.map((doc) => Orcamento.fromFirestore(doc)).toList();
     } catch (e) {

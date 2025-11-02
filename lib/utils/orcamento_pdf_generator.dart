@@ -90,6 +90,13 @@ class OrcamentoPdfGenerator {
                   textColor: onPrimary,
                 ),
               ),
+              if ((businessProvider.descricao ?? '').isNotEmpty) ...[
+                pw.SizedBox(height: 12),
+                pw.Text(
+                  businessProvider.descricao!,
+                  style: pw.TextStyle(font: font, fontSize: 10),
+                ),
+              ],
               pw.SizedBox(height: 16),
               _sectionLabel(
                 'Dados do Cliente',
@@ -99,13 +106,6 @@ class OrcamentoPdfGenerator {
               ),
               pw.SizedBox(height: 8),
               _buildClientInfo(orcamento.cliente, boldFont, font),
-              if ((businessProvider.descricao ?? '').isNotEmpty) ...[
-                pw.SizedBox(height: 12),
-                pw.Text(
-                  _hyphenatePtBr(businessProvider.descricao!),
-                  style: pw.TextStyle(font: font, fontSize: 10),
-                ),
-              ],
               pw.SizedBox(height: 24),
               _sectionLabel(
                 'Itens do Orçamento',
@@ -122,6 +122,74 @@ class OrcamentoPdfGenerator {
                 italicFont,
               ),
               pw.SizedBox(height: 24),
+              _sectionLabel(
+                'Condições de pagamento',
+                bg: tertiaryContainer,
+                fg: onTertiaryContainer,
+                font: boldFont,
+              ),
+              pw.SizedBox(height: 8),
+              _buildPagamentoSection(
+                orcamento,
+                businessProvider,
+                boldFont,
+                font,
+              ),
+              pw.SizedBox(height: 24),
+              if ((orcamento.laudoTecnico ?? '').trim().isNotEmpty) ...[
+                _sectionLabel(
+                  'Laudo técnico',
+                  bg: tertiaryContainer,
+                  fg: onTertiaryContainer,
+                  font: boldFont,
+                ),
+                pw.SizedBox(height: 8),
+                _buildLaudoTecnicoSection(orcamento, font, outlineVariant),
+                pw.SizedBox(height: 24),
+              ],
+              if ((orcamento.garantia ?? '').trim().isNotEmpty) ...[
+                _sectionLabel(
+                  'Garantia',
+                  bg: tertiaryContainer,
+                  fg: onTertiaryContainer,
+                  font: boldFont,
+                ),
+                pw.SizedBox(height: 8),
+                _buildTextSection(orcamento.garantia!, font, outlineVariant),
+                pw.SizedBox(height: 24),
+              ],
+              if ((orcamento.condicoesContratuais ?? '').trim().isNotEmpty) ...[
+                _sectionLabel(
+                  'Condições Contratuais',
+                  bg: tertiaryContainer,
+                  fg: onTertiaryContainer,
+                  font: boldFont,
+                ),
+                pw.SizedBox(height: 8),
+                _buildTextSection(
+                  orcamento.condicoesContratuais!,
+                  font,
+                  outlineVariant,
+                ),
+                pw.SizedBox(height: 24),
+              ],
+              if ((orcamento.informacoesAdicionais ?? '')
+                  .trim()
+                  .isNotEmpty) ...[
+                _sectionLabel(
+                  'Informações Adicionais',
+                  bg: tertiaryContainer,
+                  fg: onTertiaryContainer,
+                  font: boldFont,
+                ),
+                pw.SizedBox(height: 8),
+                _buildTextSection(
+                  orcamento.informacoesAdicionais!,
+                  font,
+                  outlineVariant,
+                ),
+                pw.SizedBox(height: 24),
+              ],
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
@@ -408,6 +476,170 @@ class OrcamentoPdfGenerator {
     );
   }
 
+  static pw.Widget _buildPagamentoSection(
+    Orcamento orcamento,
+    BusinessProvider businessProvider,
+    pw.Font boldFont,
+    pw.Font regularFont,
+  ) {
+    final metodo = orcamento.metodoPagamento?.trim() ?? '';
+    final parcelas = orcamento.parcelas;
+
+    // Se não há método de pagamento informado
+    if (metodo.isEmpty) {
+      return pw.Text(
+        'Não informado',
+        style: pw.TextStyle(
+          font: regularFont,
+          fontSize: 10,
+          color: PdfColors.grey600,
+        ),
+      );
+    }
+
+    // Determina o label de acordo com o método
+    String label;
+    switch (metodo) {
+      case 'dinheiro':
+        label = 'Dinheiro';
+        break;
+      case 'pix':
+        label = 'Pix';
+        break;
+      case 'debito':
+        label = 'Débito';
+        break;
+      case 'credito':
+        label =
+            'Crédito' + ((parcelas ?? 1) > 1 ? ' em ${parcelas}x' : ' à vista');
+        break;
+      case 'boleto':
+        label = 'Boleto';
+        break;
+      default:
+        label = metodo;
+    }
+
+    // Lista de widgets a serem renderizados
+    final children = <pw.Widget>[
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            'Forma de pagamento:',
+            style: pw.TextStyle(
+              font: boldFont,
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 11,
+            ),
+          ),
+          pw.Text(label, style: pw.TextStyle(font: regularFont, fontSize: 11)),
+        ],
+      ),
+    ];
+
+    // Se for Pix e houver chave cadastrada, adiciona as informações
+    if (metodo == 'pix' &&
+        businessProvider.pixChave != null &&
+        businessProvider.pixChave!.isNotEmpty) {
+      final tipo = businessProvider.pixTipo ?? 'chave';
+      children.add(pw.SizedBox(height: 8));
+      children.add(
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Container(
+              width: 16,
+              height: 16,
+              margin: const pw.EdgeInsets.only(right: 8),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.grey700, width: 1.5),
+                borderRadius: pw.BorderRadius.circular(3),
+              ),
+              child: pw.Center(
+                child: pw.Text(
+                  '⊞',
+                  style: pw.TextStyle(
+                    font: boldFont,
+                    fontSize: 10,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+              ),
+            ),
+            pw.Expanded(
+              child: pw.Text(
+                'Chave Pix ($tipo): ${businessProvider.pixChave!}',
+                style: pw.TextStyle(font: regularFont, fontSize: 10),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: children,
+    );
+  }
+
+  static pw.Widget _buildLaudoTecnicoSection(
+    Orcamento orcamento,
+    pw.Font regularFont,
+    PdfColor borderColor,
+  ) {
+    final laudoText = orcamento.laudoTecnico?.trim() ?? '';
+
+    if (laudoText.isEmpty) {
+      return pw.SizedBox.shrink();
+    }
+
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.white,
+        borderRadius: pw.BorderRadius.circular(12),
+        border: pw.Border.all(color: borderColor, width: 0.5),
+      ),
+      child: pw.Text(
+        laudoText,
+        style: pw.TextStyle(font: regularFont, fontSize: 11, lineSpacing: 1.5),
+        overflow: pw.TextOverflow.span,
+        textAlign: pw.TextAlign.left,
+      ),
+    );
+  }
+
+  static pw.Widget _buildTextSection(
+    String text,
+    pw.Font regularFont,
+    PdfColor borderColor,
+  ) {
+    final cleanText = text.trim();
+
+    if (cleanText.isEmpty) {
+      return pw.SizedBox.shrink();
+    }
+
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.white,
+        borderRadius: pw.BorderRadius.circular(12),
+        border: pw.Border.all(color: borderColor, width: 0.5),
+      ),
+      child: pw.Text(
+        cleanText,
+        style: pw.TextStyle(font: regularFont, fontSize: 11, lineSpacing: 1.5),
+        overflow: pw.TextOverflow.span,
+        textAlign: pw.TextAlign.left,
+      ),
+    );
+  }
+
   // (Seção de condições de pagamento removida para voltar ao layout anterior do PDF)
 
   static pw.Widget _buildAssinaturaSection(
@@ -463,34 +695,6 @@ class OrcamentoPdfGenerator {
         ),
       ),
     );
-  }
-
-  // Hifenização básica PT-BR (heurística): insere Soft Hyphen em palavras muito longas
-  // para permitir quebra de linha automática no PDF sem artefatos visuais.
-  static String _hyphenatePtBr(String text) {
-    if (text.isEmpty) return text;
-    final buf = StringBuffer();
-    final parts = text.split(RegExp(r'(\s+)'));
-    for (final part in parts) {
-      // Mantém separadores (espaços/linhas) intactos
-      if (RegExp(r'^\s+$').hasMatch(part)) {
-        buf.write(part);
-        continue;
-      }
-      // Palavras curtas ficam como estão
-      if (part.length <= 14) {
-        buf.write(part);
-        continue;
-      }
-      // Para palavras longas, insere soft hyphen a cada 8-10 caracteres
-      const chunk = 8;
-      for (int i = 0; i < part.length; i += chunk) {
-        final end = (i + chunk < part.length) ? i + chunk : part.length;
-        buf.write(part.substring(i, end));
-        if (end < part.length) buf.write('\u00AD'); // soft hyphen
-      }
-    }
-    return buf.toString();
   }
 
   // Removidas heurísticas de medição/que bra; o MultiPage faz a paginação natural

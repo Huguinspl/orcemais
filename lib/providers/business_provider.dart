@@ -280,6 +280,7 @@ class BusinessProvider extends ChangeNotifier {
 
   Future<Uint8List?> getLogoBytes() async {
     if (_logoCacheBytes != null) return _logoCacheBytes;
+
     // Em Web, não usar File system
     if (!kIsWeb && logoLocalPath != null) {
       try {
@@ -288,36 +289,59 @@ class BusinessProvider extends ChangeNotifier {
           _logoCacheBytes = await f.readAsBytes();
           return _logoCacheBytes;
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Erro ao ler logo do arquivo local: $e');
+      }
     }
+
+    // Buscar do Firebase Storage
     try {
       if (kIsWeb) {
         // No Web, prefira baixar direto do caminho conhecido no Storage
         if (_uid.isNotEmpty) {
-          final ref = FirebaseStorage.instance.ref('users/$_uid/logo.png');
-          final data = await ref.getData(5 * 1024 * 1024);
-          if (data != null) {
-            _logoCacheBytes = data;
-            return _logoCacheBytes;
+          try {
+            final ref = FirebaseStorage.instance.ref('users/$_uid/logo.png');
+            final data = await ref.getData(5 * 1024 * 1024);
+            if (data != null) {
+              _logoCacheBytes = data;
+              return _logoCacheBytes;
+            }
+          } catch (e) {
+            debugPrint('Erro ao baixar logo do path padrão: $e');
           }
         }
+
         // Fallback: se tiver URL, tentar a partir dela
-        if (logoUrl != null) {
-          final ref = FirebaseStorage.instance.refFromURL(logoUrl!);
-          final data = await ref.getData(5 * 1024 * 1024);
-          if (data != null) {
-            _logoCacheBytes = data;
-            return _logoCacheBytes;
+        if (logoUrl != null && logoUrl!.isNotEmpty) {
+          try {
+            final ref = FirebaseStorage.instance.refFromURL(logoUrl!);
+            final data = await ref.getData(5 * 1024 * 1024);
+            if (data != null) {
+              _logoCacheBytes = data;
+              return _logoCacheBytes;
+            }
+          } catch (e) {
+            debugPrint('Erro ao baixar logo da URL via Storage: $e');
           }
         }
-      } else if (logoUrl != null) {
-        final resp = await http.get(Uri.parse(logoUrl!));
-        if (resp.statusCode == 200) {
-          _logoCacheBytes = resp.bodyBytes;
-          return _logoCacheBytes;
+      } else {
+        // Mobile/Desktop: usar HTTP para baixar da URL
+        if (logoUrl != null && logoUrl!.isNotEmpty) {
+          try {
+            final resp = await http.get(Uri.parse(logoUrl!));
+            if (resp.statusCode == 200) {
+              _logoCacheBytes = resp.bodyBytes;
+              return _logoCacheBytes;
+            }
+          } catch (e) {
+            debugPrint('Erro ao baixar logo via HTTP: $e');
+          }
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Erro geral ao buscar logo: $e');
+    }
+
     return null;
   }
 
@@ -355,43 +379,70 @@ class BusinessProvider extends ChangeNotifier {
 
   Future<Uint8List?> getAssinaturaBytes() async {
     if (_assinaturaCacheBytes != null) return _assinaturaCacheBytes;
-    if (assinaturaLocalPath != null) {
+
+    // Tentar ler do arquivo local (mobile/desktop)
+    if (!kIsWeb && assinaturaLocalPath != null) {
       try {
         final f = File(assinaturaLocalPath!);
         if (await f.exists()) {
           _assinaturaCacheBytes = await f.readAsBytes();
           return _assinaturaCacheBytes;
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Erro ao ler assinatura do arquivo local: $e');
+      }
     }
+
+    // Buscar do Firebase Storage
     try {
       if (kIsWeb) {
+        // Web: baixar direto do Storage
         if (_uid.isNotEmpty) {
-          final ref = FirebaseStorage.instance.ref(
-            'users/$_uid/assinatura.png',
-          );
-          final data = await ref.getData(5 * 1024 * 1024);
-          if (data != null) {
-            _assinaturaCacheBytes = data;
-            return _assinaturaCacheBytes;
+          try {
+            final ref = FirebaseStorage.instance.ref(
+              'users/$_uid/assinatura.png',
+            );
+            final data = await ref.getData(5 * 1024 * 1024);
+            if (data != null) {
+              _assinaturaCacheBytes = data;
+              return _assinaturaCacheBytes;
+            }
+          } catch (e) {
+            debugPrint('Erro ao baixar assinatura do path padrão: $e');
           }
         }
-        if (assinaturaUrl != null) {
-          final ref = FirebaseStorage.instance.refFromURL(assinaturaUrl!);
-          final data = await ref.getData(5 * 1024 * 1024);
-          if (data != null) {
-            _assinaturaCacheBytes = data;
-            return _assinaturaCacheBytes;
+
+        // Fallback: tentar a partir da URL
+        if (assinaturaUrl != null && assinaturaUrl!.isNotEmpty) {
+          try {
+            final ref = FirebaseStorage.instance.refFromURL(assinaturaUrl!);
+            final data = await ref.getData(5 * 1024 * 1024);
+            if (data != null) {
+              _assinaturaCacheBytes = data;
+              return _assinaturaCacheBytes;
+            }
+          } catch (e) {
+            debugPrint('Erro ao baixar assinatura da URL via Storage: $e');
           }
         }
-      } else if (assinaturaUrl != null) {
-        final resp = await http.get(Uri.parse(assinaturaUrl!));
-        if (resp.statusCode == 200) {
-          _assinaturaCacheBytes = resp.bodyBytes;
-          return _assinaturaCacheBytes;
+      } else {
+        // Mobile/Desktop: usar HTTP para baixar da URL
+        if (assinaturaUrl != null && assinaturaUrl!.isNotEmpty) {
+          try {
+            final resp = await http.get(Uri.parse(assinaturaUrl!));
+            if (resp.statusCode == 200) {
+              _assinaturaCacheBytes = resp.bodyBytes;
+              return _assinaturaCacheBytes;
+            }
+          } catch (e) {
+            debugPrint('Erro ao baixar assinatura via HTTP: $e');
+          }
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Erro geral ao buscar assinatura: $e');
+    }
+
     return null;
   }
 

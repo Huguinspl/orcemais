@@ -88,9 +88,9 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
     double subtotalCalculado = 0.0;
     double custoTotalCalculado = 0.0;
     for (var item in _itensDoOrcamento) {
-      final preco = item['preco'] as double? ?? 0.0;
-      final custo = item['custo'] as double? ?? 0.0;
-      final quantidade = item['quantidade'] as double? ?? 1.0;
+      final preco = double.tryParse(item['preco'].toString()) ?? 0.0;
+      final custo = double.tryParse(item['custo'].toString()) ?? 0.0;
+      final quantidade = double.tryParse(item['quantidade'].toString()) ?? 1.0;
 
       subtotalCalculado += preco * quantidade;
       custoTotalCalculado += custo;

@@ -78,8 +78,9 @@ class EtapaItensWidget extends StatelessWidget {
               itemCount: itens.length,
               itemBuilder: (context, index) {
                 final item = itens[index];
-                final preco = item['preco'] as double? ?? 0.0;
-                final quantidade = item['quantidade'] as double? ?? 1.0;
+                final preco = double.tryParse(item['preco'].toString()) ?? 0.0;
+                final quantidade =
+                    double.tryParse(item['quantidade'].toString()) ?? 1.0;
                 final totalItem = preco * quantidade;
 
                 return Card(

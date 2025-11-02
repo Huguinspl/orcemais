@@ -108,12 +108,23 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                           child: CircularProgressIndicator(color: Colors.white),
                         ),
                       )
-                      : _buildHeader(
-                        context,
-                        businessProvider,
-                        textColor: cs.onPrimary,
+                      : Column(
+                        children: [
+                          _buildHeader(
+                            context,
+                            businessProvider,
+                            textColor: cs.onPrimary,
+                          ),
+                        ],
                       ),
             ),
+            if ((businessProvider.descricao ?? '').isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                businessProvider.descricao!,
+                style: const TextStyle(color: Colors.black87),
+              ),
+            ],
             const Divider(height: 40, thickness: 1),
             _sectionLabel(
               context,
@@ -123,13 +134,6 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
             ),
             const SizedBox(height: 12),
             _buildClientInfo(context),
-            if ((businessProvider.descricao ?? '').isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Text(
-                businessProvider.descricao!,
-                style: const TextStyle(color: Colors.black87),
-              ),
-            ],
             const SizedBox(height: 24),
             _sectionLabel(
               context,
@@ -384,8 +388,9 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
             final item = widget.itens[index];
             final nome = item['nome'] as String? ?? 'Item';
             final descricao = item['descricao'] as String? ?? '';
-            final preco = item['preco'] as double? ?? 0.0;
-            final quantidade = item['quantidade'] as double? ?? 1.0;
+            final preco = double.tryParse(item['preco'].toString()) ?? 0.0;
+            final quantidade =
+                double.tryParse(item['quantidade'].toString()) ?? 1.0;
             final totalItem = preco * quantidade;
 
             return Padding(
@@ -452,6 +457,7 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
       future: provider.getLogoBytes(),
       builder: (context, snap) {
         final logoBytes = snap.data;
+        print(logoBytes?.length);
         Widget? logo;
         if (logoBytes != null && logoBytes.isNotEmpty) {
           logo = Image.memory(logoBytes, fit: BoxFit.contain);
@@ -554,7 +560,7 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
     );
     double custoTotal = 0.0;
     for (var item in widget.itens) {
-      final custo = item['custo'] as double? ?? 0.0;
+      final custo = double.tryParse(item['custo'].toString()) ?? 0.0;
       custoTotal += custo;
     }
     return Align(

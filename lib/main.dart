@@ -168,3 +168,9 @@ class GestorfyApp extends StatelessWidget {
     );
   }
 }
+
+/*
+git add -A
+git commit -m "oque foi alterado"
+git push origin main
+*/
