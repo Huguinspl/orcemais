@@ -5,7 +5,7 @@ import 'valor_recebido.dart';
 class Recibo {
   final String id;
   final int numero;
-  final String orcamentoId;
+  final String? orcamentoId; // Opcional: permite recibo sem orçamento
   final int? orcamentoNumero;
   final Cliente cliente; // snapshot do cliente no momento
   final List<Map<String, dynamic>> itens; // serviços/produtos opcionais
@@ -21,8 +21,8 @@ class Recibo {
   Recibo({
     required this.id,
     required this.numero,
-    required this.orcamentoId,
-    required this.orcamentoNumero,
+    this.orcamentoId, // Opcional
+    this.orcamentoNumero,
     required this.cliente,
     required this.itens,
     required this.valoresRecebidos,
@@ -39,7 +39,7 @@ class Recibo {
     return Recibo(
       id: doc.id,
       numero: data['numero'] ?? 0,
-      orcamentoId: data['orcamentoId'] ?? '',
+      orcamentoId: data['orcamentoId'], // Pode ser null
       orcamentoNumero: data['orcamentoNumero'],
       cliente: Cliente.fromMap(data['cliente'] ?? {}),
       itens: List<Map<String, dynamic>>.from(data['itens'] ?? []),
