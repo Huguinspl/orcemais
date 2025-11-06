@@ -67,21 +67,58 @@ class _HomePageState extends State<HomePage> {
     if (_currentIdx != 0) return null;
 
     return AppBar(
-      backgroundColor: Colors.black,
+      elevation: 0,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.blue.shade600, Colors.blue.shade400],
+          ),
+        ),
+      ),
       title: Row(
         children: [
-          const Icon(Icons.account_circle, color: Colors.white),
-          const SizedBox(width: 8),
+          const Icon(Icons.account_circle, color: Colors.white, size: 28),
+          const SizedBox(width: 12),
           Consumer<UserProvider>(
             builder:
-                (_, u, __) => Text(
-                  u.nome.isNotEmpty ? 'Olá, ${u.nome} !' : 'Olá, Usuário !',
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                (_, u, __) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      u.nome.isNotEmpty
+                          ? 'Olá, ${u.nome.split(' ').first}!'
+                          : 'Olá, Usuário!',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Bem-vindo de volta',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
           ),
         ],
       ),
-      actions: [HomeMenu(onLogout: _logout), const SizedBox(width: 8)],
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined),
+          onPressed: () {},
+          tooltip: 'Notificações',
+          color: Colors.white,
+        ),
+        HomeMenu(onLogout: _logout),
+        const SizedBox(width: 8),
+      ],
     );
   }
 

@@ -61,7 +61,18 @@ class _ClientesPageState extends State<ClientesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.blue.shade600, Colors.blue.shade400],
+            ),
+          ),
+        ),
         title: Text(widget.isPickerMode ? 'Selecione um Cliente' : 'Clientes'),
         centerTitle: true,
       ),
@@ -105,24 +116,29 @@ class _ClientesPageState extends State<ClientesPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.all(16),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Buscar por nome...',
-          prefixIcon: const Icon(Icons.search),
+          prefixIcon: Icon(Icons.search, color: Colors.blue.shade600),
           suffixIcon:
               _termoBusca.isNotEmpty
                   ? IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: _clearSearch,
+                    color: Colors.blue.shade600,
                   )
                   : null,
           filled: true,
-          fillColor: Colors.grey.shade200,
+          fillColor: Colors.blue.shade50,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
+            borderRadius: BorderRadius.circular(20),
             borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
           ),
         ),
       ),
@@ -142,54 +158,76 @@ class _ClientesPageState extends State<ClientesPage> {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        onTap:
-            widget.isPickerMode
-                ? () {
-                  Navigator.pop(context, c);
-                }
-                : null,
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: Text(
-            c.nome.isNotEmpty ? c.nome[0].toUpperCase() : '?',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, Colors.blue.shade50.withOpacity(0.3)],
           ),
         ),
-        title: Text(
-          c.nome,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: c.celular.isNotEmpty ? Text(c.celular) : null,
-        trailing:
-            widget.isPickerMode
-                ? const Icon(Icons.chevron_right)
-                : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.edit_outlined,
-                        color: theme.colorScheme.primary,
-                      ),
-                      tooltip: 'Editar',
-                      onPressed: () => _abrirFormulario(original: c),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: theme.colorScheme.error,
-                      ),
-                      tooltip: 'Excluir',
-                      onPressed: () => _confirmarExclusao(c),
-                    ),
-                  ],
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
+          onTap:
+              widget.isPickerMode
+                  ? () {
+                    Navigator.pop(context, c);
+                  }
+                  : null,
+          leading: Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade400, Colors.blue.shade600],
+              ),
+            ),
+            child: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Text(
+                c.nome.isNotEmpty ? c.nome[0].toUpperCase() : '?',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade700,
                 ),
+              ),
+            ),
+          ),
+          title: Text(
+            c.nome,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: c.celular.isNotEmpty ? Text(c.celular) : null,
+          trailing:
+              widget.isPickerMode
+                  ? Icon(Icons.chevron_right, color: Colors.blue.shade600)
+                  : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.edit_outlined,
+                          color: theme.colorScheme.primary,
+                        ),
+                        tooltip: 'Editar',
+                        onPressed: () => _abrirFormulario(original: c),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: theme.colorScheme.error,
+                        ),
+                        tooltip: 'Excluir',
+                        onPressed: () => _confirmarExclusao(c),
+                      ),
+                    ],
+                  ),
+        ),
       ),
     );
   }

@@ -1,0 +1,74 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🌐 Gestorfy Web (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--web-renderer",
+        "html"
+      ],
+      "deviceId": "chrome"
+    },
+    {
+      "name": "🌐 Gestorfy Web (Edge)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--web-renderer",
+        "html"
+      ],
+      "deviceId": "edge"
+    },
+    {
+      "name": "🌐 Gestorfy Web (Release Mode)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--release",
+        "--web-renderer",
+        "html"
+      ],
+      "deviceId": "chrome"
+    },
+    {
+      "name": "📱 Gestorfy Android WiFi",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "${input:androidWifiIp}"
+    },
+    {
+      "name": "💻 Gestorfy Windows",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "windows"
+    },
+    {
+      "name": "🧪 Gestorfy (Profile Mode)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "🐛 Gestorfy (Debug - Current Device)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "androidWifiIp",
+      "type": "promptString",
+      "description": "Digite o IP do Android (ex: 192.168.1.100:5555)",
+      "default": "192.168.1.100:5555"
+    }
+  ]
+}

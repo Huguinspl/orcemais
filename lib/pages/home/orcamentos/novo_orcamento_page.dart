@@ -18,6 +18,7 @@ import 'novo_orcamento/etapas_bar.dart';
 import 'novo_orcamento/contratos_e_garantia_page.dart';
 import 'novo_orcamento/laudo_tecnico_page.dart';
 import 'novo_orcamento/informacoes_adicionais_page.dart';
+import '../tabs/personalizar_orcamento_page.dart';
 
 enum DescontoTipo { percentual, valor }
 
@@ -424,6 +425,9 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
           resumoCondicoes: _resumoCondicoes,
           resumoGarantiaData: _resumoGarantiaData,
         );
+      case 3:
+        // Etapa de Aparência - abre a página de personalização embutida
+        return const PersonalizarOrcamentoPage(isEmbedded: true);
       default:
         return Center(
           child: Text(

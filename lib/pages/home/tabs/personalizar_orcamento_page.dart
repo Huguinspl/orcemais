@@ -7,91 +7,96 @@ import 'descricao/editar_descricao_page.dart';
 import 'pdf/personalizar_pdf_page.dart';
 
 class PersonalizarOrcamentoPage extends StatelessWidget {
-  const PersonalizarOrcamentoPage({super.key});
+  final bool isEmbedded; // Se true, não mostra AppBar e bottomBar
+  const PersonalizarOrcamentoPage({super.key, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context) {
     final business = context.watch<BusinessProvider>();
 
+    final listViewContent = ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _SectionCard(
+          icon: Icons.description_outlined,
+          title: 'Descrição do negócio',
+          subtitle:
+              (business.descricao != null && business.descricao!.isNotEmpty)
+                  ? 'Descrição cadastrada'
+                  : 'Adicionar uma breve descrição',
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditarDescricaoPage()),
+              ),
+        ),
+        const SizedBox(height: 16),
+        _SectionCard(
+          icon: Icons.color_lens_outlined,
+          title: 'Personalizar PDF',
+          subtitle:
+              (business.pdfTheme != null && business.pdfTheme!.isNotEmpty)
+                  ? 'Tema personalizado ativo'
+                  : 'Ajustar cores do PDF',
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PersonalizarPdfPage()),
+              ),
+        ),
+        const SizedBox(height: 16),
+        _SectionCard(
+          icon: Icons.qr_code_2_outlined,
+          title: 'Chave Pix',
+          subtitle:
+              business.pixChave == null
+                  ? 'Adicionar chave Pix'
+                  : 'Chave (${business.pixTipo}): ${business.pixChave}',
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditarPixPage()),
+              ),
+          trailing:
+              business.pixChave != null
+                  ? IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => _confirmarRemocaoPix(context),
+                  )
+                  : null,
+        ),
+        const SizedBox(height: 16),
+        _SectionCard(
+          icon: Icons.edit,
+          title: 'Cadastrar assinatura',
+          subtitle:
+              (business.assinaturaUrl != null &&
+                      business.assinaturaUrl!.isNotEmpty)
+                  ? 'Assinatura cadastrada'
+                  : 'Adicionar/atualizar a assinatura',
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const GerenciarAssinaturaPage(),
+                ),
+              ),
+        ),
+      ],
+    );
+
+    // Se está sendo usado como etapa embutida, não mostra AppBar e botões
+    if (isEmbedded) {
+      return listViewContent;
+    }
+
+    // Se está sendo usado standalone, mostra tudo
     return Scaffold(
       appBar: AppBar(
         title: const Text('Personalizar orçamento'),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _SectionCard(
-            icon: Icons.description_outlined,
-            title: 'Descrição do negócio',
-            subtitle:
-                (business.descricao != null && business.descricao!.isNotEmpty)
-                    ? 'Descrição cadastrada'
-                    : 'Adicionar uma breve descrição',
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const EditarDescricaoPage(),
-                  ),
-                ),
-          ),
-          const SizedBox(height: 16),
-          _SectionCard(
-            icon: Icons.color_lens_outlined,
-            title: 'Personalizar PDF',
-            subtitle:
-                (business.pdfTheme != null && business.pdfTheme!.isNotEmpty)
-                    ? 'Tema personalizado ativo'
-                    : 'Ajustar cores do PDF',
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PersonalizarPdfPage(),
-                  ),
-                ),
-          ),
-          const SizedBox(height: 16),
-          _SectionCard(
-            icon: Icons.qr_code_2_outlined,
-            title: 'Chave Pix',
-            subtitle:
-                business.pixChave == null
-                    ? 'Adicionar chave Pix'
-                    : 'Chave (${business.pixTipo}): ${business.pixChave}',
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const EditarPixPage()),
-                ),
-            trailing:
-                business.pixChave != null
-                    ? IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => _confirmarRemocaoPix(context),
-                    )
-                    : null,
-          ),
-          const SizedBox(height: 16),
-          _SectionCard(
-            icon: Icons.edit,
-            title: 'Cadastrar assinatura',
-            subtitle:
-                (business.assinaturaUrl != null &&
-                        business.assinaturaUrl!.isNotEmpty)
-                    ? 'Assinatura cadastrada'
-                    : 'Adicionar/atualizar a assinatura',
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const GerenciarAssinaturaPage(),
-                  ),
-                ),
-          ),
-        ],
-      ),
+      body: listViewContent,
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: Row(
