@@ -7,12 +7,14 @@ class EtapaDetalhesWidget extends StatelessWidget {
   final VoidCallback onCondicoesContratuais;
   final VoidCallback onGarantiaEDataVisita;
   final VoidCallback onInformacoesAdicionais;
+  final VoidCallback onGerenciarFotos;
 
   final String? resumoDescontos;
   final String? resumoFormaPagamento;
   final String? resumoLaudoTecnico;
   final String? resumoCondicoes;
   final String? resumoGarantiaData;
+  final String? resumoFotos;
 
   const EtapaDetalhesWidget({
     super.key,
@@ -22,11 +24,13 @@ class EtapaDetalhesWidget extends StatelessWidget {
     required this.onCondicoesContratuais,
     required this.onGarantiaEDataVisita,
     required this.onInformacoesAdicionais,
+    required this.onGerenciarFotos,
     this.resumoDescontos,
     this.resumoFormaPagamento,
     this.resumoLaudoTecnico,
     this.resumoCondicoes,
     this.resumoGarantiaData,
+    this.resumoFotos,
   });
 
   @override
@@ -89,6 +93,15 @@ class EtapaDetalhesWidget extends StatelessWidget {
             label: 'Informações adicionais',
             valor: resumoGarantiaData ?? 'Adicionar informações complementares',
             onTap: onInformacoesAdicionais,
+          ),
+          const SizedBox(height: 16),
+          _buildActionCard(
+            context: context,
+            icon: Icons.photo_library_outlined,
+            corIcone: Colors.orange.shade700,
+            label: 'Fotos do Orçamento',
+            valor: resumoFotos ?? 'Adicionar fotos ao PDF',
+            onTap: onGerenciarFotos,
           ),
         ],
       ),

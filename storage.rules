@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Regras para fotos de orçamentos
+    match /orcamentos/{orcamentoId}/{allPaths=**} {
+      // Permite leitura para usuários autenticados
+      allow read: if request.auth != null;
+      // Permite escrita para usuários autenticados
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024 // Limite de 10MB
+                   && request.resource.contentType.matches('image/.*'); // Apenas imagens
+    }
+    
+    // Regras para logomarcas de negócios
+    match /negocios/{userId}/logomarca {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024 // Limite de 5MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // Regras para assinaturas
+    match /negocios/{userId}/assinatura {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 2 * 1024 * 1024 // Limite de 2MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // Nega acesso a qualquer outro caminho
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

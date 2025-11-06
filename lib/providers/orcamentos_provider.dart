@@ -54,6 +54,7 @@ class OrcamentosProvider with ChangeNotifier {
         condicoesContratuais: orcamento.condicoesContratuais,
         garantia: orcamento.garantia,
         informacoesAdicionais: orcamento.informacoesAdicionais,
+        fotos: orcamento.fotos, // ✅ ADICIONADO: Inclui as fotos
       );
 
       // 3. Dentro da mesma transação, salva o novo orçamento e atualiza o contador
@@ -93,6 +94,7 @@ class OrcamentosProvider with ChangeNotifier {
         condicoesContratuais: orcamentoAntigo.condicoesContratuais,
         garantia: orcamentoAntigo.garantia,
         informacoesAdicionais: orcamentoAntigo.informacoesAdicionais,
+        fotos: orcamentoAntigo.fotos, // ✅ ADICIONADO: Mantém as fotos
       );
       notifyListeners();
     }

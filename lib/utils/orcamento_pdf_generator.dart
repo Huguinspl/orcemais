@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -54,6 +55,32 @@ class OrcamentoPdfGenerator {
     // Carrega mídias
     final logoBytes = await businessProvider.getLogoBytes();
     final assinaturaBytes = await businessProvider.getAssinaturaBytes();
+
+    // Carrega fotos do orçamento
+    final List<Uint8List> fotosBytes = [];
+    if (orcamento.fotos != null && orcamento.fotos!.isNotEmpty) {
+      print('📸 Carregando ${orcamento.fotos!.length} fotos para o PDF...');
+      for (final url in orcamento.fotos!) {
+        try {
+          print('📥 Baixando foto: $url');
+          final response = await http.get(Uri.parse(url));
+          if (response.statusCode == 200) {
+            fotosBytes.add(response.bodyBytes);
+            print(
+              '✅ Foto baixada com sucesso! (${response.bodyBytes.length} bytes)',
+            );
+          } else {
+            print('❌ Erro ao baixar foto. Status: ${response.statusCode}');
+          }
+        } catch (e) {
+          print('❌ Erro ao baixar foto: $e');
+          // Ignora fotos que não puderem ser baixadas
+        }
+      }
+      print('📦 Total de fotos carregadas: ${fotosBytes.length}');
+    } else {
+      print('ℹ️ Nenhuma foto para adicionar ao PDF');
+    }
 
     final currencyFormat = NumberFormat.currency(
       locale: 'pt_BR',
@@ -192,6 +219,17 @@ class OrcamentoPdfGenerator {
                   font,
                   outlineVariant,
                 ),
+                pw.SizedBox(height: 24),
+              ],
+              if (fotosBytes.isNotEmpty) ...[
+                _sectionLabel(
+                  'Fotos do Orçamento',
+                  bg: tertiaryContainer,
+                  fg: onTertiaryContainer,
+                  font: boldFont,
+                ),
+                pw.SizedBox(height: 8),
+                ..._buildFotosSection(fotosBytes, outlineVariant),
                 pw.SizedBox(height: 24),
               ],
               pw.Column(
@@ -699,6 +737,74 @@ class OrcamentoPdfGenerator {
         ),
       ),
     );
+  }
+
+  static List<pw.Widget> _buildFotosSection(
+    List<Uint8List> fotosBytes,
+    PdfColor borderColor,
+  ) {
+    final widgets = <pw.Widget>[];
+
+    // Adiciona fotos em grade (2 por linha)
+    for (int i = 0; i < fotosBytes.length; i += 2) {
+      final row = <pw.Widget>[];
+
+      // Primeira foto da linha
+      row.add(
+        pw.Expanded(
+          child: pw.Container(
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: borderColor, width: 0.5),
+              borderRadius: pw.BorderRadius.circular(8),
+            ),
+            padding: const pw.EdgeInsets.all(4),
+            child: pw.Image(
+              pw.MemoryImage(fotosBytes[i]),
+              fit: pw.BoxFit.contain,
+            ),
+          ),
+        ),
+      );
+
+      // Segunda foto da linha (se existir)
+      if (i + 1 < fotosBytes.length) {
+        row.add(pw.SizedBox(width: 8));
+        row.add(
+          pw.Expanded(
+            child: pw.Container(
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: borderColor, width: 0.5),
+                borderRadius: pw.BorderRadius.circular(8),
+              ),
+              padding: const pw.EdgeInsets.all(4),
+              child: pw.Image(
+                pw.MemoryImage(fotosBytes[i + 1]),
+                fit: pw.BoxFit.contain,
+              ),
+            ),
+          ),
+        );
+      } else {
+        // Se for ímpar, adiciona espaço vazio
+        row.add(pw.Expanded(child: pw.Container()));
+      }
+
+      widgets.add(
+        pw.Container(
+          height: 150,
+          child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: row,
+          ),
+        ),
+      );
+
+      if (i + 2 < fotosBytes.length) {
+        widgets.add(pw.SizedBox(height: 8));
+      }
+    }
+
+    return widgets;
   }
 
   // Removidas heurísticas de medição/que bra; o MultiPage faz a paginação natural

@@ -107,6 +107,7 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
               condicoesContratuais: widget.orcamento.condicoesContratuais,
               garantia: widget.orcamento.garantia,
               informacoesAdicionais: widget.orcamento.informacoesAdicionais,
+              fotos: widget.orcamento.fotos,
             ),
           ),
         ],

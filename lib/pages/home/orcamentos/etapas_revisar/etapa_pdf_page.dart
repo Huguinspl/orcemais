@@ -18,6 +18,7 @@ class EtapaPdfPage extends StatefulWidget {
   final String? condicoesContratuais;
   final String? garantia;
   final String? informacoesAdicionais;
+  final List<String>? fotos;
 
   const EtapaPdfPage({
     super.key,
@@ -32,6 +33,7 @@ class EtapaPdfPage extends StatefulWidget {
     this.condicoesContratuais,
     this.garantia,
     this.informacoesAdicionais,
+    this.fotos,
   });
 
   @override
@@ -248,6 +250,17 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                   softWrap: true,
                 ),
               ),
+            ],
+            if (widget.fotos != null && widget.fotos!.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _sectionLabel(
+                context,
+                'Fotos do Orçamento',
+                bg: cs.tertiaryContainer,
+                fg: cs.onTertiaryContainer,
+              ),
+              const SizedBox(height: 8),
+              _buildFotosGrid(context, cs.outlineVariant),
             ],
             const SizedBox(height: 24),
             // Caixa de totais com destaque
@@ -671,6 +684,55 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
               ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade700),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFotosGrid(BuildContext context, Color borderColor) {
+    if (widget.fotos == null || widget.fotos!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 1,
+      ),
+      itemCount: widget.fotos!.length,
+      itemBuilder: (context, index) {
+        final fotoUrl = widget.fotos![index];
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: borderColor, width: 0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Image.network(
+            fotoUrl,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value:
+                      loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+              );
+            },
+          ),
         );
       },
     );

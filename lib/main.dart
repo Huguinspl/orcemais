@@ -128,7 +128,7 @@ class GestorfyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Gestorfy',
       debugShowCheckedModeBanner: false,
-      
+
       // Configuração de localização para português brasileiro
       locale: const Locale('pt', 'BR'),
       localizationsDelegates: const [
@@ -136,11 +136,8 @@ class GestorfyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('pt', 'BR'),
-        Locale('en', 'US'),
-      ],
-      
+      supportedLocales: const [Locale('pt', 'BR'), Locale('en', 'US')],
+
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),

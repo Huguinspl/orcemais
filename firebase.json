@@ -1,1 +1,28 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"gestorfy-app","appId":"1:388082198829:android:8988c83f6892518976cba4","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"gestorfy-app","configurations":{"android":"1:388082198829:android:8988c83f6892518976cba4","ios":"1:388082198829:ios:90880ae09d4c3f9c76cba4","macos":"1:388082198829:ios:90880ae09d4c3f9c76cba4","web":"1:388082198829:web:080b0e26e2b1a3fd76cba4","windows":"1:388082198829:web:b08380495ada9f1a76cba4"}}}}}}
+{
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "gestorfy-app",
+          "appId": "1:388082198829:android:8988c83f6892518976cba4",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "gestorfy-app",
+          "configurations": {
+            "android": "1:388082198829:android:8988c83f6892518976cba4",
+            "ios": "1:388082198829:ios:90880ae09d4c3f9c76cba4",
+            "macos": "1:388082198829:ios:90880ae09d4c3f9c76cba4",
+            "web": "1:388082198829:web:080b0e26e2b1a3fd76cba4",
+            "windows": "1:388082198829:web:b08380495ada9f1a76cba4"
+          }
+        }
+      }
+    }
+  }
+}

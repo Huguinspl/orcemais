@@ -18,6 +18,7 @@ import 'novo_orcamento/etapas_bar.dart';
 import 'novo_orcamento/contratos_e_garantia_page.dart';
 import 'novo_orcamento/laudo_tecnico_page.dart';
 import 'novo_orcamento/informacoes_adicionais_page.dart';
+import 'novo_orcamento/gerenciar_fotos_page.dart';
 import '../tabs/personalizar_orcamento_page.dart';
 
 enum DescontoTipo { percentual, valor }
@@ -52,6 +53,7 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
   String? _condicoesContratuais;
   String? _garantia;
   String? _informacoesAdicionais;
+  List<String> _fotos = [];
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
       _condicoesContratuais = o.condicoesContratuais;
       _garantia = o.garantia;
       _informacoesAdicionais = o.informacoesAdicionais;
+      _fotos = o.fotos ?? [];
       if (_metodoPagamento != null) {
         _resumoFormaPagamento =
             _metodoPagamento == 'credito' && _parcelas != null
@@ -224,6 +227,21 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
     }
   }
 
+  void _gerenciarFotos() async {
+    final fotos = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GerenciarFotosPage(fotosIniciais: _fotos),
+      ),
+    );
+    if (!mounted) return;
+    if (fotos != null) {
+      setState(() {
+        _fotos = fotos;
+      });
+    }
+  }
+
   void _adicionarServico() async {
     final novoItem = await Navigator.push<Map<String, dynamic>>(
       context,
@@ -282,6 +300,9 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
     }
     setState(() => _isSaving = true);
     try {
+      print('🔍 DEBUG: Salvando orçamento com ${_fotos.length} fotos');
+      print('🔍 DEBUG: URLs das fotos: $_fotos');
+
       final orcamentoParaSalvar = Orcamento(
         id: widget.orcamento?.id ?? '',
         cliente: clienteSelecionado!,
@@ -297,7 +318,13 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
         condicoesContratuais: _condicoesContratuais,
         garantia: _garantia,
         informacoesAdicionais: _informacoesAdicionais,
+        fotos: _fotos.isNotEmpty ? _fotos : null,
       );
+
+      print(
+        '🔍 DEBUG: Orçamento criado com fotos: ${orcamentoParaSalvar.fotos}',
+      );
+
       final provider = context.read<OrcamentosProvider>();
       final Orcamento orcamentoFinal;
       if (widget.orcamento == null) {
@@ -306,6 +333,9 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
         await provider.atualizarOrcamento(orcamentoParaSalvar);
         orcamentoFinal = orcamentoParaSalvar;
       }
+
+      print('🔍 DEBUG: Orçamento final com fotos: ${orcamentoFinal.fotos}');
+
       if (mounted) {
         if (widget.orcamento != null) {
           Navigator.pushReplacement(
@@ -416,6 +446,7 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
           onCondicoesContratuais: _editarCondicoesContratuais,
           onGarantiaEDataVisita: _editarGarantiaEDataVisita,
           onInformacoesAdicionais: _editarInformacoesAdicionais,
+          onGerenciarFotos: _gerenciarFotos,
           resumoDescontos:
               _desconto > 0
                   ? 'Desconto aplicado: R\$ ${_desconto.toStringAsFixed(2)}'
@@ -424,6 +455,10 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
           resumoLaudoTecnico: _resumoLaudoTecnico,
           resumoCondicoes: _resumoCondicoes,
           resumoGarantiaData: _resumoGarantiaData,
+          resumoFotos:
+              _fotos.isNotEmpty
+                  ? '${_fotos.length} foto(s) adicionada(s)'
+                  : null,
         );
       case 3:
         // Etapa de Aparência - abre a página de personalização embutida
