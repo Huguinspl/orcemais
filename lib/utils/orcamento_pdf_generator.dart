@@ -70,7 +70,11 @@ class OrcamentoPdfGenerator {
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.fromLTRB(32, 32, 32, 44),
+          buildBackground:
+              (context) =>
+                  pw.FullPage(ignoreMargins: true, child: pw.Container()),
         ),
+        maxPages: 100, // Permite até 100 páginas
         // Sem header/footer custom: vamos usar o cabeçalho clássico no conteúdo
         build:
             (context) => [

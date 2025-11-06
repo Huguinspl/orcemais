@@ -38,7 +38,7 @@ class CompartilharOrcamentoPage extends StatelessWidget {
       // Fecha o diálogo de carregamento ANTES de abrir o compartilhamento
       if (context.mounted) Navigator.of(context).pop();
 
-      // Compartilha o PDF
+      // Compartilha o PDF com formato explícito
       await Printing.sharePdf(
         bytes: pdfBytes,
         filename:
