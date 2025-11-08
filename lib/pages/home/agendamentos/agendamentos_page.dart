@@ -1,10 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/agendamento.dart';
 import '../../../../providers/agendamentos_provider.dart';
-import '../../../routes/app_routes.dart' as routes_ref; // evitar conflito
 import 'novo_agendamento_page.dart';
 
 class AgendamentosPage extends StatefulWidget {

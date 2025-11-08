@@ -1,3 +1,4 @@
+import 'package:deep_link/deep_link.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -89,6 +90,11 @@ Future<void> main() async {
   if (!kIsWeb) {
     configureDesktopWindow();
   }
+
+  DeepLink.init(
+    baseUrl: 'https://us-central1-deep-link-hub.cloudfunctions.net',
+    apiToken: 'nLL73gzJdaxyYzlqzhls',
+  );
 
   runApp(const GestorfyRoot());
 }
