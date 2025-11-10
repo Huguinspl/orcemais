@@ -15,13 +15,17 @@ class EtapasBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(
+          colors: [Colors.teal.shade50, Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
+            color: Colors.teal.shade100.withOpacity(0.5),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -40,38 +44,64 @@ class EtapasBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      gradient:
+                          isAtual || isConcluida
+                              ? LinearGradient(
+                                colors:
+                                    isConcluida
+                                        ? [
+                                          Colors.green.shade400,
+                                          Colors.green.shade600,
+                                        ]
+                                        : [
+                                          Colors.teal.shade400,
+                                          Colors.teal.shade600,
+                                        ],
+                              )
+                              : null,
                       color:
-                          isAtual
-                              ? Theme.of(context).primaryColor
-                              : isConcluida
-                              ? Colors.green
-                              : Colors.grey.shade300,
+                          isAtual || isConcluida
+                              ? null
+                              : Colors.grey.shade200,
+                      boxShadow:
+                          isAtual || isConcluida
+                              ? [
+                                BoxShadow(
+                                  color:
+                                      isConcluida
+                                          ? Colors.green.shade200
+                                          : Colors.teal.shade200,
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                              : null,
                     ),
                     child: Icon(
-                      isConcluida ? Icons.check : etapa['icon'],
+                      isConcluida ? Icons.check_circle : etapa['icon'],
                       color:
                           (isAtual || isConcluida)
                               ? Colors.white
-                              : Colors.grey.shade600,
-                      size: 20,
+                              : Colors.grey.shade500,
+                      size: 24,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
                     etapa['label'],
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isAtual ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 12,
+                      fontWeight: isAtual ? FontWeight.bold : FontWeight.w500,
                       color:
                           isAtual
-                              ? Theme.of(context).primaryColor
+                              ? Colors.teal.shade700
                               : isConcluida
-                              ? Colors.green
+                              ? Colors.green.shade700
                               : Colors.grey.shade600,
                     ),
                   ),
