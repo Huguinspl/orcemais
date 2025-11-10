@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'conditional_desktop.dart' if (dart.library.html) 'stub_desktop.dart';
 
@@ -54,6 +55,10 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar localização para português brasileiro
+  await initializeDateFormatting('pt_BR', null);
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // App Check: Web só ativa se a site key for fornecida. Mobile/Desktop em modo debug.
