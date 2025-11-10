@@ -223,8 +223,9 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                                               Colors.orange.shade600,
                                             ],
                                           ),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
                                               color: Colors.orange.shade200,
@@ -267,10 +268,11 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  DateFormat('dd/MM/yyyy')
-                                                      .format(
-                                                        o.dataCriacao.toDate(),
-                                                      ),
+                                                  DateFormat(
+                                                    'dd/MM/yyyy',
+                                                  ).format(
+                                                    o.dataCriacao.toDate(),
+                                                  ),
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.grey.shade600,
@@ -428,7 +430,9 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                 const Icon(Icons.warning_amber_rounded, color: Colors.white),
                 const SizedBox(width: 12),
                 const Expanded(
-                  child: Text('Por favor, selecione um cliente para continuar.'),
+                  child: Text(
+                    'Por favor, selecione um cliente para continuar.',
+                  ),
                 ),
               ],
             ),
@@ -559,9 +563,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
         MaterialPageRoute(builder: (_) => RevisarReciboPage(recibo: salvo)),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [

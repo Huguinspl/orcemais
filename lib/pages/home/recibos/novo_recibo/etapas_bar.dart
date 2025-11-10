@@ -64,9 +64,7 @@ class EtapasBar extends StatelessWidget {
                               )
                               : null,
                       color:
-                          isAtual || isConcluida
-                              ? null
-                              : Colors.grey.shade200,
+                          isAtual || isConcluida ? null : Colors.grey.shade200,
                       boxShadow:
                           isAtual || isConcluida
                               ? [
