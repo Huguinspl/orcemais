@@ -76,7 +76,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage> {
       ).showSnackBar(const SnackBar(content: Text('Selecione a data.')));
       return;
     }
-    
+
     final valor = _parseMoeda(_valorController.text);
     if (valor == null || valor == 0) {
       ScaffoldMessenger.of(
@@ -84,7 +84,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage> {
       ).showSnackBar(const SnackBar(content: Text('Informe um valor válido.')));
       return;
     }
-    
+
     setState(() => _salvando = true);
     final vr = ValorRecebido(
       data: _data!,
@@ -98,7 +98,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage> {
   Widget build(BuildContext context) {
     final df = DateFormat('dd/MM/yyyy');
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Adicionar Valor Recebido'),
@@ -114,7 +114,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage> {
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 24),
-            
+
             // Card de Data
             Card(
               elevation: 2,
@@ -138,10 +138,13 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage> {
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
-                  _data == null ? 'Toque para selecionar' : df.format(_data!.toDate()),
+                  _data == null
+                      ? 'Toque para selecionar'
+                      : df.format(_data!.toDate()),
                   style: TextStyle(
                     color: _data == null ? Colors.grey : Colors.black87,
-                    fontWeight: _data == null ? FontWeight.normal : FontWeight.w500,
+                    fontWeight:
+                        _data == null ? FontWeight.normal : FontWeight.w500,
                   ),
                 ),
                 trailing: Icon(
@@ -153,7 +156,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Campo de Valor
             TextFormField(
               controller: _valorController,
@@ -181,7 +184,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             // Dropdown de Forma de Pagamento
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
@@ -204,23 +207,26 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage> {
               onChanged: (v) => setState(() => _forma = v ?? 'Dinheiro'),
             ),
             const SizedBox(height: 32),
-            
+
             // Botão de Salvar
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: _salvando ? null : _salvar,
-                icon: _salvando
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Icon(Icons.check),
+                icon:
+                    _salvando
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : const Icon(Icons.check),
                 label: Text(_salvando ? 'Salvando...' : 'Adicionar Valor'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade600,

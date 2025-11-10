@@ -118,10 +118,9 @@ class HomeBody extends StatelessWidget {
                           AppRoutes.agendamentos,
                         ),
                   ),
-                  FeatureCard.withCount(
+                  FeatureCard(
                     icon: Icons.receipt_outlined,
                     title: 'Recibos',
-                    count: 0,
                     color: Colors.teal,
                     onTap:
                         () => Navigator.pushNamed(context, AppRoutes.recibos),
@@ -148,8 +147,10 @@ class HomeBody extends StatelessWidget {
                     title: 'Outras Funcionalidades',
                     color: Colors.orange,
                     onTap:
-                        () =>
-                            Navigator.pushNamed(context, AppRoutes.novoRecibo),
+                        () => _placeholder(
+                          context,
+                          'Em breve novas funcionalidades',
+                        ),
                   ),
                   FeatureCard(
                     icon: Icons.share,

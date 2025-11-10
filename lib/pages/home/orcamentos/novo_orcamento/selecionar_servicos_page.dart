@@ -27,7 +27,7 @@ class CurrencyInputFormatter extends TextInputFormatter {
 
 class SelecionarServicosPage extends StatefulWidget {
   final String? textoBotao; // Texto customizável para o botão
-  
+
   const SelecionarServicosPage({super.key, this.textoBotao});
 
   @override
@@ -172,94 +172,240 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Adicionar Serviço/Item'),
+        title: const Text(
+          'Adicionar Serviço/Item',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.green.shade600, Colors.green.shade400],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Preencha os dados do item para este orçamento',
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 24),
-
-              _campoTexto(
-                label: 'Nome do Serviço/Produto *',
-                controller: _nomeController,
-                icon: Icons.work_outline,
-                validator:
-                    (v) => v == null || v.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              _buildCampoMoeda(
-                label: 'Preço *',
-                controller: _precoController,
-                icon: Icons.attach_money,
-                validator:
-                    (v) =>
-                        (v == null || v.isEmpty || _parseMoeda(v) == 0)
-                            ? 'Informe um preço válido'
-                            : null,
-              ),
-              _buildCampoQuantidade(),
-
-              const SizedBox(height: 24),
-              Text(
-                'Mais informações (Opcional)',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: Colors.black54,
-                ),
-              ),
-              const Divider(height: 24),
-
-              _buildDropdownUnidades(),
-              const SizedBox(height: 16),
-              _buildCampoMoeda(
-                label: 'Custo',
-                controller: _custoController,
-                icon: Icons.paid_outlined,
-              ),
-              _campoTexto(
-                label: 'Descrição',
-                controller: _descricaoController,
-                icon: Icons.description_outlined,
-                maxLines: 3,
-              ),
-
-              _buildCheckboxSalvarCatalogo(),
-              const SizedBox(height: 24),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.add_shopping_cart),
-                  onPressed: _salvarServico,
-                  label: Text(widget.textoBotao ?? 'Adicionar ao Orçamento'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.green.shade50, Colors.white, Colors.white],
+          ),
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header card
+                Card(
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.green.shade600, Colors.green.shade400],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.build_outlined,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Novo Serviço',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Preencha os dados do serviço',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+
+                // Card: Informações Principais
+                _buildCard(
+                  title: 'Informações Principais',
+                  icon: Icons.info_outline,
+                  children: [
+                    _campoTexto(
+                      label: 'Nome do Serviço/Produto *',
+                      controller: _nomeController,
+                      icon: Icons.work_outline,
+                      corIcone: Colors.green,
+                      validator:
+                          (v) =>
+                              v == null || v.isEmpty
+                                  ? 'Campo obrigatório'
+                                  : null,
+                    ),
+                    _buildCampoMoeda(
+                      label: 'Preço *',
+                      controller: _precoController,
+                      icon: Icons.attach_money,
+                      corIcone: Colors.green,
+                      validator:
+                          (v) =>
+                              (v == null || v.isEmpty || _parseMoeda(v) == 0)
+                                  ? 'Informe um preço válido'
+                                  : null,
+                    ),
+                    _buildCampoQuantidade(),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Card: Informações Adicionais
+                _buildCard(
+                  title: 'Informações Adicionais',
+                  icon: Icons.description_outlined,
+                  children: [
+                    _buildDropdownUnidades(),
+                    const SizedBox(height: 16),
+                    _buildCampoMoeda(
+                      label: 'Custo',
+                      controller: _custoController,
+                      icon: Icons.paid_outlined,
+                      corIcone: Colors.green,
+                    ),
+                    _campoTexto(
+                      label: 'Descrição',
+                      controller: _descricaoController,
+                      icon: Icons.description_outlined,
+                      corIcone: Colors.green,
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                _buildCheckboxSalvarCatalogo(),
+                const SizedBox(height: 24),
+
+                // Botão de adicionar
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: _salvarServico,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade600,
+                      foregroundColor: Colors.white,
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add_shopping_cart, size: 24),
+                        const SizedBox(width: 12),
+                        Text(
+                          widget.textoBotao ?? 'Adicionar ao Orçamento',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // --- O restante do seu código (os helpers de widget) não precisa de alterações ---
+  Widget _buildCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.green.shade400, Colors.green.shade600],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCampoQuantidade() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -271,9 +417,19 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
               controller: _quantidadeController,
               decoration: InputDecoration(
                 labelText: 'Quantidade',
-                prefixIcon: const Icon(Icons.pin_outlined),
+                prefixIcon: Icon(
+                  Icons.pin_outlined,
+                  color: Colors.green.shade600,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Colors.green.shade600,
+                    width: 2,
+                  ),
                 ),
                 filled: true,
                 fillColor: Colors.white,
@@ -287,7 +443,7 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
           Container(
             height: 58,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: Colors.green.shade200, width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -297,16 +453,16 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
                   child: IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: _incrementarQuantidade,
-                    color: Colors.green,
+                    color: Colors.green.shade600,
                     splashRadius: 20,
                   ),
                 ),
-                Container(height: 1, width: 40, color: Colors.grey.shade200),
+                Container(height: 1, width: 40, color: Colors.green.shade200),
                 Expanded(
                   child: IconButton(
                     icon: const Icon(Icons.remove),
                     onPressed: _decrementarQuantidade,
-                    color: Colors.red,
+                    color: Colors.red.shade400,
                     splashRadius: 20,
                   ),
                 ),
@@ -331,8 +487,15 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
       onChanged: (value) => setState(() => _unidadeSelecionada = value),
       decoration: InputDecoration(
         labelText: 'Unidade de medida',
-        prefixIcon: const Icon(Icons.straighten_outlined),
+        prefixIcon: Icon(
+          Icons.straighten_outlined,
+          color: Colors.green.shade600,
+        ),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.green.shade600, width: 2),
+        ),
         filled: true,
         fillColor: Colors.white,
       ),
@@ -340,13 +503,23 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
   }
 
   Widget _buildCheckboxSalvarCatalogo() {
-    return CheckboxListTile(
-      title: const Text('Salvar para uso futuro no catálogo'),
-      value: _salvarCatalogo,
-      onChanged: (value) => setState(() => _salvarCatalogo = value ?? false),
-      controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: EdgeInsets.zero,
-      activeColor: Theme.of(context).colorScheme.primary,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: CheckboxListTile(
+        title: const Text(
+          'Salvar para uso futuro no catálogo',
+          style: TextStyle(fontWeight: FontWeight.w500),
+        ),
+        subtitle: Text(
+          'Este serviço ficará disponível no catálogo',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+        value: _salvarCatalogo,
+        onChanged: (value) => setState(() => _salvarCatalogo = value ?? false),
+        controlAffinity: ListTileControlAffinity.leading,
+        activeColor: Colors.green.shade600,
+      ),
     );
   }
 
@@ -354,6 +527,7 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
     required String label,
     required TextEditingController controller,
     required IconData icon,
+    MaterialColor? corIcone,
     String? Function(String?)? validator,
   }) {
     return Padding(
@@ -368,8 +542,15 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
         validator: validator,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon),
+          prefixIcon: Icon(icon, color: corIcone?.shade600),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: corIcone?.shade600 ?? Colors.blue,
+              width: 2,
+            ),
+          ),
           filled: true,
           fillColor: Colors.white,
         ),
@@ -381,6 +562,7 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
     required String label,
     required TextEditingController controller,
     IconData? icon,
+    MaterialColor? corIcone,
     String? Function(String?)? validator,
     int maxLines = 1,
   }) {
@@ -392,8 +574,16 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
         validator: validator,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: icon != null ? Icon(icon) : null,
+          prefixIcon:
+              icon != null ? Icon(icon, color: corIcone?.shade600) : null,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: corIcone?.shade600 ?? Colors.blue,
+              width: 2,
+            ),
+          ),
           filled: true,
           fillColor: Colors.white,
         ),

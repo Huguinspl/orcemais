@@ -19,7 +19,10 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
   @override
   void initState() {
     super.initState();
-    Provider.of<PecasProvider>(context, listen: false).fetchPecas();
+    // ✅ CORREÇÃO: Usar Future.microtask para evitar setState durante build
+    Future.microtask(
+      () => Provider.of<PecasProvider>(context, listen: false).fetchPecas(),
+    );
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -43,6 +46,25 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
     });
   }
 
+  void _usarParaOrcamento(PecaMaterial peca) {
+    // Navegar para novo orçamento passando a peça como argumento
+    Navigator.pushNamed(
+      context,
+      AppRoutes.novoOrcamento,
+      arguments: {
+        'servicoInicial': {
+          'tipo': 'peca',
+          'descricao': peca.nome,
+          'detalhe': '',
+          'preco': peca.preco ?? 0.0,
+          'custo': 0.0,
+          'quantidade': 1,
+          'subtotal': peca.preco ?? 0.0,
+        },
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PecasProvider>();
@@ -53,43 +75,135 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
         }).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Peças e Materiais'), centerTitle: true),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          Expanded(child: _buildContent(provider, pecasFiltradas)),
-        ],
+      appBar: AppBar(
+        title: const Text(
+          'Peças e Materiais',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.orange.shade600, Colors.orange.shade400],
+            ),
+          ),
+        ),
+        elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.orange.shade50, Colors.white, Colors.white],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            // Header moderno
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.handyman,
+                      color: Colors.orange.shade700,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Peças e Materiais',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                        Text(
+                          'Gerencie seu estoque de materiais',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSearchBar(),
+            const SizedBox(height: 8),
+            Expanded(child: _buildContent(provider, pecasFiltradas)),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.pushNamed(context, AppRoutes.novoPecaMaterial);
         },
-        tooltip: 'Adicionar Peça',
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Nova Peça'),
+        backgroundColor: Colors.orange.shade600,
+        elevation: 4,
       ),
     );
   }
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Buscar por nome...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon:
-              _termoBusca.isNotEmpty
-                  ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: _clearSearch,
-                  )
-                  : null,
-          filled: true,
-          fillColor: Colors.grey.shade200,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.orange.shade100.withOpacity(0.5),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Buscar peças e materiais...',
+            hintStyle: TextStyle(color: Colors.grey.shade400),
+            prefixIcon: Icon(Icons.search, color: Colors.orange.shade600),
+            suffixIcon:
+                _termoBusca.isNotEmpty
+                    ? IconButton(
+                      icon: Icon(Icons.clear, color: Colors.grey.shade400),
+                      onPressed: _clearSearch,
+                    )
+                    : null,
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
           ),
         ),
       ),
@@ -101,25 +215,59 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
     List<PecaMaterial> pecasFiltradas,
   ) {
     if (provider.itens.isEmpty) {
-      return const Center(
-        child: Text(
-          'Nenhuma peça cadastrada ainda. 🤷‍♂️\nClique em "+" para adicionar.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 80,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Nenhuma peça cadastrada',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Clique no botão + para adicionar',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
+          ],
         ),
       );
     }
 
     if (pecasFiltradas.isEmpty) {
-      return const Center(
-        child: Text(
-          'Nenhum resultado encontrado. 🧐',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 80, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'Nenhum resultado encontrado',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tente buscar com outros termos',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
+          ],
         ),
       );
     }
 
-    // <-- CORREÇÃO 1: Passando o 'provider' para o método da lista.
     return _buildPecasList(provider, pecasFiltradas);
   }
 
@@ -131,59 +279,230 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
     );
 
     return ListView.builder(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       itemCount: pecas.length,
       itemBuilder: (context, index) {
         final peca = pecas[index];
-        return Card(
-          elevation: 2,
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.shade100.withOpacity(0.5),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            title: Text(
-              peca.nome,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle:
-                peca.preco != null
-                    ? Text(
-                      currencyFormat.format(peca.preco),
-                      style: TextStyle(color: Colors.green.shade700),
-                    )
-                    : const Text('Preço não definido'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.edit_outlined,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoutes.novoPecaMaterial,
-                      arguments: peca,
-                    );
-                  },
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.novoPecaMaterial,
+                  arguments: peca,
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.orange.shade100, width: 1),
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  onPressed: () {
-                    // Agora a chamada funciona, pois 'provider' e 'peca' estão disponíveis
-                    _showDeleteConfirmationDialog(context, provider, peca);
-                  },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.orange.shade400,
+                                Colors.orange.shade600,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.handyman,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                peca.nome,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                              if (peca.preco != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  currencyFormat.format(peca.preco),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (peca.preco != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.orange.shade600,
+                                  Colors.orange.shade500,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.attach_money,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  currencyFormat.format(peca.preco),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Preço não definido',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                        PopupMenuButton<String>(
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: Colors.grey.shade600,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          offset: const Offset(0, 40),
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'orcamento':
+                                _usarParaOrcamento(peca);
+                                break;
+                              case 'editar':
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.novoPecaMaterial,
+                                  arguments: peca,
+                                );
+                                break;
+                              case 'excluir':
+                                _showDeleteConfirmationDialog(
+                                  context,
+                                  provider,
+                                  peca,
+                                );
+                                break;
+                            }
+                          },
+                          itemBuilder:
+                              (context) => [
+                                PopupMenuItem(
+                                  value: 'orcamento',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.receipt_long,
+                                        color: Colors.blue.shade600,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Usar para Orçamento'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                PopupMenuItem(
+                                  value: 'editar',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.edit_outlined,
+                                        color: Colors.orange.shade600,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Editar'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                const PopupMenuItem(
+                                  value: 'excluir',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text('Excluir'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );
@@ -201,33 +520,68 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Confirmar Exclusão'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                  'Você tem certeza que deseja excluir a peça "${peca.nome}"?',
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              ],
-            ),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red.shade600,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text('Confirmar exclusão'),
+            ],
+          ),
+          content: Text(
+            'Deseja realmente excluir a peça "${peca.nome}"?\n\nEsta ação não pode ser desfeita.',
+            style: TextStyle(color: Colors.grey.shade700),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancelar'),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 0,
+              ),
               child: const Text('Excluir'),
               onPressed: () {
                 provider.deletePeca(peca.id);
                 Navigator.of(dialogContext).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('"${peca.nome}" foi excluído.'),
-                    backgroundColor: Colors.red,
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Expanded(child: Text('"${peca.nome}" foi excluído.')),
+                      ],
+                    ),
+                    backgroundColor: Colors.red.shade600,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    margin: const EdgeInsets.all(16),
                   ),
                 );
               },

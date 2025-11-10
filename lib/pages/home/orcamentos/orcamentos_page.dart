@@ -67,21 +67,108 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Confirmar exclusão'),
-            content: Text(
-              'Deseja realmente excluir o orçamento para "${orcamento.cliente.nome}"?',
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.warning_outlined,
+                    color: Colors.red.shade700,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Confirmar exclusão',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Deseja realmente excluir o orçamento?',
+                  style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, color: Colors.grey.shade600, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          orcamento.cliente.nome,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '⚠️ Esta ação não pode ser desfeita',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.red.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
             actions: [
               TextButton(
-                child: const Text('Cancelar'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 onPressed: () => Navigator.pop(ctx, false),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
+                  backgroundColor: Colors.red.shade600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                child: const Text('Excluir'),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.delete_outline, size: 18),
+                    SizedBox(width: 6),
+                    Text('Excluir'),
+                  ],
+                ),
                 onPressed: () => Navigator.pop(ctx, true),
               ),
             ],
@@ -94,10 +181,23 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
         ..removeCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text(
-              'Orçamento para "${orcamento.cliente.nome}" excluído.',
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Orçamento de "${orcamento.cliente.nome}" excluído com sucesso',
+                  ),
+                ),
+              ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
     }
@@ -107,15 +207,107 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
     final novoStatus = await showDialog<String>(
       context: context,
       builder:
-          (context) => SimpleDialog(
-            title: const Text('Alterar Status'),
-            children:
-                _status.where((s) => s != 'Todos').map((status) {
-                  return SimpleDialogOption(
-                    onPressed: () => Navigator.pop(context, status),
-                    child: Text(status),
-                  );
-                }).toList(),
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.edit_note, color: Colors.blue.shade700),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Alterar Status',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children:
+                  _status.where((s) => s != 'Todos').map((status) {
+                    IconData icone;
+                    Color cor;
+                    switch (status.toLowerCase()) {
+                      case 'aberto':
+                        icone = Icons.pending_outlined;
+                        cor = Colors.orange;
+                        break;
+                      case 'enviado':
+                        icone = Icons.send_outlined;
+                        cor = Colors.blue;
+                        break;
+                      case 'concluído':
+                        icone = Icons.check_circle_outline;
+                        cor = Colors.green;
+                        break;
+                      default:
+                        icone = Icons.info_outline;
+                        cor = Colors.grey;
+                    }
+
+                    final selecionado = orcamento.status == status;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => Navigator.pop(context, status),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  selecionado
+                                      ? cor.withOpacity(0.1)
+                                      : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: selecionado ? cor : Colors.grey.shade300,
+                                width: selecionado ? 2 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(icone, color: cor),
+                                const SizedBox(width: 12),
+                                Text(
+                                  status,
+                                  style: TextStyle(
+                                    fontWeight:
+                                        selecionado
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                    color: cor,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                if (selecionado) ...[
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: cor,
+                                    size: 20,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+            ),
           ),
     );
 
@@ -131,88 +323,176 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Orçamentos Criados'),
+        title: const Text(
+          'Orçamentos Criados',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSearchBar(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Orçamentos',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade600, Colors.blue.shade400],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-          Consumer<OrcamentosProvider>(
-            builder: (context, provider, child) {
-              final Map<String, int> contagemStatus = {};
-              contagemStatus['Todos'] = provider.orcamentos.length;
-              for (var status in _status) {
-                if (status == 'Todos') continue;
-                contagemStatus[status] =
-                    provider.orcamentos
-                        .where(
-                          (orc) =>
-                              orc.status.toLowerCase() == status.toLowerCase(),
-                        )
-                        .length;
-              }
-              return _buildStatusFilterBar(contagemStatus);
-            },
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade50, Colors.white, Colors.white],
           ),
-          Expanded(
-            child: Consumer<OrcamentosProvider>(
-              builder: (context, provider, child) {
-                if (provider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final listaFiltrada =
-                    provider.orcamentos.where((orc) {
-                      final filtroStatus =
-                          _filtroSelecionado == 'Todos' ||
-                          orc.status.toLowerCase() ==
-                              _filtroSelecionado.toLowerCase();
-                      final filtroBusca = orc.cliente.nome
-                          .toLowerCase()
-                          .contains(_termoBusca.toLowerCase());
-                      return filtroStatus && filtroBusca;
-                    }).toList();
-
-                if (listaFiltrada.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Nenhum orçamento encontrado.',
-                      style: TextStyle(color: Colors.grey),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildSearchBar(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  );
+                    child: Icon(
+                      Icons.description_outlined,
+                      color: Colors.blue.shade700,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Seus Orçamentos',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      Text(
+                        'Gerencie e acompanhe',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Consumer<OrcamentosProvider>(
+              builder: (context, provider, child) {
+                final Map<String, int> contagemStatus = {};
+                contagemStatus['Todos'] = provider.orcamentos.length;
+                for (var status in _status) {
+                  if (status == 'Todos') continue;
+                  contagemStatus[status] =
+                      provider.orcamentos
+                          .where(
+                            (orc) =>
+                                orc.status.toLowerCase() ==
+                                status.toLowerCase(),
+                          )
+                          .length;
                 }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-                  itemCount: listaFiltrada.length,
-                  itemBuilder: (context, index) {
-                    return _buildOrcamentoCard(listaFiltrada[index]);
-                  },
-                );
+                return _buildStatusFilterBar(contagemStatus);
               },
             ),
-          ),
-        ],
+            Expanded(
+              child: Consumer<OrcamentosProvider>(
+                builder: (context, provider, child) {
+                  if (provider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final listaFiltrada =
+                      provider.orcamentos.where((orc) {
+                        final filtroStatus =
+                            _filtroSelecionado == 'Todos' ||
+                            orc.status.toLowerCase() ==
+                                _filtroSelecionado.toLowerCase();
+                        final filtroBusca = orc.cliente.nome
+                            .toLowerCase()
+                            .contains(_termoBusca.toLowerCase());
+                        return filtroStatus && filtroBusca;
+                      }).toList();
+
+                  if (listaFiltrada.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Nenhum orçamento encontrado',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tente ajustar os filtros ou criar um novo',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                    itemCount: listaFiltrada.length,
+                    itemBuilder: (context, index) {
+                      return _buildOrcamentoCard(listaFiltrada[index]);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _abrirFormulario(),
         tooltip: 'Novo orçamento',
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Novo Orçamento'),
+        backgroundColor: Colors.blue.shade600,
       ),
     );
   }
 
-  // ✅ CORREÇÃO: Card de orçamento agora usa um PopupMenuButton para as ações
+  // ✅ Card de orçamento moderno e acessível
   Widget _buildOrcamentoCard(Orcamento orcamento) {
     final theme = Theme.of(context);
     final currencyFormat = NumberFormat.currency(
@@ -221,116 +501,283 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
     );
     final dateFormat = DateFormat('dd/MM/yyyy');
 
+    // Cor dinâmica baseada no status
+    Color statusColor;
+    IconData statusIcon;
+    switch (orcamento.status.toLowerCase()) {
+      case 'aberto':
+        statusColor = Colors.orange;
+        statusIcon = Icons.pending_outlined;
+        break;
+      case 'enviado':
+        statusColor = Colors.blue;
+        statusIcon = Icons.send_outlined;
+        break;
+      case 'concluído':
+        statusColor = Colors.green;
+        statusIcon = Icons.check_circle_outline;
+        break;
+      default:
+        statusColor = Colors.blueGrey;
+        statusIcon = Icons.info_outline;
+    }
+
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          12,
-          12,
-          0,
-          12,
-        ), // Ajuste no padding direito
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '#${orcamento.numero.toString().padLeft(4, '0')}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                InkWell(
-                  onTap: () => _mostrarDialogoStatus(orcamento),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Chip(
-                    label: Text(
-                      orcamento.status,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    backgroundColor:
-                        Colors.blueGrey, // Pode ser dinâmico no futuro
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-              ],
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16.0),
+        onTap: () => _revisarOrcamento(orcamento),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.0),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Colors.grey.shade50],
             ),
-            const Divider(height: 16),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundColor: theme.colorScheme.secondaryContainer,
-                child: Icon(
-                  Icons.person_outline,
-                  color: theme.colorScheme.onSecondaryContainer,
-                ),
-              ),
-              title: Text(
-                orcamento.cliente.nome,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                'Criado em: ${dateFormat.format(orcamento.dataCriacao.toDate())}',
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    currencyFormat.format(orcamento.valorTotal),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                      fontSize: 16,
-                    ),
-                  ),
-                  PopupMenuButton<String>(
-                    tooltip: 'Mais opções',
-                    onSelected: (value) {
-                      if (value == 'revisar') {
-                        _revisarOrcamento(orcamento);
-                      } else if (value == 'editar') {
-                        _abrirFormulario(orcamento: orcamento);
-                      } else if (value == 'excluir') {
-                        _confirmarExclusao(orcamento);
-                      }
-                    },
-                    itemBuilder:
-                        (BuildContext context) => <PopupMenuEntry<String>>[
-                          const PopupMenuItem<String>(
-                            value: 'revisar',
-                            child: ListTile(
-                              leading: Icon(Icons.visibility_outlined),
-                              title: Text('Visualizar/Revisar'),
-                            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Badge com número do orçamento
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.blue.shade400, Colors.blue.shade600],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.shade200,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                          const PopupMenuItem<String>(
-                            value: 'editar',
-                            child: ListTile(
-                              leading: Icon(Icons.edit_outlined),
-                              title: Text('Editar'),
-                            ),
-                          ),
-                          const PopupMenuDivider(),
-                          const PopupMenuItem<String>(
-                            value: 'excluir',
-                            child: ListTile(
-                              leading: Icon(Icons.delete_outline),
-                              title: Text('Excluir'),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.tag, size: 16, color: Colors.white),
+                          const SizedBox(width: 4),
+                          Text(
+                            '#${orcamento.numero.toString().padLeft(4, '0')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 14,
                             ),
                           ),
                         ],
-                  ),
-                ],
-              ),
+                      ),
+                    ),
+                    // Status chip clicável
+                    InkWell(
+                      onTap: () => _mostrarDialogoStatus(orcamento),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: statusColor, width: 1.5),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(statusIcon, size: 16, color: statusColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              orcamento.status,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Informações do cliente
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.primaryContainer,
+                            theme.colorScheme.secondaryContainer,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        color: theme.colorScheme.primary,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            orcamento.cliente.nome,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                dateFormat.format(
+                                  orcamento.dataCriacao.toDate(),
+                                ),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                // Valor e ações
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Valor Total',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          currencyFormat.format(orcamento.valorTotal),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade700,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    PopupMenuButton<String>(
+                      tooltip: 'Opções',
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.more_vert,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      onSelected: (value) {
+                        if (value == 'revisar') {
+                          _revisarOrcamento(orcamento);
+                        } else if (value == 'editar') {
+                          _abrirFormulario(orcamento: orcamento);
+                        } else if (value == 'excluir') {
+                          _confirmarExclusao(orcamento);
+                        }
+                      },
+                      itemBuilder:
+                          (BuildContext context) => <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'revisar',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.visibility_outlined,
+                                    color: Colors.blue.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Visualizar'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'editar',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    color: Colors.orange.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuDivider(),
+                            PopupMenuItem<String>(
+                              value: 'excluir',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Excluir'),
+                                ],
+                              ),
+                            ),
+                          ],
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -338,24 +785,42 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Buscar por cliente...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon:
-              _termoBusca.isNotEmpty
-                  ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () => _searchController.clear(),
-                  )
-                  : null,
-          filled: true,
-          fillColor: Colors.grey.shade200,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade300,
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: '🔍 Buscar por cliente...',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            prefixIcon: Icon(Icons.search, color: Colors.blue.shade600),
+            suffixIcon:
+                _termoBusca.isNotEmpty
+                    ? IconButton(
+                      icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                      onPressed: () => _searchController.clear(),
+                      tooltip: 'Limpar busca',
+                    )
+                    : null,
+            filled: false,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
         ),
       ),
@@ -363,43 +828,119 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
   }
 
   Widget _buildStatusFilterBar(Map<String, int> contagem) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: List.generate(_status.length, (index) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: _status.length,
+        itemBuilder: (context, index) {
           final status = _status[index];
           final selecionado = _filtroSelecionado == status;
-          final theme = Theme.of(context);
+
+          // Ícones e cores por status
+          IconData icone;
+          MaterialColor cor;
+          switch (status.toLowerCase()) {
+            case 'todos':
+              icone = Icons.dashboard;
+              cor = Colors.purple;
+              break;
+            case 'aberto':
+              icone = Icons.pending_outlined;
+              cor = Colors.orange;
+              break;
+            case 'enviado':
+              icone = Icons.send_outlined;
+              cor = Colors.blue;
+              break;
+            case 'concluído':
+              icone = Icons.check_circle_outline;
+              cor = Colors.green;
+              break;
+            default:
+              icone = Icons.info_outline;
+              cor = Colors.grey;
+          }
 
           return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ChoiceChip(
-              label: Text('$status (${contagem[status] ?? 0})'),
-              selected: selecionado,
-              onSelected: (_) {
-                setState(() {
-                  _filtroSelecionado = status;
-                });
-              },
-              selectedColor: theme.colorScheme.primary,
-              labelStyle: TextStyle(
-                color:
-                    selecionado ? theme.colorScheme.onPrimary : Colors.black87,
-                fontWeight: FontWeight.bold,
-              ),
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color:
-                      selecionado ? Colors.transparent : Colors.grey.shade300,
+            padding: const EdgeInsets.only(right: 10),
+            child: Material(
+              elevation: selecionado ? 4 : 0,
+              borderRadius: BorderRadius.circular(25),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(25),
+                onTap: () {
+                  setState(() {
+                    _filtroSelecionado = status;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient:
+                        selecionado
+                            ? LinearGradient(
+                              colors: [cor.shade400, cor.shade600],
+                            )
+                            : null,
+                    color: selecionado ? null : Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: selecionado ? Colors.transparent : cor.shade300,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        icone,
+                        size: 18,
+                        color: selecionado ? Colors.white : cor,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$status',
+                        style: TextStyle(
+                          color: selecionado ? Colors.white : cor.shade700,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              selecionado
+                                  ? Colors.white.withOpacity(0.3)
+                                  : cor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${contagem[status] ?? 0}',
+                          style: TextStyle(
+                            color: selecionado ? Colors.white : cor.shade700,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              showCheckmark: false,
             ),
           );
-        }),
+        },
       ),
     );
   }

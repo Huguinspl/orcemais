@@ -243,9 +243,9 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
     final item = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
-        builder: (_) => const SelecionarServicosPage(
-          textoBotao: 'Adicionar ao Recibo',
-        ),
+        builder:
+            (_) =>
+                const SelecionarServicosPage(textoBotao: 'Adicionar ao Recibo'),
       ),
     );
     if (item != null) setState(() => _itens.add(item));
@@ -255,9 +255,8 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
     final item = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
-        builder: (_) => const SelecionarPecasPage(
-          textoBotao: 'Adicionar ao Recibo',
-        ),
+        builder:
+            (_) => const SelecionarPecasPage(textoBotao: 'Adicionar ao Recibo'),
       ),
     );
     if (item != null) setState(() => _itens.add(item));

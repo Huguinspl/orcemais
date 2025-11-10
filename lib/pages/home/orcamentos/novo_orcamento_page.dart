@@ -81,6 +81,25 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Verifica se há um serviço inicial passado via arguments
+    final args = ModalRoute.of(context)?.settings.arguments as Map?;
+    if (args != null && args.containsKey('servicoInicial')) {
+      final servicoInicial = args['servicoInicial'] as Map<String, dynamic>;
+      // Adiciona o serviço aos itens apenas se a lista ainda estiver vazia
+      if (_itensDoOrcamento.isEmpty) {
+        setState(() {
+          _itensDoOrcamento.add(servicoInicial);
+          _calcularTotais();
+          // Avança automaticamente para a etapa de itens
+          etapaAtual = 1;
+        });
+      }
+    }
+  }
+
   final List<Map<String, dynamic>> etapas = [
     {'icon': Icons.person_outline, 'label': 'Cliente'},
     {'icon': Icons.list_alt_outlined, 'label': 'Itens'},
@@ -392,22 +411,45 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
     final isEditing = widget.orcamento != null;
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Editar Orçamento' : 'Novo Orçamento'),
+        title: Text(
+          isEditing ? 'Editar Orçamento' : 'Novo Orçamento',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          EtapasBar(
-            etapas: etapas,
-            etapaAtual: etapaAtual,
-            onEtapaTapped: (index) {
-              setState(() {
-                etapaAtual = index;
-              });
-            },
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade600, Colors.blue.shade400],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-          Expanded(child: _buildConteudoEtapa()),
-        ],
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade50, Colors.white, Colors.white],
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            EtapasBar(
+              etapas: etapas,
+              etapaAtual: etapaAtual,
+              onEtapaTapped: (index) {
+                setState(() {
+                  etapaAtual = index;
+                });
+              },
+            ),
+            Expanded(child: _buildConteudoEtapa()),
+          ],
+        ),
       ),
       bottomNavigationBar: RodapeOrcamento(
         subtotal: _subtotal,

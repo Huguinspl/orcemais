@@ -3,6 +3,7 @@ import 'package:intl/intl.dart'; // Import para formatação de moeda
 import 'package:provider/provider.dart';
 import '../../../providers/services_provider.dart';
 import '../../../models/servico.dart';
+import '../../../routes/app_routes.dart';
 import 'novo_servico_page.dart';
 
 class ServicosPage extends StatefulWidget {
@@ -19,7 +20,8 @@ class _ServicosPageState extends State<ServicosPage> {
   @override
   void initState() {
     super.initState();
-    _carregarServicos();
+    // ✅ CORREÇÃO: Usar Future.microtask para evitar setState durante build
+    Future.microtask(() => _carregarServicos());
     _searchController.addListener(() {
       setState(() {
         _termoBusca = _searchController.text;
@@ -53,93 +55,253 @@ class _ServicosPageState extends State<ServicosPage> {
     );
   }
 
+  void _usarParaOrcamento(Servico servico) {
+    // Navegar para novo orçamento passando o serviço como argumento
+    Navigator.pushNamed(
+      context,
+      AppRoutes.novoOrcamento,
+      arguments: {
+        'servicoInicial': {
+          'tipo': 'servico',
+          'descricao': servico.titulo,
+          'detalhe': servico.descricao,
+          'preco': servico.preco,
+          'custo': servico.custo ?? 0.0,
+          'quantidade': 1,
+          'subtotal': servico.preco,
+        },
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meu Catálogo de Serviços'),
+        title: const Text(
+          'Meu Catálogo de Serviços',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSearchBar(),
-          // ✅ MUDANÇA: Adicionando o título da seção para consistência
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Serviços Cadastrados',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.green.shade600, Colors.green.shade400],
             ),
           ),
-          Expanded(
-            child: Consumer<ServicesProvider>(
-              builder: (_, prov, __) {
-                if (prov.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final listaFiltrada =
-                    prov.servicos.where((servico) {
-                      return servico.titulo.toLowerCase().contains(
-                        _termoBusca.toLowerCase(),
-                      );
-                    }).toList();
-
-                if (prov.servicos.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Nenhum serviço cadastrado ainda. 🤷‍♂️',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  );
-                }
-
-                if (listaFiltrada.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Nenhum serviço encontrado. 🧐',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  );
-                }
-
-                return _buildServiceList(listaFiltrada);
-              },
-            ),
-          ),
-        ],
+        ),
+        elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.green.shade50, Colors.white, Colors.white],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            // Header moderno
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.miscellaneous_services,
+                      color: Colors.green.shade700,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Serviços',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                        Text(
+                          'Gerencie seu catálogo de serviços',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSearchBar(),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Consumer<ServicesProvider>(
+                builder: (_, prov, __) {
+                  if (prov.isLoading) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: Colors.green.shade600,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Carregando serviços...',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final listaFiltrada =
+                      prov.servicos.where((servico) {
+                        return servico.titulo.toLowerCase().contains(
+                          _termoBusca.toLowerCase(),
+                        );
+                      }).toList();
+
+                  if (prov.servicos.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 80,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Nenhum serviço cadastrado',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Clique no botão + para adicionar',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (listaFiltrada.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 80,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Nenhum resultado encontrado',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tente buscar com outros termos',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return _buildServiceList(listaFiltrada);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _abrirFormulario(),
-        tooltip: 'Novo Serviço',
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Novo Serviço'),
+        backgroundColor: Colors.green.shade600,
+        elevation: 4,
       ),
     );
   }
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Buscar por nome do serviço...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon:
-              _termoBusca.isNotEmpty
-                  ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: _clearSearch,
-                  )
-                  : null,
-          filled: true,
-          fillColor: Colors.grey.shade200,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.green.shade100.withOpacity(0.5),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Buscar serviços...',
+            hintStyle: TextStyle(color: Colors.grey.shade400),
+            prefixIcon: Icon(Icons.search, color: Colors.green.shade600),
+            suffixIcon:
+                _termoBusca.isNotEmpty
+                    ? IconButton(
+                      icon: Icon(Icons.clear, color: Colors.grey.shade400),
+                      onPressed: _clearSearch,
+                    )
+                    : null,
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
           ),
         ),
       ),
@@ -148,63 +310,210 @@ class _ServicosPageState extends State<ServicosPage> {
 
   Widget _buildServiceList(List<Servico> servicos) {
     return ListView.builder(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       itemCount: servicos.length,
       itemBuilder: (_, i) => _item(servicos[i]),
     );
   }
 
   Widget _item(Servico servico) {
-    final theme = Theme.of(context);
     final currencyFormat = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: 'R\$',
     );
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: Icon(
-            Icons.build_outlined,
-            color: theme.colorScheme.onPrimaryContainer,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.shade100.withOpacity(0.5),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-        title: Text(
-          servico.titulo,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          servico.descricao,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ✅ MUDANÇA: Adicionando o preço do serviço ao card
-            Text(
-              currencyFormat.format(servico.preco),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              ),
+        ],
+      ),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => _abrirFormulario(original: servico),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.green.shade100, width: 1),
             ),
-            IconButton(
-              icon: Icon(Icons.edit_outlined, color: theme.colorScheme.primary),
-              tooltip: 'Editar',
-              onPressed: () => _abrirFormulario(original: servico),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.green.shade400,
+                            Colors.green.shade600,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.build_outlined,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            servico.titulo,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            servico.descricao,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.green.shade600,
+                            Colors.green.shade500,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.attach_money,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            currencyFormat.format(servico.preco),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PopupMenuButton<String>(
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: Colors.grey.shade600,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          offset: const Offset(0, 40),
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'orcamento':
+                                _usarParaOrcamento(servico);
+                                break;
+                              case 'editar':
+                                _abrirFormulario(original: servico);
+                                break;
+                              case 'excluir':
+                                _confirmarExclusao(servico);
+                                break;
+                            }
+                          },
+                          itemBuilder:
+                              (context) => [
+                                PopupMenuItem(
+                                  value: 'orcamento',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.receipt_long,
+                                        color: Colors.blue.shade600,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Usar para Orçamento'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                PopupMenuItem(
+                                  value: 'editar',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.edit_outlined,
+                                        color: Colors.green.shade600,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Editar'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                const PopupMenuItem(
+                                  value: 'excluir',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text('Excluir'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
-            IconButton(
-              icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
-              tooltip: 'Excluir',
-              onPressed: () => _confirmarExclusao(servico),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -215,19 +524,46 @@ class _ServicosPageState extends State<ServicosPage> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Confirmar exclusão'),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red.shade600,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text('Confirmar exclusão'),
+              ],
+            ),
             content: Text(
-              'Deseja realmente excluir o serviço "${servico.titulo}"?',
+              'Deseja realmente excluir o serviço "${servico.titulo}"?\n\nEsta ação não pode ser desfeita.',
+              style: TextStyle(color: Colors.grey.shade700),
             ),
             actions: [
               TextButton(
-                child: const Text('Cancelar'),
+                child: Text(
+                  'Cancelar',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
                 onPressed: () => Navigator.pop(ctx, false),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
+                  backgroundColor: Colors.red.shade600,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
                 ),
                 child: const Text('Excluir'),
                 onPressed: () => Navigator.pop(ctx, true),
@@ -248,8 +584,21 @@ class _ServicosPageState extends State<ServicosPage> {
             ..removeCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                content: Text('Serviço "${servico.titulo}" excluído.'),
-                backgroundColor: Colors.red,
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text('Serviço "${servico.titulo}" excluído.'),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.red.shade600,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                margin: const EdgeInsets.all(16),
               ),
             );
         }
@@ -259,8 +608,19 @@ class _ServicosPageState extends State<ServicosPage> {
             ..removeCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
-                content: Text('Erro ao excluir: ${e.toString()}'),
-                backgroundColor: Colors.red,
+                content: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text('Erro ao excluir: ${e.toString()}')),
+                  ],
+                ),
+                backgroundColor: Colors.red.shade700,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                margin: const EdgeInsets.all(16),
               ),
             );
         }
