@@ -118,13 +118,13 @@ class HomeBody extends StatelessWidget {
                           AppRoutes.agendamentos,
                         ),
                   ),
-                  FeatureCard(
-                    icon: Icons.receipt_long,
-                    title: 'Emitir Recibo',
-                    color: Colors.orange,
+                  FeatureCard.withCount(
+                    icon: Icons.receipt_outlined,
+                    title: 'Recibos',
+                    count: 0,
+                    color: Colors.teal,
                     onTap:
-                        () =>
-                            Navigator.pushNamed(context, AppRoutes.novoRecibo),
+                        () => Navigator.pushNamed(context, AppRoutes.recibos),
                   ),
                   FeatureCard(
                     icon: Icons.attach_money,
@@ -143,13 +143,13 @@ class HomeBody extends StatelessWidget {
                 title: 'Outras Tarefas',
                 subtitle: 'Ações complementares',
                 cards: [
-                  FeatureCard.withCount(
-                    icon: Icons.receipt_outlined,
-                    title: 'Meus Recibos',
-                    count: 0,
-                    color: Colors.teal,
+                  FeatureCard(
+                    icon: Icons.receipt_long,
+                    title: 'Outras Funcionalidades',
+                    color: Colors.orange,
                     onTap:
-                        () => Navigator.pushNamed(context, AppRoutes.recibos),
+                        () =>
+                            Navigator.pushNamed(context, AppRoutes.novoRecibo),
                   ),
                   FeatureCard(
                     icon: Icons.share,

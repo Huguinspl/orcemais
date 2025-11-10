@@ -23,7 +23,9 @@ class CurrencyInputFormatter extends TextInputFormatter {
 }
 
 class SelecionarPecasPage extends StatefulWidget {
-  const SelecionarPecasPage({super.key});
+  final String? textoBotao; // Texto customizável para o botão
+  
+  const SelecionarPecasPage({super.key, this.textoBotao});
 
   @override
   State<SelecionarPecasPage> createState() => _SelecionarPecasPageState();
@@ -247,7 +249,7 @@ class _SelecionarPecasPageState extends State<SelecionarPecasPage> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.add_shopping_cart),
                   onPressed: _salvarPeca,
-                  label: const Text('Adicionar ao Orçamento'),
+                  label: Text(widget.textoBotao ?? 'Adicionar ao Orçamento'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     foregroundColor: theme.colorScheme.onPrimary,
