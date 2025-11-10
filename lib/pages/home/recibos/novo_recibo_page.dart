@@ -75,6 +75,16 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
   double get _totalValores => _valores.fold(0, (a, v) => a + v.valor);
   double get _valorTotal => _itens.isNotEmpty ? _subtotalItens : _totalValores;
 
+  // Método para verificar se cada etapa está completa
+  List<bool> get _etapasCompletas {
+    return [
+      true, // Etapa 0 (Orçamento) é sempre completa pois é opcional
+      _clienteSelecionado != null, // Etapa 1 (Cliente) só completa se tiver cliente
+      _itens.isNotEmpty, // Etapa 2 (Itens) só completa se tiver itens
+      true, // Etapa 3 (Valores) é sempre completa pois é opcional
+    ];
+  }
+
   Future<void> _selecionarOrcamento() async {
     final prov = context.read<OrcamentosProvider>();
     if (prov.orcamentos.isEmpty) await prov.carregarOrcamentos();
@@ -609,6 +619,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
           EtapasBar(
             etapas: etapas,
             etapaAtual: etapaAtual,
+            etapasCompletas: _etapasCompletas,
             onEtapaTapped: (index) {
               setState(() {
                 etapaAtual = index;

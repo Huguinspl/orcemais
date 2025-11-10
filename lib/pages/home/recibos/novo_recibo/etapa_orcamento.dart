@@ -116,7 +116,11 @@ class EtapaOrcamentoWidget extends StatelessWidget {
             if (orcamentoSelecionado == null)
               _buildSelecionarOrcamentoCard(context)
             else
-              _buildOrcamentoSelecionadoCard(context, orcamentoSelecionado!, nf),
+              _buildOrcamentoSelecionadoCard(
+                context,
+                orcamentoSelecionado!,
+                nf,
+              ),
           ],
         ),
       ),
@@ -126,9 +130,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
   Widget _buildSelecionarOrcamentoCard(BuildContext context) {
     return Card(
       elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onSelecionarOrcamento,
         borderRadius: BorderRadius.circular(16),
@@ -173,10 +175,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
               Text(
                 'Toque para selecionar um orçamento enviado',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 20),
               Container(
@@ -330,7 +329,10 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.green.shade400, Colors.green.shade600],
+                          colors: [
+                            Colors.green.shade400,
+                            Colors.green.shade600,
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: [
@@ -360,7 +362,9 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                 _buildInfoRow(
                   Icons.calendar_today,
                   'Data',
-                  DateFormat('dd/MM/yyyy').format(orcamento.dataCriacao.toDate()),
+                  DateFormat(
+                    'dd/MM/yyyy',
+                  ).format(orcamento.dataCriacao.toDate()),
                 ),
                 const SizedBox(height: 14),
                 _buildInfoRow(
@@ -380,10 +384,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.green.shade300,
-                      width: 2,
-                    ),
+                    border: Border.all(color: Colors.green.shade300, width: 2),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
