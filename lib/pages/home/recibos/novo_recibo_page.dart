@@ -79,7 +79,8 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
   List<bool> get _etapasCompletas {
     return [
       true, // Etapa 0 (Orçamento) é sempre completa pois é opcional
-      _clienteSelecionado != null, // Etapa 1 (Cliente) só completa se tiver cliente
+      _clienteSelecionado !=
+          null, // Etapa 1 (Cliente) só completa se tiver cliente
       _itens.isNotEmpty, // Etapa 2 (Itens) só completa se tiver itens
       true, // Etapa 3 (Valores) é sempre completa pois é opcional
     ];

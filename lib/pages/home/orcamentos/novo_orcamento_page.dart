@@ -107,6 +107,18 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
     {'icon': Icons.palette_outlined, 'label': 'Aparência'},
   ];
 
+  // Método para verificar se cada etapa está completa
+  List<bool> get _etapasCompletas {
+    return [
+      clienteSelecionado !=
+          null, // Etapa 0 (Cliente) só completa se tiver cliente
+      _itensDoOrcamento
+          .isNotEmpty, // Etapa 1 (Itens) só completa se tiver itens
+      true, // Etapa 2 (Detalhes) é sempre completa pois é opcional
+      true, // Etapa 3 (Aparência) é sempre completa pois é opcional
+    ];
+  }
+
   void _calcularTotais() {
     double subtotalCalculado = 0.0;
     double custoTotalCalculado = 0.0;
@@ -441,6 +453,7 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
             EtapasBar(
               etapas: etapas,
               etapaAtual: etapaAtual,
+              etapasCompletas: _etapasCompletas,
               onEtapaTapped: (index) {
                 setState(() {
                   etapaAtual = index;

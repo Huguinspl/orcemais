@@ -4,12 +4,14 @@ class EtapasBar extends StatelessWidget {
   final List<Map<String, dynamic>> etapas;
   final int etapaAtual;
   final Function(int) onEtapaTapped;
+  final List<bool> etapasCompletas; // Nova propriedade
 
   const EtapasBar({
     super.key,
     required this.etapas,
     required this.etapaAtual,
     required this.onEtapaTapped,
+    required this.etapasCompletas, // Obrigatório
   });
 
   @override
@@ -33,7 +35,7 @@ class EtapasBar extends StatelessWidget {
         children: List.generate(etapas.length, (index) {
           final etapa = etapas[index];
           final selecionado = index == etapaAtual;
-          final concluido = index < etapaAtual;
+          final concluido = etapasCompletas[index]; // Usa a lista de completas
 
           return Expanded(
             child: InkWell(

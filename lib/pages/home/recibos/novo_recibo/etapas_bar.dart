@@ -37,7 +37,8 @@ class EtapasBar extends StatelessWidget {
         children: List.generate(etapas.length, (index) {
           final etapa = etapas[index];
           final isAtual = index == etapaAtual;
-          final isConcluida = etapasCompletas[index]; // Usa a lista de completas
+          final isConcluida =
+              etapasCompletas[index]; // Usa a lista de completas
 
           return Expanded(
             child: GestureDetector(
