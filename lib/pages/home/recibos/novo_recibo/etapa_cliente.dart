@@ -13,164 +13,47 @@ class EtapaClienteWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Ícone e título
-          Icon(Icons.person, size: 64, color: Colors.blue.shade700),
-          const SizedBox(height: 16),
-          const Text(
-            'Selecionar Cliente',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.shade200),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.warning_amber_outlined,
-                  size: 16,
-                  color: Colors.red.shade700,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'OBRIGATÓRIO',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Card do cliente selecionado ou botão para selecionar
-          if (clienteSelecionado == null)
-            _buildSelecionarClienteCard(context)
-          else
-            _buildClienteSelecionadoCard(context, clienteSelecionado!),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSelecionarClienteCard(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.red.shade300, width: 2),
-      ),
-      child: InkWell(
-        onTap: onSelecionarCliente,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Icon(Icons.person_search, size: 48, color: Colors.grey.shade400),
-              const SizedBox(height: 16),
-              const Text(
-                'Nenhum cliente selecionado',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Toque para selecionar um cliente da lista',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: onSelecionarCliente,
-                icon: const Icon(Icons.person_add),
-                label: const Text('Selecionar Cliente'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.teal.shade50, Colors.white, Colors.white],
         ),
       ),
-    );
-  }
-
-  Widget _buildClienteSelecionadoCard(BuildContext context, Cliente cliente) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Cabeçalho
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade700, Colors.blue.shade500],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header moderno
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 12),
-                const Text(
-                  'Cliente Selecionado',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.teal.shade600, Colors.teal.shade400],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
-            ),
-          ),
-          // Conteúdo
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                padding: const EdgeInsets.all(20),
+                child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.blue.shade100,
-                      child: Text(
-                        cliente.nome.isNotEmpty
-                            ? cliente.nome[0].toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.person_outline,
+                        color: Colors.white,
+                        size: 32,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -178,68 +61,220 @@ class EtapaClienteWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            cliente.nome,
-                            style: const TextStyle(
-                              fontSize: 18,
+                          const Text(
+                            'Etapa 2: Cliente',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          if (cliente.cpfCnpj.isNotEmpty)
-                            Text(
-                              cliente.cpfCnpj,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                              ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Selecione o cliente para este recibo',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 14,
                             ),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                const Divider(height: 1),
-                const SizedBox(height: 16),
-                if (cliente.telefone.isNotEmpty)
-                  _buildInfoRow(Icons.phone, cliente.telefone),
-                if (cliente.celular.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _buildInfoRow(Icons.smartphone, cliente.celular),
-                ],
-                if (cliente.email.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _buildInfoRow(Icons.email, cliente.email),
-                ],
-              ],
-            ),
-          ),
-          // Botão para trocar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: OutlinedButton.icon(
-              onPressed: onSelecionarCliente,
-              icon: const Icon(Icons.swap_horiz),
-              label: const Text('Trocar Cliente'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.blue.shade700,
-                side: BorderSide(color: Colors.blue.shade700),
-                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            _buildActionCard(
+              context: context,
+              label: 'Cliente',
+              valor:
+                  clienteSelecionado?.nome ??
+                  'Toque para selecionar um cliente',
+              icon: Icons.person_add_outlined,
+              corIcone: Colors.teal,
+              onTap: onSelecionarCliente,
+            ),
+            if (clienteSelecionado != null) ...[
+              const SizedBox(height: 16),
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green.shade600,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Cliente Selecionado',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildInfoRow(
+                        Icons.person,
+                        'Nome',
+                        clienteSelecionado!.nome,
+                      ),
+                      if (clienteSelecionado!.telefone.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.phone,
+                          'Telefone',
+                          clienteSelecionado!.telefone,
+                        ),
+                      ],
+                      if (clienteSelecionado!.email.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.email,
+                          'Email',
+                          clienteSelecionado!.email,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: Colors.grey.shade600),
+        Icon(icon, size: 20, color: Colors.teal.shade600),
         const SizedBox(width: 12),
-        Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  /// Helper para criar os cards de ação (Cliente, Serviços, etc.)
+  Widget _buildActionCard({
+    required BuildContext context,
+    required String label,
+    required String valor,
+    required IconData icon,
+    required MaterialColor corIcone,
+    required VoidCallback onTap,
+  }) {
+    final isSelecionado = !valor.startsWith('Toque para');
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [corIcone.shade50, Colors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [corIcone.shade400, corIcone.shade600],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: corIcone.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      valor,
+                      style: TextStyle(
+                        color:
+                            isSelecionado
+                                ? corIcone.shade700
+                                : Colors.grey.shade600,
+                        fontSize: 14,
+                        fontWeight:
+                            isSelecionado ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                isSelecionado ? Icons.edit_outlined : Icons.add_circle_outline,
+                color: corIcone.shade600,
+                size: 28,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
