@@ -54,11 +54,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     return Stack(
       children: [
         // Overlay escuro
-        Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.8),
-          ),
-        ),
+        Positioned.fill(child: Container(color: Colors.black.withOpacity(0.8))),
 
         // Card central
         Center(
@@ -135,9 +131,10 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: index == 0
-                                ? const Color(0xFF006d5b)
-                                : Colors.grey.shade300,
+                            color:
+                                index == 0
+                                    ? const Color(0xFF006d5b)
+                                    : Colors.grey.shade300,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -175,8 +172,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -231,11 +229,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     return Stack(
       children: [
         // Overlay escuro
-        Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.8),
-          ),
-        ),
+        Positioned.fill(child: Container(color: Colors.black.withOpacity(0.8))),
 
         // Card central
         Center(
@@ -349,9 +343,10 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   }
 
   Widget _buildSpotlightForKey(
-    GlobalKey key,
-    {required String message,
-    required int currentStep}) {
+    GlobalKey key, {
+    required String message,
+    required int currentStep,
+  }) {
     // Tenta obter o RenderBox do widget
     final RenderBox? renderBox =
         key.currentContext?.findRenderObject() as RenderBox?;
@@ -414,9 +409,10 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: index == currentStep - 1
-                              ? const Color(0xFF006d5b)
-                              : Colors.grey.shade300,
+                          color:
+                              index == currentStep - 1
+                                  ? const Color(0xFF006d5b)
+                                  : Colors.grey.shade300,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -506,11 +502,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   Widget _buildCenteredMessage(String message, int currentStep) {
     return Stack(
       children: [
-        Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.8),
-          ),
-        ),
+        Positioned.fill(child: Container(color: Colors.black.withOpacity(0.8))),
         Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
@@ -559,34 +551,31 @@ class SpotlightPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black.withOpacity(0.8)
-      ..style = PaintingStyle.fill;
+    final paint =
+        Paint()
+          ..color = Colors.black.withOpacity(0.8)
+          ..style = PaintingStyle.fill;
 
     // Desenha o overlay escuro com recorte
-    final path = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          spotlightRect,
-          const Radius.circular(12),
-        ),
-      )
-      ..fillType = PathFillType.evenOdd;
+    final path =
+        Path()
+          ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+          ..addRRect(
+            RRect.fromRectAndRadius(spotlightRect, const Radius.circular(12)),
+          )
+          ..fillType = PathFillType.evenOdd;
 
     canvas.drawPath(path, paint);
 
     // Desenha borda destacada
-    final borderPaint = Paint()
-      ..color = const Color(0xFF4db6ac)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
+    final borderPaint =
+        Paint()
+          ..color = const Color(0xFF4db6ac)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3;
 
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        spotlightRect,
-        const Radius.circular(12),
-      ),
+      RRect.fromRectAndRadius(spotlightRect, const Radius.circular(12)),
       borderPaint,
     );
   }

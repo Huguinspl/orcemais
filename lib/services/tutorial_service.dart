@@ -52,9 +52,7 @@ class TutorialSpotlight extends StatelessWidget {
         Positioned.fill(
           child: GestureDetector(
             onTap: () {}, // Bloqueia interação com o fundo
-            child: Container(
-              color: Colors.black.withOpacity(0.8),
-            ),
+            child: Container(color: Colors.black.withOpacity(0.8)),
           ),
         ),
 
@@ -95,9 +93,10 @@ class TutorialSpotlight extends StatelessWidget {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: index == currentStep - 1
-                              ? const Color(0xFF006d5b)
-                              : Colors.grey.shade300,
+                          color:
+                              index == currentStep - 1
+                                  ? const Color(0xFF006d5b)
+                                  : Colors.grey.shade300,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -153,10 +152,7 @@ class TutorialSpotlight extends StatelessWidget {
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF006d5b),
-                                Color(0xFF4db6ac),
-                              ],
+                              colors: [Color(0xFF006d5b), Color(0xFF4db6ac)],
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
