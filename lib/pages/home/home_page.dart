@@ -8,8 +8,10 @@ import '../../providers/user_provider.dart';
 import '../../providers/business_provider.dart';
 import '../../providers/agendamentos_provider.dart';
 import '../../services/notification_service.dart';
+import '../../services/tutorial_service.dart';
 import '../../widgets/home_menu.dart';
 import '../../widgets/loading_screen.dart';
+import '../../widgets/tutorial_overlay.dart';
 import 'home_body.dart';
 import 'home_navbar.dart';
 import 'tabs/meu_negocio_page.dart';
@@ -26,6 +28,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   int _currentIdx = 0; // 0‑Início | 1‑Meu negócio | 2‑Catálogo | 3‑Clientes
+  bool _showTutorial = false;
+
+  // GlobalKey para o tutorial
+  final GlobalKey _bottomNavKey = GlobalKey();
 
   @override
   void initState() {
@@ -38,7 +44,22 @@ class _HomePageState extends State<HomePage> {
           Future.delayed(const Duration(seconds: 2)),
         ]);
       } finally {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+
+          // Aguarda mais um frame para garantir que tudo está renderizado
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            // Aguarda um pouco mais para garantir que os widgets estão prontos
+            await Future.delayed(const Duration(milliseconds: 500));
+
+            // Verifica se deve mostrar o tutorial
+            final tutorialConcluido =
+                await TutorialService.isTutorialConcluido();
+            if (!tutorialConcluido && mounted) {
+              setState(() => _showTutorial = true);
+            }
+          });
+        }
       }
     });
   }
@@ -323,10 +344,20 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           if (_isLoading) const LoadingScreen(),
+
+          // Overlay do tutorial
+          if (_showTutorial)
+            TutorialOverlay(
+              bottomNavKey: _bottomNavKey,
+              onComplete: () {
+                setState(() => _showTutorial = false);
+              },
+            ),
         ],
       ),
 
       bottomNavigationBar: HomeNavBar(
+        key: _bottomNavKey,
         selectedIndex: _currentIdx,
         onItemTapped: (idx) => setState(() => _currentIdx = idx),
       ),
