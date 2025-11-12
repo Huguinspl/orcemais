@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:table_calendar/table_calendar.dart';
 import '../../../models/agendamento.dart';
 import '../../../models/cliente.dart';
 import '../../../models/orcamento.dart';
@@ -13,7 +12,8 @@ import '../../../providers/user_provider.dart';
 
 class NovoAgendamentoPage extends StatefulWidget {
   final Agendamento? agendamento;
-  const NovoAgendamentoPage({super.key, this.agendamento});
+  final DateTime? dataInicial;
+  const NovoAgendamentoPage({super.key, this.agendamento, this.dataInicial});
 
   @override
   State<NovoAgendamentoPage> createState() => _NovoAgendamentoPageState();
@@ -28,18 +28,21 @@ class _NovoAgendamentoPageState extends State<NovoAgendamentoPage> {
   Cliente? _clienteSelecionado;
   Orcamento? _orcamentoSelecionado;
   bool _salvando = false;
-  DateTime _focusedDay = DateTime.now();
-  CalendarFormat _calendarFormat = CalendarFormat.month;
 
   @override
   void initState() {
     super.initState();
+
+    // Se foi passada uma data inicial (vindo do calendário), usar ela
+    if (widget.dataInicial != null) {
+      _dataSelecionada = widget.dataInicial;
+    }
+
     final ag = widget.agendamento;
     if (ag != null) {
       final dateTime = ag.dataHora.toDate();
       _dataSelecionada = dateTime;
       _horaSelecionada = TimeOfDay.fromDateTime(dateTime);
-      _focusedDay = dateTime;
       _status = ag.status;
       _observacoes = ag.observacoes;
 
@@ -810,8 +813,8 @@ class _NovoAgendamentoPageState extends State<NovoAgendamentoPage> {
                       _buildClienteCard(),
                       const SizedBox(height: 16),
 
-                      // Calendário
-                      _buildCalendarioCard(),
+                      // Card de Data e Hora (simplificado)
+                      _buildDataHoraCard(),
                       const SizedBox(height: 16),
 
                       // Card de Hora
@@ -1012,92 +1015,97 @@ class _NovoAgendamentoPageState extends State<NovoAgendamentoPage> {
     );
   }
 
-  Widget _buildCalendarioCard() {
+  Widget _buildDataHoraCard() {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.teal.shade400, Colors.teal.shade600],
-              ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.calendar_month, color: Colors.white),
-                SizedBox(width: 12),
-                Text(
-                  'Selecione a Data',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+      child: InkWell(
+        onTap: () async {
+          final data = await showDatePicker(
+            context: context,
+            initialDate: _dataSelecionada ?? DateTime.now(),
+            firstDate: DateTime.now().subtract(const Duration(days: 365)),
+            lastDate: DateTime.now().add(const Duration(days: 730)),
+            locale: const Locale('pt', 'BR'),
+            builder: (context, child) {
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: ColorScheme.light(
+                    primary: Colors.teal.shade600,
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: Colors.grey.shade800,
                   ),
                 ),
-              ],
+                child: child!,
+              );
+            },
+          );
+          if (data != null) {
+            setState(() => _dataSelecionada = data);
+          }
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.teal.shade50],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(16),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: TableCalendar(
-              firstDay: DateTime.now().subtract(const Duration(days: 365)),
-              lastDay: DateTime.now().add(const Duration(days: 730)),
-              focusedDay: _focusedDay,
-              selectedDayPredicate: (day) => isSameDay(_dataSelecionada, day),
-              calendarFormat: _calendarFormat,
-              startingDayOfWeek: StartingDayOfWeek.monday,
-              locale: 'pt_BR',
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _dataSelecionada = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-              },
-              onFormatChanged: (format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              },
-              onPageChanged: (focusedDay) {
-                _focusedDay = focusedDay;
-              },
-              calendarStyle: CalendarStyle(
-                selectedDecoration: BoxDecoration(
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.teal.shade400, Colors.teal.shade600],
                   ),
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                todayDecoration: BoxDecoration(
-                  color: Colors.teal.shade200,
-                  shape: BoxShape.circle,
-                ),
-                outsideDaysVisible: false,
-              ),
-              headerStyle: HeaderStyle(
-                formatButtonVisible: true,
-                titleCentered: true,
-                formatButtonShowsNext: false,
-                formatButtonDecoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.teal.shade100, Colors.teal.shade50],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                formatButtonTextStyle: TextStyle(
-                  color: Colors.teal.shade700,
-                  fontWeight: FontWeight.bold,
+                child: const Icon(
+                  Icons.calendar_today,
+                  color: Colors.white,
+                  size: 28,
                 ),
               ),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Data do Agendamento',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _dataSelecionada == null
+                          ? 'Toque para selecionar'
+                          : DateFormat('dd/MM/yyyy').format(_dataSelecionada!),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color:
+                            _dataSelecionada == null
+                                ? Colors.grey.shade600
+                                : Colors.grey.shade800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: Colors.teal.shade400),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

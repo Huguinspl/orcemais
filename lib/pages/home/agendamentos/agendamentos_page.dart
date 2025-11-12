@@ -37,10 +37,17 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
     }).toList();
   }
 
-  Future<void> _abrirFormulario({Agendamento? agendamento}) async {
+  Future<void> _abrirFormulario({
+    Agendamento? agendamento,
+    DateTime? dataInicial,
+  }) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => NovoAgendamentoPage(agendamento: agendamento),
+        builder:
+            (_) => NovoAgendamentoPage(
+              agendamento: agendamento,
+              dataInicial: dataInicial,
+            ),
       ),
     );
   }
@@ -55,104 +62,104 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
     final novo = await showDialog<String>(
       context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.teal.shade50, Colors.white],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+      builder:
+          (_) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.teal.shade400, Colors.teal.shade600],
-                  ),
-                  shape: BoxShape.circle,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.teal.shade50, Colors.white],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-                child: const Icon(
-                  Icons.edit_calendar,
-                  color: Colors.white,
-                  size: 32,
-                ),
+                borderRadius: BorderRadius.circular(20),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Alterar Status',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.teal.shade400, Colors.teal.shade600],
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.edit_calendar,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Alterar Status',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  ...statusConfig.entries.map((entry) {
+                    final status = entry.key;
+                    final config = entry.value;
+                    final cor = config['cor'] as MaterialColor;
+                    final isSelected = status == ag.status;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        gradient:
+                            isSelected
+                                ? LinearGradient(
+                                  colors: [cor.shade100, cor.shade50],
+                                )
+                                : null,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? cor : Colors.grey.shade300,
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: RadioListTile<String>(
+                        title: Row(
+                          children: [
+                            Icon(
+                              config['icone'] as IconData,
+                              color: cor,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              status,
+                              style: TextStyle(
+                                fontWeight:
+                                    isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                color:
+                                    isSelected
+                                        ? cor.shade900
+                                        : Colors.grey.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        value: status,
+                        groupValue: ag.status,
+                        activeColor: cor,
+                        onChanged: (v) => Navigator.pop(context, v),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
               ),
-              const SizedBox(height: 20),
-              ...statusConfig.entries.map((entry) {
-                final status = entry.key;
-                final config = entry.value;
-                final cor = config['cor'] as MaterialColor;
-                final isSelected = status == ag.status;
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    gradient: isSelected
-                        ? LinearGradient(
-                            colors: [
-                              cor.shade100,
-                              cor.shade50,
-                            ],
-                          )
-                        : null,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected
-                          ? cor
-                          : Colors.grey.shade300,
-                      width: isSelected ? 2 : 1,
-                    ),
-                  ),
-                  child: RadioListTile<String>(
-                    title: Row(
-                      children: [
-                        Icon(
-                          config['icone'] as IconData,
-                          color: cor,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          status,
-                          style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected
-                                ? cor.shade900
-                                : Colors.grey.shade800,
-                          ),
-                        ),
-                      ],
-                    ),
-                    value: status,
-                    groupValue: ag.status,
-                    activeColor: cor,
-                    onChanged: (v) => Navigator.pop(context, v),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                );
-              }),
-            ],
+            ),
           ),
-        ),
-      ),
     );
-    
+
     if (novo != null && novo != ag.status) {
       await context.read<AgendamentosProvider>().atualizarStatus(ag.id, novo);
       if (mounted) {
@@ -180,93 +187,90 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
   Future<void> _confirmarExclusao(Agendamento ag) async {
     final confirmar = await showDialog<bool>(
       context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.red.shade50, Colors.white],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+      builder:
+          (_) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.red.shade400, Colors.red.shade600],
-                  ),
-                  shape: BoxShape.circle,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.red.shade50, Colors.white],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-                child: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.white,
-                  size: 32,
-                ),
+                borderRadius: BorderRadius.circular(20),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Excluir Agendamento',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Deseja excluir o agendamento do orçamento #${ag.orcamentoNumero?.toString().padLeft(4, '0') ?? '--'}?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.grey.shade700,
-                        side: BorderSide(color: Colors.grey.shade300),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.red.shade400, Colors.red.shade600],
                       ),
-                      child: const Text('Cancelar'),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.white,
+                      size: 32,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade600,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Excluir Agendamento',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Deseja excluir o agendamento do orçamento #${ag.orcamentoNumero?.toString().padLeft(4, '0') ?? '--'}?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.grey.shade700,
+                            side: BorderSide(color: Colors.grey.shade300),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Cancelar'),
                         ),
                       ),
-                      child: const Text('Excluir'),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red.shade600,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Excluir'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
-    
+
     if (confirmar == true) {
       await context.read<AgendamentosProvider>().excluirAgendamento(ag.id);
       if (mounted) {
@@ -405,7 +409,9 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                     ),
                     IconButton(
                       onPressed: () {
-                        context.read<AgendamentosProvider>().carregarAgendamentos();
+                        context
+                            .read<AgendamentosProvider>()
+                            .carregarAgendamentos();
                       },
                       icon: const Icon(Icons.refresh, color: Colors.white),
                       tooltip: 'Atualizar',
@@ -440,16 +446,23 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                                 firstDay: DateTime.utc(2020, 1, 1),
                                 lastDay: DateTime.utc(2100, 12, 31),
                                 focusedDay: _focusedDay,
-                                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                                selectedDayPredicate:
+                                    (day) => isSameDay(_selectedDay, day),
                                 calendarFormat: _calendarFormat,
                                 startingDayOfWeek: StartingDayOfWeek.monday,
                                 locale: 'pt_BR',
-                                eventLoader: (day) => _getAgendamentosForDay(day, provider.agendamentos),
+                                eventLoader:
+                                    (day) => _getAgendamentosForDay(
+                                      day,
+                                      provider.agendamentos,
+                                    ),
                                 onDaySelected: (selectedDay, focusedDay) {
                                   setState(() {
                                     _selectedDay = selectedDay;
                                     _focusedDay = focusedDay;
                                   });
+                                  // Navegar para novo agendamento com data pré-selecionada
+                                  _abrirFormulario(dataInicial: selectedDay);
                                 },
                                 onFormatChanged: (format) {
                                   setState(() {
@@ -462,7 +475,10 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                                 calendarStyle: CalendarStyle(
                                   selectedDecoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Colors.teal.shade400, Colors.teal.shade600],
+                                      colors: [
+                                        Colors.teal.shade400,
+                                        Colors.teal.shade600,
+                                      ],
                                     ),
                                     shape: BoxShape.circle,
                                   ),
@@ -483,7 +499,10 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                                   formatButtonShowsNext: false,
                                   formatButtonDecoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [Colors.teal.shade100, Colors.teal.shade50],
+                                      colors: [
+                                        Colors.teal.shade100,
+                                        Colors.teal.shade50,
+                                      ],
                                     ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -500,10 +519,15 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                           // Lista de agendamentos do dia selecionado
                           if (_selectedDay != null) ...[
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.event_note, color: Colors.teal.shade600),
+                                  Icon(
+                                    Icons.event_note,
+                                    color: Colors.teal.shade600,
+                                  ),
                                   const SizedBox(width: 8),
                                   Text(
                                     'Agendamentos - ${DateFormat('dd/MM/yyyy').format(_selectedDay!)}',
@@ -518,7 +542,10 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                             ),
                             const SizedBox(height: 12),
                             ..._buildAgendamentosList(
-                              _getAgendamentosForDay(_selectedDay!, provider.agendamentos),
+                              _getAgendamentosForDay(
+                                _selectedDay!,
+                                provider.agendamentos,
+                              ),
                               dateFormat,
                             ),
                           ],
@@ -549,17 +576,17 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
           icon: const Icon(Icons.add, color: Colors.white),
           label: const Text(
             'Novo Agendamento',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
       ),
     );
   }
 
-  List<Widget> _buildAgendamentosList(List<Agendamento> agendamentos, DateFormat dateFormat) {
+  List<Widget> _buildAgendamentosList(
+    List<Agendamento> agendamentos,
+    DateFormat dateFormat,
+  ) {
     if (agendamentos.isEmpty) {
       return [
         Card(
@@ -573,11 +600,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
             padding: const EdgeInsets.all(32),
             child: Column(
               children: [
-                Icon(
-                  Icons.event_busy,
-                  size: 64,
-                  color: Colors.teal.shade300,
-                ),
+                Icon(Icons.event_busy, size: 64, color: Colors.teal.shade300),
                 const SizedBox(height: 16),
                 Text(
                   'Nenhum agendamento',
@@ -590,10 +613,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                 const SizedBox(height: 8),
                 Text(
                   'Não há agendamentos para este dia',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -605,13 +625,11 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
     return agendamentos.map((ag) {
       final statusColor = _getStatusColor(ag.status);
       final statusIcon = _getStatusIcon(ag.status);
-      
+
       return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: InkWell(
           onTap: () => _abrirFormulario(agendamento: ag),
           borderRadius: BorderRadius.circular(16),
@@ -646,11 +664,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                     ),
                     child: Column(
                       children: [
-                        Icon(
-                          Icons.access_time,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                        Icon(Icons.access_time, color: Colors.white, size: 20),
                         const SizedBox(height: 4),
                         Text(
                           dateFormat.format(ag.dataHora.toDate()),
@@ -693,7 +707,10 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                           ),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [statusColor.shade100, statusColor.shade200],
+                              colors: [
+                                statusColor.shade100,
+                                statusColor.shade200,
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
@@ -734,28 +751,35 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                       if (value == 'status') _mudarStatus(ag);
                       if (value == 'excluir') _confirmarExclusao(ag);
                     },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: 'status',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_calendar, color: Colors.teal.shade600),
-                            const SizedBox(width: 12),
-                            const Text('Alterar status'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'excluir',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline, color: Colors.red.shade600),
-                            const SizedBox(width: 12),
-                            const Text('Excluir'),
-                          ],
-                        ),
-                      ),
-                    ],
+                    itemBuilder:
+                        (_) => [
+                          PopupMenuItem(
+                            value: 'status',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.edit_calendar,
+                                  color: Colors.teal.shade600,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Alterar status'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'excluir',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red.shade600,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Excluir'),
+                              ],
+                            ),
+                          ),
+                        ],
                   ),
                 ],
               ),

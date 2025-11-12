@@ -50,6 +50,7 @@ import 'pages/home/recibos/novo_valor_recebido_page.dart';
 import 'pages/home/despesas/despesas_page.dart';
 import 'pages/home/despesas/nova_despesa_page.dart';
 import 'models/peca_material.dart';
+import 'services/notification_service.dart';
 
 import 'firebase_options.dart';
 
@@ -60,6 +61,9 @@ Future<void> main() async {
   await initializeDateFormatting('pt_BR', null);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Inicializa o serviço de notificações
+  await NotificationService().initialize();
 
   // App Check: Web só ativa se a site key for fornecida. Mobile/Desktop em modo debug.
   try {

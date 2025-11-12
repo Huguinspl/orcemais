@@ -5,7 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../routes/app_routes.dart';
 import '../../providers/user_provider.dart';
-import '../../providers/business_provider.dart'; // ✅ Importado
+import '../../providers/business_provider.dart';
+import '../../providers/agendamentos_provider.dart';
+import '../../services/notification_service.dart';
 import '../../widgets/home_menu.dart';
 import '../../widgets/loading_screen.dart';
 import 'home_body.dart';
@@ -39,6 +41,185 @@ class _HomePageState extends State<HomePage> {
         if (mounted) setState(() => _isLoading = false);
       }
     });
+  }
+
+  /* ------------------- NOTIFICAÇÕES ------------------- */
+  Future<void> _testarNotificacao() async {
+    final notificationService = NotificationService();
+
+    // Mostra notificação imediata
+    await notificationService.mostrarNotificacaoImediata(
+      titulo: '🧪 Teste de Notificação',
+      corpo: 'Se você viu isso, as notificações estão funcionando!',
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.science, color: Colors.white),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Notificação de teste enviada! Verifique se apareceu.',
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.blue.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  Future<void> _solicitarPermissaoNotificacoes() async {
+    final notificationService = NotificationService();
+
+    // Inicializa o serviço se ainda não foi
+    if (!notificationService.isInitialized) {
+      await notificationService.initialize();
+    }
+
+    // Se já tem permissão, apenas mostra feedback
+    if (notificationService.permissionGranted) {
+      if (!mounted) return;
+      _mostrarDialogoNotificacoes(
+        context: context,
+        titulo: 'Notificações Ativas',
+        mensagem:
+            'Você receberá alertas 30 minutos antes dos seus agendamentos confirmados.',
+        icone: Icons.notifications_active,
+        corIcone: Colors.teal,
+      );
+      return;
+    }
+
+    // Solicita permissão
+    final permitido = await notificationService.requestPermission();
+
+    if (!mounted) return;
+
+    if (permitido) {
+      // Reagenda todas as notificações dos agendamentos
+      final agendamentosProvider = context.read<AgendamentosProvider>();
+      await notificationService.reagendarNotificacoes(
+        agendamentosProvider.agendamentos,
+      );
+
+      _mostrarDialogoNotificacoes(
+        context: context,
+        titulo: 'Notificações Ativadas! ✓',
+        mensagem:
+            'Você receberá alertas 30 minutos antes dos seus agendamentos confirmados.',
+        icone: Icons.check_circle,
+        corIcone: Colors.green,
+      );
+    } else {
+      _mostrarDialogoNotificacoes(
+        context: context,
+        titulo: 'Permissão Negada',
+        mensagem:
+            'Para receber notificações dos seus agendamentos, ative as permissões nas configurações do app.',
+        icone: Icons.notifications_off,
+        corIcone: Colors.orange,
+      );
+    }
+  }
+
+  void _mostrarDialogoNotificacoes({
+    required BuildContext context,
+    required String titulo,
+    required String mensagem,
+    required IconData icone,
+    required Color corIcone,
+  }) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, corIcone.withOpacity(0.1)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: corIcone,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icone, color: Colors.white, size: 40),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  mensagem,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: corIcone.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(dialogCtx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: corIcone,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Entendi',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   /* ------------------- LOGOUT ------------------- */
@@ -112,8 +293,9 @@ class _HomePageState extends State<HomePage> {
       actions: [
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          onPressed: () {},
-          tooltip: 'Notificações',
+          onPressed: _solicitarPermissaoNotificacoes,
+          onLongPress: _testarNotificacao,
+          tooltip: 'Notificações (Pressione longo para teste)',
           color: Colors.white,
         ),
         HomeMenu(onLogout: _logout),

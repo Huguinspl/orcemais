@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/agendamento.dart';
+import '../services/notification_service.dart';
 
 class AgendamentosProvider with ChangeNotifier {
   final _firestore = FirebaseFirestore.instance;
@@ -63,6 +64,12 @@ class AgendamentosProvider with ChangeNotifier {
     await docRef.set(agendamento.toMap());
     _agendamentos.add(agendamento);
     _agendamentos.sort((a, b) => a.dataHora.compareTo(b.dataHora));
+
+    // Agenda notificação se o status for Confirmado ou Pendente
+    if (status == 'Confirmado' || status == 'Pendente') {
+      await NotificationService().agendarNotificacao(agendamento);
+    }
+
     notifyListeners();
     return agendamento;
   }
@@ -75,6 +82,16 @@ class AgendamentosProvider with ChangeNotifier {
     if (idx != -1) {
       _agendamentos[idx] = atualizado;
       _agendamentos.sort((a, b) => a.dataHora.compareTo(b.dataHora));
+
+      // Reagenda notificação se status for Confirmado ou Pendente
+      if (atualizado.status == 'Confirmado' ||
+          atualizado.status == 'Pendente') {
+        await NotificationService().agendarNotificacao(atualizado);
+      } else {
+        // Cancela notificação se status mudou para Concluido ou Cancelado
+        await NotificationService().cancelarNotificacao(atualizado.id);
+      }
+
       notifyListeners();
     }
   }
@@ -89,12 +106,24 @@ class AgendamentosProvider with ChangeNotifier {
         status: status,
         atualizadoEm: agora,
       );
+
+      // Reagenda ou cancela notificação baseado no status
+      if (status == 'Confirmado' || status == 'Pendente') {
+        await NotificationService().agendarNotificacao(_agendamentos[idx]);
+      } else {
+        await NotificationService().cancelarNotificacao(id);
+      }
+
       notifyListeners();
     }
   }
 
   Future<void> excluirAgendamento(String id) async {
     await _agendamentosRef.doc(id).delete();
+
+    // Cancela a notificação associada
+    await NotificationService().cancelarNotificacao(id);
+
     _agendamentos.removeWhere((a) => a.id == id);
     notifyListeners();
   }

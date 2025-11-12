@@ -17,70 +17,345 @@ class _PerfilPageState extends State<PerfilPage> {
     final user = context.watch<UserProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Meu Perfil', style: TextStyle(color: Colors.white)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        children: [
-          const _TituloSecao('Dados pessoais'),
-          GestureDetector(
-            onTap: () => _abrirEdicaoPerfil(context, user),
-            child: _QuadroCinza(
-              children: [
-                _LinhaTexto('Seu nome', user.nome),
-                _LinhaTexto('Email', user.email),
-                _LinhaTexto('CPF', user.cpf),
-              ],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.teal.shade50, Colors.white, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          const SizedBox(height: 32),
-          const _TituloSecao('Outras opções'),
-          _QuadroCinza(
+        ),
+        child: SafeArea(
+          child: Column(
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.email_outlined, color: Colors.black54),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      user.emailCadastro,
-                      style: const TextStyle(fontSize: 16),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+              // Header moderno
+              Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.teal.shade600, Colors.teal.shade400],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.teal.shade200.withOpacity(0.5),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Meu Perfil',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Gerencie suas informações',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Conteúdo
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // Card de dados pessoais
+                    Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: InkWell(
+                        onTap: () => _abrirEdicaoPerfil(context, user),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.white, Colors.teal.shade50],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.person_outline,
+                                    color: Colors.teal.shade600,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Dados pessoais',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.teal.shade700,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.edit,
+                                    color: Colors.teal.shade400,
+                                    size: 20,
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: 24),
+                              _buildInfoRow(
+                                Icons.badge_outlined,
+                                'Nome',
+                                user.nome,
+                              ),
+                              const SizedBox(height: 12),
+                              _buildInfoRow(
+                                Icons.email_outlined,
+                                'Email',
+                                user.email,
+                              ),
+                              const SizedBox(height: 12),
+                              _buildInfoRow(
+                                Icons.credit_card_outlined,
+                                'CPF',
+                                user.cpf,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card de email de cadastro
+                    Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.white, Colors.blue.shade50],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.verified_user_outlined,
+                                  color: Colors.blue.shade600,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Email de cadastro',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.blue.shade200,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.lock_outline,
+                                    color: Colors.blue.shade700,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      user.emailCadastro,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.blue.shade900,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Este email não pode ser alterado',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card de termos
+                    Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: InkWell(
+                        onTap:
+                            () =>
+                                Navigator.pushNamed(context, AppRoutes.termos),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.white, Colors.orange.shade50],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.orange.shade400,
+                                      Colors.orange.shade600,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.description_outlined,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const Expanded(
+                                child: Text(
+                                  'Termos de uso e Política de privacidade',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Colors.orange.shade400,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          InkWell(
-            onTap: () => Navigator.pushNamed(context, AppRoutes.termos),
-            child: _QuadroCinza(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(top: 8, left: 16, right: 16),
-              children: const [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Termos de uso e Política de privacidade',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, color: Colors.black54),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: Colors.grey.shade600),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value.isEmpty ? 'Não informado' : value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color:
+                      value.isEmpty
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -93,11 +368,17 @@ class _PerfilPageState extends State<PerfilPage> {
     showModalBottomSheet(
       context: pageCtx,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
-        return Padding(
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.teal.shade50, Colors.white],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
             left: 16,
@@ -107,51 +388,206 @@ class _PerfilPageState extends State<PerfilPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Alterar seu perfil',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.teal.shade600, Colors.teal.shade400],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Alterar seu perfil',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Campos
+              TextField(
+                controller: nomeCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Seu nome',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.teal.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.teal.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.teal.shade600,
+                      width: 2,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
-                controller: nomeCtrl,
-                decoration: const InputDecoration(labelText: 'Seu nome'),
-              ),
-              TextField(
                 controller: emailCtrl,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.teal.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.teal.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.teal.shade600,
+                      width: 2,
+                    ),
+                  ),
+                ),
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: cpfCtrl,
-                decoration: const InputDecoration(labelText: 'CPF'),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                child: const Text('Salvar alterações'),
-                onPressed: () async {
-                  // 1) captura o messenger ANTES de fechar o sheet
-                  final messenger = ScaffoldMessenger.of(pageCtx);
-
-                  // 2) atualiza o provider (sincrono)
-                  final prov = pageCtx.read<UserProvider>();
-                  prov.atualizarDados(
-                    nomeCtrl.text,
-                    emailCtrl.text,
-                    cpfCtrl.text,
-                  );
-
-                  // 3) fecha o bottom-sheet antes de qualquer await
-                  Navigator.pop(sheetCtx);
-
-                  // 4) persiste no Firestore
-                  await prov.salvarNoFirestore();
-
-                  // 5) feedback ao usuário usando o messenger seguro
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Dados atualizados com sucesso!'),
+                decoration: InputDecoration(
+                  labelText: 'CPF',
+                  prefixIcon: const Icon(Icons.credit_card_outlined),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.teal.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.teal.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.teal.shade600,
+                      width: 2,
                     ),
-                  );
-                },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Botão
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.teal.shade300.withOpacity(0.5),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // 1) captura o messenger ANTES de fechar o sheet
+                    final messenger = ScaffoldMessenger.of(pageCtx);
+
+                    // 2) atualiza o provider (sincrono)
+                    final prov = pageCtx.read<UserProvider>();
+                    prov.atualizarDados(
+                      nomeCtrl.text,
+                      emailCtrl.text,
+                      cpfCtrl.text,
+                    );
+
+                    // 3) fecha o bottom-sheet antes de qualquer await
+                    Navigator.pop(sheetCtx);
+
+                    // 4) persiste no Firestore
+                    await prov.salvarNoFirestore();
+
+                    // 5) feedback ao usuário usando o messenger seguro
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: const Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.white),
+                            SizedBox(width: 12),
+                            Text('Dados atualizados com sucesso!'),
+                          ],
+                        ),
+                        backgroundColor: Colors.teal.shade600,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        margin: const EdgeInsets.all(16),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.save, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Salvar alterações',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],
@@ -160,75 +596,4 @@ class _PerfilPageState extends State<PerfilPage> {
       },
     );
   }
-}
-
-/* ─────────── WIDGETS AUXILIARES ─────────── */
-
-class _TituloSecao extends StatelessWidget {
-  final String texto;
-  const _TituloSecao(this.texto);
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Text(
-      texto,
-      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-    ),
-  );
-}
-
-class _QuadroCinza extends StatelessWidget {
-  final List<Widget> children;
-  final EdgeInsets margin;
-  final EdgeInsets padding;
-
-  const _QuadroCinza({
-    required this.children,
-    this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-  });
-
-  @override
-  Widget build(BuildContext context) => Container(
-    margin: margin,
-    padding: padding,
-    decoration: BoxDecoration(
-      color: Colors.grey[200],
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: children,
-    ),
-  );
-}
-
-class _LinhaTexto extends StatelessWidget {
-  final String label;
-  final String valor;
-  const _LinhaTexto(this.label, this.valor);
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          const Icon(Icons.chevron_right, size: 20, color: Colors.black54),
-        ],
-      ),
-      if (valor.isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.only(top: 4, bottom: 12),
-          child: Text(
-            valor,
-            style: const TextStyle(fontSize: 15, color: Colors.black87),
-          ),
-        ),
-      const Divider(thickness: 1),
-    ],
-  );
 }
