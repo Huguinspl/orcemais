@@ -311,7 +311,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                                                 Icon(
                                                   Icons.attach_money,
                                                   size: 14,
-                                                  color: Colors.green.shade600,
+                                                  color: Colors.orange.shade600,
                                                 ),
                                                 Text(
                                                   nf.format(o.valorTotal),
@@ -319,7 +319,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
                                                     color:
-                                                        Colors.green.shade700,
+                                                        Colors.orange.shade700,
                                                   ),
                                                 ),
                                               ],
@@ -370,7 +370,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
               ),
             ],
           ),
-          backgroundColor: Colors.green.shade600,
+          backgroundColor: Colors.orange.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -608,7 +608,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.teal.shade600, Colors.teal.shade400],
+              colors: [Colors.orange.shade600, Colors.orange.shade400],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

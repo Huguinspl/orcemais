@@ -26,7 +26,7 @@ class EtapaValoresWidget extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.teal.shade50, Colors.white, Colors.white],
+          colors: [Colors.orange.shade50, Colors.white, Colors.white],
         ),
       ),
       child: SingleChildScrollView(
@@ -43,7 +43,7 @@ class EtapaValoresWidget extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.teal.shade600, Colors.teal.shade400],
+                    colors: [Colors.orange.shade600, Colors.orange.shade400],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -253,7 +253,7 @@ class EtapaValoresWidget extends StatelessWidget {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.teal.shade200, width: 2),
+                  side: BorderSide(color: Colors.orange.shade200, width: 2),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(32),
@@ -262,7 +262,7 @@ class EtapaValoresWidget extends StatelessWidget {
                       Icon(
                         Icons.info_outline,
                         size: 64,
-                        color: Colors.teal.shade300,
+                        color: Colors.orange.shade300,
                       ),
                       const SizedBox(height: 16),
                       Text(

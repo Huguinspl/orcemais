@@ -115,7 +115,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [const Color(0xFF006d5b), const Color(0xFF4db6ac)],
+              colors: [Colors.red.shade600, Colors.red.shade400],
             ),
           ),
           child: Center(
@@ -158,7 +158,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                 titulo: 'Despesas',
                 valor: formatMoeda.format(provider.totalDespesas),
                 icone: Icons.trending_down,
-                cor: Colors.red,
+                cor: Colors.red.shade600,
               ),
             ),
             const SizedBox(width: 12),
@@ -167,7 +167,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                 titulo: 'Saldo',
                 valor: formatMoeda.format(provider.saldo),
                 icone: Icons.account_balance,
-                cor: provider.saldo >= 0 ? Colors.blue : Colors.orange,
+                cor: Colors.blue,
               ),
             ),
           ],
@@ -255,7 +255,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
             children: [
               Row(
                 children: [
-                  Icon(Icons.pie_chart, color: Colors.teal.shade700),
+                  Icon(Icons.pie_chart, color: Colors.red.shade700),
                   const SizedBox(width: 8),
                   const Text(
                     'Despesas por Categoria',
@@ -291,11 +291,11 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
       Colors.red.shade400,
       Colors.orange.shade400,
       Colors.amber.shade400,
-      Colors.green.shade400,
+      Colors.red.shade300,
       Colors.blue.shade400,
       Colors.purple.shade400,
       Colors.pink.shade400,
-      Colors.teal.shade400,
+      Colors.red.shade500,
     ];
 
     final total = dados.values.fold(0.0, (sum, valor) => sum + valor);
@@ -325,11 +325,11 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
       Colors.red.shade400,
       Colors.orange.shade400,
       Colors.amber.shade400,
-      Colors.green.shade400,
+      Colors.red.shade300,
       Colors.blue.shade400,
       Colors.purple.shade400,
       Colors.pink.shade400,
-      Colors.teal.shade400,
+      Colors.red.shade500,
     ];
 
     int index = 0;
@@ -387,7 +387,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
             children: [
               Row(
                 children: [
-                  Icon(Icons.bar_chart, color: Colors.teal.shade700),
+                  Icon(Icons.bar_chart, color: Colors.red.shade700),
                   const SizedBox(width: 8),
                   const Text(
                     'Receitas x Despesas',
@@ -478,7 +478,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
         barRods: [
           BarChartRodData(
             toY: provider.totalDespesas,
-            color: Colors.red,
+            color: Colors.red.shade600,
             width: 40,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(6),
@@ -521,7 +521,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
             children: [
               Row(
                 children: [
-                  Icon(Icons.history, color: Colors.teal.shade700),
+                  Icon(Icons.history, color: Colors.red.shade700),
                   const SizedBox(width: 8),
                   const Text(
                     'Transações Recentes',
@@ -623,7 +623,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
   Widget _buildFAB() {
     return FloatingActionButton.extended(
       onPressed: () => _mostrarDialogNovaTransacao(),
-      backgroundColor: const Color(0xFF006d5b),
+      backgroundColor: Colors.red.shade600,
       icon: const Icon(Icons.add, color: Colors.white),
       label: const Text(
         'Nova Transação',
@@ -675,9 +675,13 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.red.shade50, Colors.white],
+        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -693,8 +697,8 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF006d5b), Color(0xFF4db6ac)],
+                      gradient: LinearGradient(
+                        colors: [Colors.red.shade600, Colors.red.shade400],
                       ),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -839,7 +843,7 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
                 child: ElevatedButton(
                   onPressed: _salvando ? null : _salvar,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF006d5b),
+                    backgroundColor: Colors.red.shade600,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -931,7 +935,7 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
                 Text('Transação adicionada com sucesso!'),
               ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.red.shade600,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),

@@ -16,7 +16,7 @@ class BusinessProvider extends ChangeNotifier {
   StreamSubscription<User?>? _authSub;
 
   DocumentReference<Map<String, dynamic>> get _docRef =>
-      _db.doc('users/$_uid/meta/business');
+      _db.doc('business/$_uid');
 
   // ---- estado local ----
   String nomeEmpresa = '';
@@ -249,7 +249,9 @@ class BusinessProvider extends ChangeNotifier {
   Future<void> uploadLogoBytes(Uint8List bytes, {String? filePath}) async {
     if (_uid.isEmpty) return;
     try {
-      final ref = FirebaseStorage.instance.ref().child('users/$_uid/logo.png');
+      final ref = FirebaseStorage.instance.ref().child(
+        'negocios/$_uid/logomarca',
+      );
       await ref.putData(bytes, SettableMetadata(contentType: 'image/png'));
       final url = await ref.getDownloadURL();
       logoUrl = url;
@@ -300,7 +302,9 @@ class BusinessProvider extends ChangeNotifier {
         // No Web, prefira baixar direto do caminho conhecido no Storage
         if (_uid.isNotEmpty) {
           try {
-            final ref = FirebaseStorage.instance.ref('users/$_uid/logo.png');
+            final ref = FirebaseStorage.instance.ref(
+              'negocios/$_uid/logomarca',
+            );
             final data = await ref.getData(5 * 1024 * 1024);
             if (data != null) {
               _logoCacheBytes = data;
@@ -351,7 +355,7 @@ class BusinessProvider extends ChangeNotifier {
   }) async {
     if (_uid.isEmpty) return;
     final ref = FirebaseStorage.instance.ref().child(
-      'users/$_uid/assinatura.png',
+      'negocios/$_uid/assinatura',
     );
     await ref.putData(bytes, SettableMetadata(contentType: 'image/png'));
     final url = await ref.getDownloadURL();
@@ -400,7 +404,7 @@ class BusinessProvider extends ChangeNotifier {
         if (_uid.isNotEmpty) {
           try {
             final ref = FirebaseStorage.instance.ref(
-              'users/$_uid/assinatura.png',
+              'negocios/$_uid/assinatura',
             );
             final data = await ref.getData(5 * 1024 * 1024);
             if (data != null) {

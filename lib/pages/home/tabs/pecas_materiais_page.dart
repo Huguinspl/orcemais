@@ -67,13 +67,25 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<PecasProvider>();
+    return Consumer<PecasProvider>(
+      builder: (context, provider, child) {
+        final pecasFiltradas =
+            provider.itens.where((PecaMaterial peca) {
+              return peca.nome.toLowerCase().contains(
+                _termoBusca.toLowerCase(),
+              );
+            }).toList();
 
-    final pecasFiltradas =
-        provider.itens.where((PecaMaterial peca) {
-          return peca.nome.toLowerCase().contains(_termoBusca.toLowerCase());
-        }).toList();
+        return _buildScaffold(context, provider, pecasFiltradas);
+      },
+    );
+  }
 
+  Widget _buildScaffold(
+    BuildContext context,
+    PecasProvider provider,
+    List<PecaMaterial> pecasFiltradas,
+  ) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -567,23 +579,27 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
               onPressed: () {
                 provider.deletePeca(peca.id);
                 Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(Icons.check_circle, color: Colors.white),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text('"${peca.nome}" foi excluído.')),
-                      ],
+
+                // Usar o context do Scaffold, não o do dialog
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.white),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text('"${peca.nome}" foi excluído.')),
+                        ],
+                      ),
+                      backgroundColor: Colors.red.shade600,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      margin: const EdgeInsets.all(16),
                     ),
-                    backgroundColor: Colors.red.shade600,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    margin: const EdgeInsets.all(16),
-                  ),
-                );
+                  );
+                }
               },
             ),
           ],

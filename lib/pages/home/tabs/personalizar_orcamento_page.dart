@@ -6,27 +6,64 @@ import '../tabs/signature/gerenciar_assinatura_page.dart';
 import 'descricao/editar_descricao_page.dart';
 import 'pdf/personalizar_pdf_page.dart';
 
-class PersonalizarOrcamentoPage extends StatelessWidget {
+class PersonalizarOrcamentoPage extends StatefulWidget {
   final bool isEmbedded; // Se true, não mostra AppBar e bottomBar
   const PersonalizarOrcamentoPage({super.key, this.isEmbedded = false});
+
+  @override
+  State<PersonalizarOrcamentoPage> createState() =>
+      _PersonalizarOrcamentoPageState();
+}
+
+class _PersonalizarOrcamentoPageState extends State<PersonalizarOrcamentoPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final business = context.watch<BusinessProvider>();
 
-    final listViewContent = Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.blue.shade50, Colors.white, Colors.white],
+    // Se está sendo usado como etapa embutida, não mostra AppBar e botões
+    if (widget.isEmbedded) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.purple.shade50, Colors.white, Colors.white],
+          ),
         ),
-      ),
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Header moderno (apenas quando isEmbedded)
-          if (isEmbedded) ...[
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Header moderno (apenas quando isEmbedded)
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
@@ -34,8 +71,8 @@ class PersonalizarOrcamentoPage extends StatelessWidget {
               ),
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue.shade600, Colors.blue.shade400],
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -85,120 +122,44 @@ class PersonalizarOrcamentoPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            _buildSectionCards(context, business),
           ],
-          _SectionCard(
-            icon: Icons.description_outlined,
-            title: 'Descrição do negócio',
-            subtitle:
-                (business.descricao != null && business.descricao!.isNotEmpty)
-                    ? 'Descrição cadastrada'
-                    : 'Adicionar uma breve descrição',
-            corIcone: Colors.blue,
-            isConfigured:
-                business.descricao != null && business.descricao!.isNotEmpty,
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const EditarDescricaoPage(),
-                  ),
-                ),
-          ),
-          const SizedBox(height: 16),
-          _SectionCard(
-            icon: Icons.color_lens_outlined,
-            title: 'Personalizar PDF',
-            subtitle:
-                (business.pdfTheme != null && business.pdfTheme!.isNotEmpty)
-                    ? 'Tema personalizado ativo'
-                    : 'Ajustar cores do PDF',
-            corIcone: Colors.purple,
-            isConfigured:
-                business.pdfTheme != null && business.pdfTheme!.isNotEmpty,
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PersonalizarPdfPage(),
-                  ),
-                ),
-          ),
-          const SizedBox(height: 16),
-          _SectionCard(
-            icon: Icons.qr_code_2_outlined,
-            title: 'Chave Pix',
-            subtitle:
-                business.pixChave == null
-                    ? 'Adicionar chave Pix'
-                    : 'Chave (${business.pixTipo}): ${business.pixChave}',
-            corIcone: Colors.teal,
-            isConfigured: business.pixChave != null,
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const EditarPixPage()),
-                ),
-            trailing:
-                business.pixChave != null
-                    ? IconButton(
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: Colors.red.shade400,
-                      ),
-                      onPressed: () => _confirmarRemocaoPix(context),
-                    )
-                    : null,
-          ),
-          const SizedBox(height: 16),
-          _SectionCard(
-            icon: Icons.edit_outlined,
-            title: 'Cadastrar assinatura',
-            subtitle:
-                (business.assinaturaUrl != null &&
-                        business.assinaturaUrl!.isNotEmpty)
-                    ? 'Assinatura cadastrada'
-                    : 'Adicionar/atualizar a assinatura',
-            corIcone: Colors.indigo,
-            isConfigured:
-                business.assinaturaUrl != null &&
-                business.assinaturaUrl!.isNotEmpty,
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const GerenciarAssinaturaPage(),
-                  ),
-                ),
-          ),
-        ],
-      ),
-    );
-
-    // Se está sendo usado como etapa embutida, não mostra AppBar e botões
-    if (isEmbedded) {
-      return listViewContent;
+        ),
+      );
     }
 
-    // Se está sendo usado standalone, mostra tudo
+    // Se está sendo usado standalone, mostra tudo com SliverAppBar
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Personalizar orçamento',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade600, Colors.blue.shade400],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: CustomScrollView(
+            slivers: [
+              _buildAppBar(),
+              SliverToBoxAdapter(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.purple.shade50,
+                        Colors.white,
+                        Colors.white,
+                      ],
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildSectionCards(context, business),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-      body: listViewContent,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -219,15 +180,15 @@ class PersonalizarOrcamentoPage extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: Colors.blue.shade600, width: 2),
+                    side: const BorderSide(color: Color(0xFF6A1B9A), width: 2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Cancelar',
                     style: TextStyle(
-                      color: Colors.blue.shade600,
+                      color: Color(0xFF6A1B9A),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -236,19 +197,38 @@ class PersonalizarOrcamentoPage extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.blue.shade600,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
                     ),
-                    elevation: 3,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6A1B9A).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: const Text(
-                    'Salvar',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Salvar',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -256,6 +236,123 @@ class PersonalizarOrcamentoPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 200,
+      floating: false,
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        title: const Text(
+          'Personalizar Orçamento',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
+            ),
+          ),
+          child: Center(
+            child: Icon(
+              Icons.palette_outlined,
+              size: 80,
+              color: Colors.white.withOpacity(0.3),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionCards(BuildContext context, BusinessProvider business) {
+    return Column(
+      children: [
+        _SectionCard(
+          icon: Icons.description_outlined,
+          title: 'Descrição do negócio',
+          subtitle:
+              (business.descricao != null && business.descricao!.isNotEmpty)
+                  ? 'Descrição cadastrada'
+                  : 'Adicionar uma breve descrição',
+          corIcone: Colors.blue,
+          isConfigured:
+              business.descricao != null && business.descricao!.isNotEmpty,
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditarDescricaoPage()),
+              ),
+        ),
+        const SizedBox(height: 16),
+        _SectionCard(
+          icon: Icons.color_lens_outlined,
+          title: 'Personalizar PDF',
+          subtitle:
+              (business.pdfTheme != null && business.pdfTheme!.isNotEmpty)
+                  ? 'Tema personalizado ativo'
+                  : 'Ajustar cores do PDF',
+          corIcone: Colors.purple,
+          isConfigured:
+              business.pdfTheme != null && business.pdfTheme!.isNotEmpty,
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PersonalizarPdfPage()),
+              ),
+        ),
+        const SizedBox(height: 16),
+        _SectionCard(
+          icon: Icons.qr_code_2_outlined,
+          title: 'Chave Pix',
+          subtitle:
+              business.pixChave == null
+                  ? 'Adicionar chave Pix'
+                  : 'Chave (${business.pixTipo}): ${business.pixChave}',
+          corIcone: Colors.teal,
+          isConfigured: business.pixChave != null,
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditarPixPage()),
+              ),
+          trailing:
+              business.pixChave != null
+                  ? IconButton(
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: Colors.red.shade400,
+                    ),
+                    onPressed: () => _confirmarRemocaoPix(context),
+                  )
+                  : null,
+        ),
+        const SizedBox(height: 16),
+        _SectionCard(
+          icon: Icons.edit_outlined,
+          title: 'Cadastrar assinatura',
+          subtitle:
+              (business.assinaturaUrl != null &&
+                      business.assinaturaUrl!.isNotEmpty)
+                  ? 'Assinatura cadastrada'
+                  : 'Adicionar/atualizar a assinatura',
+          corIcone: Colors.indigo,
+          isConfigured:
+              business.assinaturaUrl != null &&
+              business.assinaturaUrl!.isNotEmpty,
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const GerenciarAssinaturaPage(),
+                ),
+              ),
+        ),
+      ],
     );
   }
 

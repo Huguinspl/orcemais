@@ -13,18 +13,43 @@ class AgendamentosPage extends StatefulWidget {
   State<AgendamentosPage> createState() => _AgendamentosPageState();
 }
 
-class _AgendamentosPageState extends State<AgendamentosPage> {
+class _AgendamentosPageState extends State<AgendamentosPage>
+    with SingleTickerProviderStateMixin {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   CalendarFormat _calendarFormat = CalendarFormat.month;
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _animationController.forward();
     Future.microtask(
       () => context.read<AgendamentosProvider>().carregarAgendamentos(),
     );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   List<Agendamento> _getAgendamentosForDay(
@@ -329,233 +354,179 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('HH:mm');
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.teal.shade50, Colors.white, Colors.white],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      appBar: AppBar(
+        title: const Text(
+          'Agendamentos',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.teal.shade600, Colors.teal.shade400],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header moderno
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.teal.shade600, Colors.teal.shade400],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.teal.shade200.withOpacity(0.5),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                      tooltip: 'Voltar',
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.calendar_month,
-                        color: Colors.white,
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Agendamentos',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Gerencie seus agendamentos',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        context
-                            .read<AgendamentosProvider>()
-                            .carregarAgendamentos();
-                      },
-                      icon: const Icon(Icons.refresh, color: Colors.white),
-                      tooltip: 'Atualizar',
-                    ),
-                  ],
-                ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<AgendamentosProvider>().carregarAgendamentos();
+            },
+            tooltip: 'Atualizar',
+          ),
+        ],
+      ),
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.teal.shade50, Colors.white, Colors.white],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-
-              // Calendário
-              Consumer<AgendamentosProvider>(
-                builder: (_, provider, __) {
-                  if (provider.isLoading) {
-                    return const Expanded(
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-
-                  return Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          // Card do calendário
-                          Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: TableCalendar(
-                                firstDay: DateTime.utc(2020, 1, 1),
-                                lastDay: DateTime.utc(2100, 12, 31),
-                                focusedDay: _focusedDay,
-                                selectedDayPredicate:
-                                    (day) => isSameDay(_selectedDay, day),
-                                calendarFormat: _calendarFormat,
-                                startingDayOfWeek: StartingDayOfWeek.monday,
-                                locale: 'pt_BR',
-                                eventLoader:
-                                    (day) => _getAgendamentosForDay(
-                                      day,
-                                      provider.agendamentos,
-                                    ),
-                                onDaySelected: (selectedDay, focusedDay) {
-                                  setState(() {
-                                    _selectedDay = selectedDay;
-                                    _focusedDay = focusedDay;
-                                  });
-                                  // Navegar para novo agendamento com data pré-selecionada
-                                  _abrirFormulario(dataInicial: selectedDay);
-                                },
-                                onFormatChanged: (format) {
-                                  setState(() {
-                                    _calendarFormat = format;
-                                  });
-                                },
-                                onPageChanged: (focusedDay) {
-                                  _focusedDay = focusedDay;
-                                },
-                                calendarStyle: CalendarStyle(
-                                  selectedDecoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.teal.shade400,
-                                        Colors.teal.shade600,
-                                      ],
-                                    ),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  todayDecoration: BoxDecoration(
-                                    color: Colors.teal.shade200,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  markerDecoration: const BoxDecoration(
-                                    color: Colors.orange,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  markersMaxCount: 3,
-                                  outsideDaysVisible: false,
-                                ),
-                                headerStyle: HeaderStyle(
-                                  formatButtonVisible: true,
-                                  titleCentered: true,
-                                  formatButtonShowsNext: false,
-                                  formatButtonDecoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.teal.shade100,
-                                        Colors.teal.shade50,
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  formatButtonTextStyle: TextStyle(
-                                    color: Colors.teal.shade700,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Lista de agendamentos do dia selecionado
-                          if (_selectedDay != null) ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.event_note,
-                                    color: Colors.teal.shade600,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Agendamentos - ${DateFormat('dd/MM/yyyy').format(_selectedDay!)}',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            ..._buildAgendamentosList(
-                              _getAgendamentosForDay(
-                                _selectedDay!,
-                                provider.agendamentos,
-                              ),
-                              dateFormat,
-                            ),
-                          ],
-                        ],
-                      ),
+            ),
+            child: Consumer<AgendamentosProvider>(
+              builder: (_, provider, __) {
+                if (provider.isLoading) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: CircularProgressIndicator(),
                     ),
                   );
-                },
-              ),
-            ],
+                }
+
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Card do calendário
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Card(
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: TableCalendar(
+                              firstDay: DateTime.utc(2020, 1, 1),
+                              lastDay: DateTime.utc(2100, 12, 31),
+                              focusedDay: _focusedDay,
+                              selectedDayPredicate:
+                                  (day) => isSameDay(_selectedDay, day),
+                              calendarFormat: _calendarFormat,
+                              startingDayOfWeek: StartingDayOfWeek.monday,
+                              locale: 'pt_BR',
+                              eventLoader:
+                                  (day) => _getAgendamentosForDay(
+                                    day,
+                                    provider.agendamentos,
+                                  ),
+                              onDaySelected: (selectedDay, focusedDay) {
+                                setState(() {
+                                  _selectedDay = selectedDay;
+                                  _focusedDay = focusedDay;
+                                });
+                                // Navegar para novo agendamento com data pré-selecionada
+                                _abrirFormulario(dataInicial: selectedDay);
+                              },
+                              onFormatChanged: (format) {
+                                setState(() {
+                                  _calendarFormat = format;
+                                });
+                              },
+                              onPageChanged: (focusedDay) {
+                                _focusedDay = focusedDay;
+                              },
+                              calendarStyle: CalendarStyle(
+                                selectedDecoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.teal.shade400,
+                                      Colors.teal.shade600,
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                todayDecoration: BoxDecoration(
+                                  color: Colors.teal.shade200,
+                                  shape: BoxShape.circle,
+                                ),
+                                markerDecoration: const BoxDecoration(
+                                  color: Colors.orange,
+                                  shape: BoxShape.circle,
+                                ),
+                                markersMaxCount: 3,
+                                outsideDaysVisible: false,
+                              ),
+                              headerStyle: HeaderStyle(
+                                formatButtonVisible: true,
+                                titleCentered: true,
+                                formatButtonShowsNext: false,
+                                formatButtonDecoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.teal.shade100,
+                                      Colors.teal.shade50,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                formatButtonTextStyle: TextStyle(
+                                  color: Colors.teal.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Lista de agendamentos do dia selecionado
+                      if (_selectedDay != null) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.event_note,
+                                color: Colors.teal.shade600,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Agendamentos - ${DateFormat('dd/MM/yyyy').format(_selectedDay!)}',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ..._buildAgendamentosList(
+                          _getAgendamentosForDay(
+                            _selectedDay!,
+                            provider.agendamentos,
+                          ),
+                          dateFormat,
+                        ),
+                        const SizedBox(height: 80),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),

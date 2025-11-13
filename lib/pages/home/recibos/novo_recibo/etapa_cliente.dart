@@ -18,7 +18,7 @@ class EtapaClienteWidget extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.teal.shade50, Colors.white, Colors.white],
+          colors: [Colors.orange.shade50, Colors.white, Colors.white],
         ),
       ),
       child: SingleChildScrollView(
@@ -35,7 +35,7 @@ class EtapaClienteWidget extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.teal.shade600, Colors.teal.shade400],
+                    colors: [Colors.orange.shade600, Colors.orange.shade400],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -92,7 +92,7 @@ class EtapaClienteWidget extends StatelessWidget {
                   clienteSelecionado?.nome ??
                   'Toque para selecionar um cliente',
               icon: Icons.person_add_outlined,
-              corIcone: Colors.teal,
+              corIcone: Colors.orange,
               onTap: onSelecionarCliente,
             ),
             if (clienteSelecionado != null) ...[
@@ -161,7 +161,7 @@ class EtapaClienteWidget extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.teal.shade600),
+        Icon(icon, size: 20, color: Colors.orange.shade600),
         const SizedBox(width: 12),
         Expanded(
           child: Column(

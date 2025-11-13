@@ -52,8 +52,36 @@ class TransacoesProvider with ChangeNotifier {
 
       _erro = null;
     } catch (e) {
-      _erro = 'Erro ao carregar transações: $e';
-      debugPrint(_erro);
+      // Se o erro for de índice faltando, usa consulta simples sem ordenação
+      if (e.toString().contains('failed-precondition') ||
+          e.toString().contains('index')) {
+        try {
+          debugPrint('⚠️ Índice não encontrado, carregando sem ordenação...');
+          final querySnapshot =
+              await _firestore
+                  .collection('transacoes')
+                  .where('userId', isEqualTo: userId)
+                  .get();
+
+          _transacoes =
+              querySnapshot.docs
+                  .map((doc) => Transacao.fromFirestore(doc))
+                  .toList();
+
+          // Ordena localmente
+          _transacoes.sort((a, b) => b.data.compareTo(a.data));
+
+          _erro =
+              'Índice do Firestore pendente. Funcionalidade limitada temporariamente.';
+          debugPrint('✅ Transações carregadas sem índice (ordenação local)');
+        } catch (e2) {
+          _erro = 'Erro ao carregar transações: $e2';
+          debugPrint(_erro);
+        }
+      } else {
+        _erro = 'Erro ao carregar transações: $e';
+        debugPrint(_erro);
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
