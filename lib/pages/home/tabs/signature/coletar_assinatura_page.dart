@@ -14,7 +14,7 @@ class ColetarAssinaturaPage extends StatefulWidget {
 
 class _ColetarAssinaturaPageState extends State<ColetarAssinaturaPage> {
   final control = HandSignatureControl(
-    threshold: 3.0,
+    threshold: 0.5,
     smoothRatio: 0.65,
     velocityRange: 2.0,
   );
@@ -64,48 +64,172 @@ class _ColetarAssinaturaPageState extends State<ColetarAssinaturaPage> {
       quarterTurns: 1,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Assinatura'),
+          title: const Text(
+            'Desenhe sua Assinatura',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           centerTitle: true,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF303F9F), Color(0xFF5C6BC0)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
           actions: [
-            IconButton(
-              onPressed: () => control.clear(),
-              icon: const Icon(Icons.delete_outline),
-              tooltip: 'Limpar',
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                onPressed: () => control.clear(),
+                icon: const Icon(Icons.delete_outline, color: Colors.white),
+                tooltip: 'Limpar',
+              ),
             ),
           ],
         ),
         body: Container(
-          color: Colors.grey.shade200,
-          padding: const EdgeInsets.all(12),
-          child: Center(
-            child: AspectRatio(
-              aspectRatio: 3 / 1,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: HandSignature(control: control),
-              ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                const Color(0xFFE8EAF6),
+                Colors.grey.shade100,
+              ],
             ),
           ),
+          child: Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                        color: const Color(0xFF303F9F),
+                        width: 3,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF303F9F).withOpacity(0.2),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(13),
+                      child: HandSignature(control: control),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
           child: Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: OutlinedButton.icon(
                   onPressed: _salvando ? null : () => Navigator.pop(context),
-                  child: const Text('Cancelar'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(
+                      color: Color(0xFF303F9F),
+                      width: 2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color(0xFF303F9F),
+                  ),
+                  label: const Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      color: Color(0xFF303F9F),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: _salvando ? null : _salvar,
-                  child: Text(_salvando ? 'Salvando...' : 'Salvar'),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF303F9F), Color(0xFF5C6BC0)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF303F9F).withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: _salvando ? null : _salvar,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      disabledBackgroundColor: Colors.grey.withOpacity(0.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: _salvando
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Icon(
+                            Icons.check_circle_outline,
+                            color: Colors.white,
+                          ),
+                    label: Text(
+                      _salvando ? 'Salvando...' : 'Salvar',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],

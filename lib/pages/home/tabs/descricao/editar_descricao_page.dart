@@ -358,36 +358,39 @@ class _EditarDescricaoPageState extends State<EditarDescricaoPage>
   Widget build(BuildContext context) {
     return Consumer<BusinessProvider>(
       builder: (context, provider, _) {
-        return Scaffold(
-          body: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: CustomScrollView(
-                slivers: [
-                  _buildAppBar(provider),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildInfoCard(),
-                            const SizedBox(height: 24),
-                            _buildDescriptionField(),
-                            const SizedBox(height: 16),
-                          ],
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            body: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: CustomScrollView(
+                  slivers: [
+                    _buildAppBar(provider),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildInfoCard(),
+                              const SizedBox(height: 24),
+                              _buildDescriptionField(),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
           ),
           bottomNavigationBar: _buildActionButtons(),
+          ),
         );
       },
     );

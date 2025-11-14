@@ -344,25 +344,27 @@ class _EditarPixPageState extends State<EditarPixPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: CustomScrollView(
-            slivers: [
-              _buildAppBar(),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildInfoCard(),
-                        _buildSectionHeader('Tipo da Chave', Icons.category),
-                        Wrap(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: CustomScrollView(
+              slivers: [
+                _buildAppBar(),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildInfoCard(),
+                          _buildSectionHeader('Tipo da Chave', Icons.category),
+                          Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: [
@@ -387,6 +389,7 @@ class _EditarPixPageState extends State<EditarPixPage>
         ),
       ),
       bottomNavigationBar: _buildActionButtons(),
+      ),
     );
   }
 

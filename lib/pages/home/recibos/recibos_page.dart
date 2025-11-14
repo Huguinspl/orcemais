@@ -239,14 +239,14 @@ class _RecibosPageState extends State<RecibosPage> {
       appBar: AppBar(
         title: const Text(
           'Recibos',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.teal.shade600, Colors.teal.shade400],
+              colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -254,11 +254,11 @@ class _RecibosPageState extends State<RecibosPage> {
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.teal.shade50, Colors.white, Colors.white],
+            colors: [Color(0xFFFFF3E0), Colors.white, Colors.white],
           ),
         ),
         child: Column(
@@ -273,12 +273,21 @@ class _RecibosPageState extends State<RecibosPage> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.teal.shade100,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
+                      ),
                       borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.receipt_outlined,
-                      color: Colors.teal.shade700,
+                      color: Colors.white,
                       size: 24,
                     ),
                   ),
@@ -398,7 +407,8 @@ class _RecibosPageState extends State<RecibosPage> {
         tooltip: 'Novo recibo',
         icon: const Icon(Icons.add),
         label: const Text('Novo Recibo'),
-        backgroundColor: Colors.teal.shade600,
+        backgroundColor: const Color(0xFFF57C00),
+        foregroundColor: Colors.white,
       ),
     );
   }
@@ -423,7 +433,7 @@ class _RecibosPageState extends State<RecibosPage> {
           decoration: InputDecoration(
             hintText: '🔍 Buscar por cliente...',
             hintStyle: TextStyle(color: Colors.grey.shade500),
-            prefixIcon: Icon(Icons.search, color: Colors.teal.shade600),
+            prefixIcon: const Icon(Icons.search, color: Color(0xFFF57C00)),
             suffixIcon:
                 _termoBusca.isNotEmpty
                     ? IconButton(
@@ -620,13 +630,13 @@ class _RecibosPageState extends State<RecibosPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.teal.shade400, Colors.teal.shade600],
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
                         ),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.teal.shade200,
+                            color: Colors.orange.withOpacity(0.3),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),

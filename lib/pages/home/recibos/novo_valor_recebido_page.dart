@@ -52,21 +52,16 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
       duration: const Duration(milliseconds: 800),
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
 
     _animationController.forward();
   }
@@ -136,10 +131,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
         appBar: AppBar(
           title: const Text(
             'Adicionar Valor Recebido',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
           ),
           centerTitle: true,
           flexibleSpace: Container(
@@ -229,7 +221,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                         ),
                       ),
                     ),
-                            const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // Card de Data
                     Card(
@@ -242,10 +234,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white,
-                              Colors.orange.shade50,
-                            ],
+                            colors: [Colors.white, Colors.orange.shade50],
                           ),
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -258,10 +247,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFFF57C00),
-                                  Color(0xFFFFB74D),
-                                ],
+                                colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
                               ),
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
@@ -515,8 +501,8 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                               child: Text('📄 Boleto'),
                             ),
                           ],
-                          onChanged: (v) =>
-                              setState(() => _forma = v ?? 'Dinheiro'),
+                          onChanged:
+                              (v) => setState(() => _forma = v ?? 'Dinheiro'),
                         ),
                       ),
                     ),
@@ -545,8 +531,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
-                          disabledBackgroundColor:
-                              Colors.grey.withOpacity(0.5),
+                          disabledBackgroundColor: Colors.grey.withOpacity(0.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),

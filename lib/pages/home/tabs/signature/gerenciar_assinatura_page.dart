@@ -60,7 +60,36 @@ class _GerenciarAssinaturaPageState extends State<GerenciarAssinaturaPage>
               end: Alignment.bottomRight,
             ),
           ),
-          child: const Icon(Icons.edit, size: 80, color: Colors.white24),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.2,
+                  child: Icon(
+                    Icons.edit,
+                    size: 120,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 80,
+                right: 20,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.draw_outlined,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -77,24 +106,75 @@ class _GerenciarAssinaturaPageState extends State<GerenciarAssinaturaPage>
   Widget _buildInfoCard() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF303F9F).withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF303F9F).withOpacity(0.2)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF303F9F).withOpacity(0.1),
+            const Color(0xFF5C6BC0).withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF303F9F).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF303F9F).withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: const Color(0xFF303F9F), size: 28),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Sua assinatura será utilizada nos recibos e documentos gerados pelo aplicativo.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade700,
-                height: 1.4,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF303F9F), Color(0xFF5C6BC0)],
               ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF303F9F).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.info_outline,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sobre a Assinatura',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Sua assinatura será utilizada nos recibos e documentos gerados pelo aplicativo.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -173,27 +253,43 @@ class _GerenciarAssinaturaPageState extends State<GerenciarAssinaturaPage>
       builder: (context, business, _) {
         final hasSig = (business.assinaturaUrl ?? '').isNotEmpty;
 
-        return Scaffold(
-          body: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: CustomScrollView(
-                slivers: [
-                  _buildAppBar(hasSig),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildInfoCard(),
-                          const ModernAssinaturaUploader(),
-                        ],
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFFE8EAF6),
+                    Colors.white,
+                    Colors.white,
+                  ],
+                ),
+              ),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: CustomScrollView(
+                    slivers: [
+                      _buildAppBar(hasSig),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildInfoCard(),
+                              const ModernAssinaturaUploader(),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -348,14 +444,24 @@ class _ModernAssinaturaUploaderState extends State<ModernAssinaturaUploader> {
   Widget _buildSignatureButton() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            const Color(0xFFE8EAF6),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF303F9F).withOpacity(0.2)),
+        border: Border.all(
+          color: const Color(0xFF303F9F).withOpacity(0.3),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF303F9F).withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -371,7 +477,7 @@ class _ModernAssinaturaUploaderState extends State<ModernAssinaturaUploader> {
             if (mounted) setState(() {});
           },
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(28),
             child: Column(
               children: [
                 Container(
@@ -381,15 +487,22 @@ class _ModernAssinaturaUploaderState extends State<ModernAssinaturaUploader> {
                       colors: [Color(0xFF303F9F), Color(0xFF5C6BC0)],
                     ),
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF303F9F).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                   child: const Icon(Icons.edit, color: Colors.white, size: 40),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 const Text(
                   'Toque para assinar em tela cheia',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
                     color: Color(0xFF303F9F),
                   ),
                 ),
@@ -397,7 +510,11 @@ class _ModernAssinaturaUploaderState extends State<ModernAssinaturaUploader> {
                 Text(
                   'Use seu dedo ou caneta stylus para desenhar sua assinatura',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),

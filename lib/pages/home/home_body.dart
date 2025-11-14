@@ -121,7 +121,7 @@ class HomeBody extends StatelessWidget {
                   FeatureCard(
                     icon: Icons.receipt_outlined,
                     title: 'Recibos',
-                    color: Colors.teal,
+                    color: Colors.orange,
                     onTap:
                         () => Navigator.pushNamed(context, AppRoutes.recibos),
                   ),
@@ -145,7 +145,7 @@ class HomeBody extends StatelessWidget {
                   FeatureCard(
                     icon: Icons.receipt_long,
                     title: 'Outras Funcionalidades',
-                    color: Colors.orange,
+                    color: Colors.teal,
                     onTap:
                         () => _placeholder(
                           context,
