@@ -74,11 +74,11 @@ class BusinessProvider extends ChangeNotifier {
 
   Future<void> carregarDoFirestore() async {
     if (_uid.isEmpty) return;
-    
+
     // Limpar dados anteriores ANTES de carregar novos dados
     // para evitar mistura de dados entre contas diferentes
     await limparDados();
-    
+
     final doc = await _docRef.get();
 
     if (doc.exists) {
@@ -520,7 +520,7 @@ class BusinessProvider extends ChangeNotifier {
     descricao = null;
     pdfTheme = null;
     _cachedInfo = BusinessInfo.empty();
-    
+
     // Limpar também o SharedPreferences para evitar paths de contas anteriores
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -529,7 +529,7 @@ class BusinessProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Erro ao limpar SharedPreferences: $e');
     }
-    
+
     notifyListeners();
   }
 
