@@ -147,9 +147,9 @@ class HomeBody extends StatelessWidget {
                     title: 'Outras Funcionalidades',
                     color: Colors.teal,
                     onTap:
-                        () => _placeholder(
+                        () => Navigator.pushNamed(
                           context,
-                          'Em breve novas funcionalidades',
+                          AppRoutes.outrasFuncionalidades,
                         ),
                   ),
                   FeatureCard(

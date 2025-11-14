@@ -28,4 +28,8 @@ class AppRoutes {
   static const novaDespesa = '/nova-despesa';
 
   static const selecionarServicos = '/selecionar-servicos'; // ✅ nova rota
+
+  // Outras funcionalidades
+  static const outrasFuncionalidades = '/outras-funcionalidades';
+  static const checklists = '/checklists';
 }

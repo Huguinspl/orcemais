@@ -34,6 +34,16 @@ service cloud.firestore {
       allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
     
+    // Regras para coleção de usuários (com subcoleções)
+    match /usuarios/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      // Subcoleção de checklists
+      match /checklists/{checklistId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
     // Nega acesso a qualquer outro documento
     match /{document=**} {
       allow read, write: if false;

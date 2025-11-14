@@ -21,6 +21,7 @@ import 'providers/agendamentos_provider.dart';
 import 'providers/recibos_provider.dart';
 import 'providers/despesas_provider.dart';
 import 'providers/transacoes_provider.dart';
+import 'providers/checklists_provider.dart';
 
 // Rotas e páginas
 import 'routes/app_routes.dart';
@@ -49,6 +50,8 @@ import 'pages/home/recibos/recibos_page.dart';
 import 'pages/home/recibos/novo_recibo_page.dart';
 import 'pages/home/recibos/novo_valor_recebido_page.dart';
 import 'pages/home/despesas/nova_despesa_page.dart';
+import 'pages/home/tabs/outras_funcionalidades_page.dart';
+import 'pages/home/checklists/meus_checklists_page.dart';
 import 'pages/controle_financeiro_page.dart';
 import 'models/peca_material.dart';
 import 'services/notification_service.dart';
@@ -131,6 +134,7 @@ class GestorfyRoot extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RecibosProvider()),
         ChangeNotifierProvider(create: (_) => DespesasProvider()),
         ChangeNotifierProvider(create: (_) => TransacoesProvider()),
+        ChangeNotifierProvider(create: (_) => ChecklistsProvider()),
       ],
       child: const GestorfyApp(),
     );
@@ -192,6 +196,9 @@ class GestorfyApp extends StatelessWidget {
         AppRoutes.novoValorRecebido: (_) => const NovoValorRecebidoPage(),
         AppRoutes.despesas: (_) => const ControleFinanceiroPage(),
         AppRoutes.novaDespesa: (_) => const NovaDespesaPage(),
+        AppRoutes.outrasFuncionalidades:
+            (_) => const OutrasFuncionalidadesPage(),
+        AppRoutes.checklists: (_) => const MeusChecklistsPage(),
       },
     );
   }
