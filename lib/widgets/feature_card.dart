@@ -35,8 +35,8 @@ class FeatureCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          width: 160,
-          padding: const EdgeInsets.all(16),
+          width: 144, // 160 * 0.9 = 144
+          padding: const EdgeInsets.all(14), // 16 * 0.9 = 14.4
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
@@ -56,19 +56,19 @@ class FeatureCard extends StatelessWidget {
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
       Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(13), // 14 * 0.9 = 12.6
         decoration: BoxDecoration(
           color: color.withOpacity(0.15),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 32, color: color),
+        child: Icon(icon, size: 29, color: color), // 32 * 0.9 = 28.8
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 13), // 14 * 0.9 = 12.6
       Text(
         title,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 13, // 14 * 0.9 = 12.6
           fontWeight: FontWeight.w600,
           color: Colors.grey.shade800,
           height: 1.3,
@@ -81,26 +81,29 @@ class FeatureCard extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(11), // 12 * 0.9 = 10.8
         decoration: BoxDecoration(
           color: color.withOpacity(0.15),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 28, color: color),
+        child: Icon(icon, size: 25, color: color), // 28 * 0.9 = 25.2
       ),
       const Spacer(),
       Text(
         title,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 13, // 14 * 0.9 = 12.6
           fontWeight: FontWeight.w600,
           color: Colors.grey.shade800,
           height: 1.3,
         ),
       ),
-      const SizedBox(height: 6),
+      const SizedBox(height: 5), // 6 * 0.9 = 5.4
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 9,
+          vertical: 4,
+        ), // 10 * 0.9 = 9
         decoration: BoxDecoration(
           color: color.withOpacity(0.15),
           borderRadius: BorderRadius.circular(12),
@@ -109,7 +112,7 @@ class FeatureCard extends StatelessWidget {
         child: Text(
           '$count',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14, // 16 * 0.9 = 14.4
             fontWeight: FontWeight.bold,
             color: color,
           ),

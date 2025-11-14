@@ -6,7 +6,9 @@ import 'package:gestorfy/providers/user_provider.dart';
 
 class NovoClientePage extends StatefulWidget {
   final Cliente? original;
-  const NovoClientePage({super.key, this.original});
+  final Map<String, String>? dadosIniciais;
+
+  const NovoClientePage({super.key, this.original, this.dadosIniciais});
 
   @override
   State<NovoClientePage> createState() => _NovoClientePageState();
@@ -47,12 +49,22 @@ class _NovoClientePageState extends State<NovoClientePage>
     _animationController.forward();
 
     final c = widget.original;
-    _nomeCtrl = TextEditingController(text: c?.nome);
-    _celularCtrl = TextEditingController(text: c?.celular);
-    _telefoneCtrl = TextEditingController(text: c?.telefone);
-    _emailCtrl = TextEditingController(text: c?.email);
-    _cpfCnpjCtrl = TextEditingController(text: c?.cpfCnpj);
-    _obsCtrl = TextEditingController(text: c?.observacoes);
+    final dados = widget.dadosIniciais;
+
+    _nomeCtrl = TextEditingController(text: c?.nome ?? dados?['nome'] ?? '');
+    _celularCtrl = TextEditingController(
+      text: c?.celular ?? dados?['celular'] ?? '',
+    );
+    _telefoneCtrl = TextEditingController(
+      text: c?.telefone ?? dados?['telefone'] ?? '',
+    );
+    _emailCtrl = TextEditingController(text: c?.email ?? dados?['email'] ?? '');
+    _cpfCnpjCtrl = TextEditingController(
+      text: c?.cpfCnpj ?? dados?['cpfCnpj'] ?? '',
+    );
+    _obsCtrl = TextEditingController(
+      text: c?.observacoes ?? dados?['observacoes'] ?? '',
+    );
   }
 
   @override
@@ -152,103 +164,106 @@ class _NovoClientePageState extends State<NovoClientePage>
   Widget build(BuildContext context) {
     final editando = widget.original != null;
 
-    return Scaffold(
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: CustomScrollView(
-            slivers: [
-              _buildAppBar(editando),
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.indigo.shade50,
-                        Colors.white,
-                        Colors.white,
-                      ],
-                    ),
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _buildSectionHeader(
-                            icon: Icons.person,
-                            title: 'Informações Básicas',
-                            subtitle: 'Dados principais do cliente',
-                          ),
-                          const SizedBox(height: 16),
-                          _campo(
-                            label: 'Nome*',
-                            controller: _nomeCtrl,
-                            icon: Icons.person_outline,
-                            validator:
-                                (v) =>
-                                    (v == null || v.trim().isEmpty)
-                                        ? 'Preenchimento obrigatório'
-                                        : null,
-                          ),
-                          _campo(
-                            label: 'CPF/CNPJ',
-                            controller: _cpfCnpjCtrl,
-                            icon: Icons.badge_outlined,
-                            tipo: TextInputType.number,
-                          ),
-                          const SizedBox(height: 24),
-                          _buildSectionHeader(
-                            icon: Icons.contact_phone,
-                            title: 'Contato',
-                            subtitle: 'Telefones e e-mail',
-                          ),
-                          const SizedBox(height: 16),
-                          _campo(
-                            label: 'Celular',
-                            controller: _celularCtrl,
-                            icon: Icons.phone_iphone,
-                            tipo: TextInputType.phone,
-                          ),
-                          _campo(
-                            label: 'Telefone',
-                            controller: _telefoneCtrl,
-                            icon: Icons.phone_outlined,
-                            tipo: TextInputType.phone,
-                          ),
-                          _campo(
-                            label: 'E-mail',
-                            controller: _emailCtrl,
-                            icon: Icons.email_outlined,
-                            tipo: TextInputType.emailAddress,
-                          ),
-                          const SizedBox(height: 24),
-                          _buildSectionHeader(
-                            icon: Icons.notes,
-                            title: 'Observações',
-                            subtitle: 'Anotações adicionais',
-                          ),
-                          const SizedBox(height: 16),
-                          _campo(
-                            label: 'Observações',
-                            controller: _obsCtrl,
-                            icon: Icons.comment_outlined,
-                            maxLines: 4,
-                          ),
-                          const SizedBox(height: 32),
-                          _buildSaveButton(editando),
-                          const SizedBox(height: 16),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: CustomScrollView(
+              slivers: [
+                _buildAppBar(editando),
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.indigo.shade50,
+                          Colors.white,
+                          Colors.white,
                         ],
+                      ),
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            _buildSectionHeader(
+                              icon: Icons.person,
+                              title: 'Informações Básicas',
+                              subtitle: 'Dados principais do cliente',
+                            ),
+                            const SizedBox(height: 16),
+                            _campo(
+                              label: 'Nome*',
+                              controller: _nomeCtrl,
+                              icon: Icons.person_outline,
+                              validator:
+                                  (v) =>
+                                      (v == null || v.trim().isEmpty)
+                                          ? 'Preenchimento obrigatório'
+                                          : null,
+                            ),
+                            _campo(
+                              label: 'CPF/CNPJ',
+                              controller: _cpfCnpjCtrl,
+                              icon: Icons.badge_outlined,
+                              tipo: TextInputType.number,
+                            ),
+                            const SizedBox(height: 24),
+                            _buildSectionHeader(
+                              icon: Icons.contact_phone,
+                              title: 'Contato',
+                              subtitle: 'Telefones e e-mail',
+                            ),
+                            const SizedBox(height: 16),
+                            _campo(
+                              label: 'Celular',
+                              controller: _celularCtrl,
+                              icon: Icons.phone_iphone,
+                              tipo: TextInputType.phone,
+                            ),
+                            _campo(
+                              label: 'Telefone',
+                              controller: _telefoneCtrl,
+                              icon: Icons.phone_outlined,
+                              tipo: TextInputType.phone,
+                            ),
+                            _campo(
+                              label: 'E-mail',
+                              controller: _emailCtrl,
+                              icon: Icons.email_outlined,
+                              tipo: TextInputType.emailAddress,
+                            ),
+                            const SizedBox(height: 24),
+                            _buildSectionHeader(
+                              icon: Icons.notes,
+                              title: 'Observações',
+                              subtitle: 'Anotações adicionais',
+                            ),
+                            const SizedBox(height: 16),
+                            _campo(
+                              label: 'Observações',
+                              controller: _obsCtrl,
+                              icon: Icons.comment_outlined,
+                              maxLines: 4,
+                            ),
+                            const SizedBox(height: 32),
+                            _buildSaveButton(editando),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

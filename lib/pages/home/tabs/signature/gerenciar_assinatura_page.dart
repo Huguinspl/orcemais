@@ -65,11 +65,7 @@ class _GerenciarAssinaturaPageState extends State<GerenciarAssinaturaPage>
               Positioned.fill(
                 child: Opacity(
                   opacity: 0.2,
-                  child: Icon(
-                    Icons.edit,
-                    size: 120,
-                    color: Colors.white,
-                  ),
+                  child: Icon(Icons.edit, size: 120, color: Colors.white),
                 ),
               ),
               Positioned(
@@ -261,11 +257,7 @@ class _GerenciarAssinaturaPageState extends State<GerenciarAssinaturaPage>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFFE8EAF6),
-                    Colors.white,
-                    Colors.white,
-                  ],
+                  colors: [const Color(0xFFE8EAF6), Colors.white, Colors.white],
                 ),
               ),
               child: FadeTransition(
@@ -447,10 +439,7 @@ class _ModernAssinaturaUploaderState extends State<ModernAssinaturaUploader> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            const Color(0xFFE8EAF6),
-          ],
+          colors: [Colors.white, const Color(0xFFE8EAF6)],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(

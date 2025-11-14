@@ -172,189 +172,195 @@ class _SelecionarServicosPageState extends State<SelecionarServicosPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Adicionar Serviço/Item',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.green.shade600, Colors.green.shade400],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Adicionar Serviço/Item',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          centerTitle: true,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.green.shade600, Colors.green.shade400],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
           ),
         ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.green.shade50, Colors.white, Colors.white],
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.green.shade50, Colors.white, Colors.white],
+            ),
           ),
-        ),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header card
-                Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.green.shade600, Colors.green.shade400],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header card
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.build_outlined,
-                            color: Colors.white,
-                            size: 32,
-                          ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.green.shade600,
+                            Colors.green.shade400,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Novo Serviço',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Preencha os dados do serviço',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Card: Informações Principais
-                _buildCard(
-                  title: 'Informações Principais',
-                  icon: Icons.info_outline,
-                  children: [
-                    _campoTexto(
-                      label: 'Nome do Serviço/Produto *',
-                      controller: _nomeController,
-                      icon: Icons.work_outline,
-                      corIcone: Colors.green,
-                      validator:
-                          (v) =>
-                              v == null || v.isEmpty
-                                  ? 'Campo obrigatório'
-                                  : null,
-                    ),
-                    _buildCampoMoeda(
-                      label: 'Preço *',
-                      controller: _precoController,
-                      icon: Icons.attach_money,
-                      corIcone: Colors.green,
-                      validator:
-                          (v) =>
-                              (v == null || v.isEmpty || _parseMoeda(v) == 0)
-                                  ? 'Informe um preço válido'
-                                  : null,
-                    ),
-                    _buildCampoQuantidade(),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Card: Informações Adicionais
-                _buildCard(
-                  title: 'Informações Adicionais',
-                  icon: Icons.description_outlined,
-                  children: [
-                    _buildDropdownUnidades(),
-                    const SizedBox(height: 16),
-                    _buildCampoMoeda(
-                      label: 'Custo',
-                      controller: _custoController,
-                      icon: Icons.paid_outlined,
-                      corIcone: Colors.green,
-                    ),
-                    _campoTexto(
-                      label: 'Descrição',
-                      controller: _descricaoController,
-                      icon: Icons.description_outlined,
-                      corIcone: Colors.green,
-                      maxLines: 3,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                _buildCheckboxSalvarCatalogo(),
-                const SizedBox(height: 24),
-
-                // Botão de adicionar
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: _salvarServico,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade600,
-                      foregroundColor: Colors.white,
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.add_shopping_cart, size: 24),
-                        const SizedBox(width: 12),
-                        Text(
-                          widget.textoBotao ?? 'Adicionar ao Orçamento',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.build_outlined,
+                              color: Colors.white,
+                              size: 32,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Novo Serviço',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Preencha os dados do serviço',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+
+                  // Card: Informações Principais
+                  _buildCard(
+                    title: 'Informações Principais',
+                    icon: Icons.info_outline,
+                    children: [
+                      _campoTexto(
+                        label: 'Nome do Serviço/Produto *',
+                        controller: _nomeController,
+                        icon: Icons.work_outline,
+                        corIcone: Colors.green,
+                        validator:
+                            (v) =>
+                                v == null || v.isEmpty
+                                    ? 'Campo obrigatório'
+                                    : null,
+                      ),
+                      _buildCampoMoeda(
+                        label: 'Preço *',
+                        controller: _precoController,
+                        icon: Icons.attach_money,
+                        corIcone: Colors.green,
+                        validator:
+                            (v) =>
+                                (v == null || v.isEmpty || _parseMoeda(v) == 0)
+                                    ? 'Informe um preço válido'
+                                    : null,
+                      ),
+                      _buildCampoQuantidade(),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Card: Informações Adicionais
+                  _buildCard(
+                    title: 'Informações Adicionais',
+                    icon: Icons.description_outlined,
+                    children: [
+                      _buildDropdownUnidades(),
+                      const SizedBox(height: 16),
+                      _buildCampoMoeda(
+                        label: 'Custo',
+                        controller: _custoController,
+                        icon: Icons.paid_outlined,
+                        corIcone: Colors.green,
+                      ),
+                      _campoTexto(
+                        label: 'Descrição',
+                        controller: _descricaoController,
+                        icon: Icons.description_outlined,
+                        corIcone: Colors.green,
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildCheckboxSalvarCatalogo(),
+                  const SizedBox(height: 24),
+
+                  // Botão de adicionar
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: _salvarServico,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        foregroundColor: Colors.white,
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.add_shopping_cart, size: 24),
+                          const SizedBox(width: 12),
+                          Text(
+                            widget.textoBotao ?? 'Adicionar ao Orçamento',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

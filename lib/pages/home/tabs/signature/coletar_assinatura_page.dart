@@ -66,10 +66,7 @@ class _ColetarAssinaturaPageState extends State<ColetarAssinaturaPage> {
         appBar: AppBar(
           title: const Text(
             'Desenhe sua Assinatura',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
           ),
           centerTitle: true,
           flexibleSpace: Container(
@@ -101,10 +98,7 @@ class _ColetarAssinaturaPageState extends State<ColetarAssinaturaPage> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                const Color(0xFFE8EAF6),
-                Colors.grey.shade100,
-              ],
+              colors: [const Color(0xFFE8EAF6), Colors.grey.shade100],
             ),
           ),
           child: Column(
@@ -158,18 +152,12 @@ class _ColetarAssinaturaPageState extends State<ColetarAssinaturaPage> {
                   onPressed: _salvando ? null : () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(
-                      color: Color(0xFF303F9F),
-                      width: 2,
-                    ),
+                    side: const BorderSide(color: Color(0xFF303F9F), width: 2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  icon: const Icon(
-                    Icons.close,
-                    color: Color(0xFF303F9F),
-                  ),
+                  icon: const Icon(Icons.close, color: Color(0xFF303F9F)),
                   label: const Text(
                     'Cancelar',
                     style: TextStyle(
@@ -207,20 +195,22 @@ class _ColetarAssinaturaPageState extends State<ColetarAssinaturaPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    icon: _salvando
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                    icon:
+                        _salvando
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                            : const Icon(
+                              Icons.check_circle_outline,
+                              color: Colors.white,
                             ),
-                          )
-                        : const Icon(
-                            Icons.check_circle_outline,
-                            color: Colors.white,
-                          ),
                     label: Text(
                       _salvando ? 'Salvando...' : 'Salvar',
                       style: const TextStyle(

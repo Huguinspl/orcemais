@@ -58,6 +58,20 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map?;
+    if (args != null) {
+      // Check for cliente argument
+      if (args.containsKey('cliente') && _clienteSelecionado == null) {
+        setState(() {
+          _clienteSelecionado = args['cliente'] as Cliente;
+        });
+      }
+    }
+  }
+
+  @override
   void dispose() {
     super.dispose();
   }

@@ -224,256 +224,259 @@ class _NovoServicoPageState extends State<NovoServicoPage> {
   Widget build(BuildContext context) {
     final isEditing = widget.original != null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          isEditing ? 'Editar Serviço' : 'Novo Serviço',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.green.shade600, Colors.green.shade400],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            isEditing ? 'Editar Serviço' : 'Novo Serviço',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          centerTitle: true,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.green.shade600, Colors.green.shade400],
+              ),
             ),
           ),
+          elevation: 0,
         ),
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.green.shade50, Colors.white, Colors.white],
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.green.shade50, Colors.white, Colors.white],
+            ),
           ),
-        ),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header moderno
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.green.shade100.withOpacity(0.5),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.green.shade400,
-                              Colors.green.shade600,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header moderno
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.shade100.withOpacity(0.5),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                        child: const Icon(
-                          Icons.build_outlined,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isEditing
-                                  ? 'Editar Serviço'
-                                  : 'Cadastrar Novo Serviço',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Preencha os dados do serviço',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Card de campos principais
-                _buildCard(
-                  title: 'Informações Principais',
-                  icon: Icons.info_outline,
-                  children: [
-                    _campoTexto(
-                      label: 'Nome do serviço*',
-                      controller: _nomeCtrl,
-                      icon: Icons.work_outline,
-                      validator: _obrigatorio,
-                    ),
-                    _buildCampoMoeda(
-                      label: 'Preço (R\$)*',
-                      controller: _precoCtrl,
-                      icon: Icons.attach_money,
-                      validator: (value) {
-                        if (value == null ||
-                            value.isEmpty ||
-                            _parseMoeda(value) == 0) {
-                          return 'Informe um preço válido';
-                        }
-                        return null;
-                      },
-                    ),
-                    _buildDropdownUnidades(),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Card de informações adicionais
-                _buildCard(
-                  title: 'Informações Adicionais',
-                  subtitle: 'Opcional',
-                  icon: Icons.description_outlined,
-                  children: [
-                    _campoTexto(
-                      label: 'Descrição',
-                      controller: _descricaoCtrl,
-                      icon: Icons.notes,
-                      maxLines: 4,
-                    ),
-                    _campoTexto(
-                      label: 'Duração (ex: 1h, 30min)',
-                      controller: _duracaoCtrl,
-                      icon: Icons.timer_outlined,
-                    ),
-                    _campoTexto(
-                      label: 'Categoria (ex: Instalação)',
-                      controller: _categoriaCtrl,
-                      icon: Icons.category_outlined,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                // Botões de ação
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _salvar,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade600,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: _isLoading ? 0 : 4,
-                    ),
-                    child:
-                        _isLoading
-                            ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                const Text(
-                                  'Salvando...',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            )
-                            : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.check_circle_outline,
-                                  size: 24,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  isEditing
-                                      ? 'Atualizar Serviço'
-                                      : 'Salvar Serviço',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Botão "Usar para Orçamento"
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: OutlinedButton(
-                    onPressed: _isLoading ? null : _usarParaOrcamento,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blue.shade600,
-                      side: BorderSide(color: Colors.blue.shade600, width: 2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      backgroundColor: Colors.blue.shade50,
+                      ],
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.receipt_long,
-                          size: 24,
-                          color: Colors.blue.shade600,
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.green.shade400,
+                                Colors.green.shade600,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.build_outlined,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Usar para Orçamento',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blue.shade700,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isEditing
+                                    ? 'Editar Serviço'
+                                    : 'Cadastrar Novo Serviço',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Preencha os dados do serviço',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 24),
+
+                  // Card de campos principais
+                  _buildCard(
+                    title: 'Informações Principais',
+                    icon: Icons.info_outline,
+                    children: [
+                      _campoTexto(
+                        label: 'Nome do serviço*',
+                        controller: _nomeCtrl,
+                        icon: Icons.work_outline,
+                        validator: _obrigatorio,
+                      ),
+                      _buildCampoMoeda(
+                        label: 'Preço (R\$)*',
+                        controller: _precoCtrl,
+                        icon: Icons.attach_money,
+                        validator: (value) {
+                          if (value == null ||
+                              value.isEmpty ||
+                              _parseMoeda(value) == 0) {
+                            return 'Informe um preço válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      _buildDropdownUnidades(),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Card de informações adicionais
+                  _buildCard(
+                    title: 'Informações Adicionais',
+                    subtitle: 'Opcional',
+                    icon: Icons.description_outlined,
+                    children: [
+                      _campoTexto(
+                        label: 'Descrição',
+                        controller: _descricaoCtrl,
+                        icon: Icons.notes,
+                        maxLines: 4,
+                      ),
+                      _campoTexto(
+                        label: 'Duração (ex: 1h, 30min)',
+                        controller: _duracaoCtrl,
+                        icon: Icons.timer_outlined,
+                      ),
+                      _campoTexto(
+                        label: 'Categoria (ex: Instalação)',
+                        controller: _categoriaCtrl,
+                        icon: Icons.category_outlined,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Botões de ação
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _salvar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: _isLoading ? 0 : 4,
+                      ),
+                      child:
+                          _isLoading
+                              ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Salvando...',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              )
+                              : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle_outline,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    isEditing
+                                        ? 'Atualizar Serviço'
+                                        : 'Salvar Serviço',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Botão "Usar para Orçamento"
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton(
+                      onPressed: _isLoading ? null : _usarParaOrcamento,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.blue.shade600,
+                        side: BorderSide(color: Colors.blue.shade600, width: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        backgroundColor: Colors.blue.shade50,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.receipt_long,
+                            size: 24,
+                            color: Colors.blue.shade600,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Usar para Orçamento',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),

@@ -84,18 +84,27 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Verifica se há um serviço inicial passado via arguments
+    // Verifica se há argumentos passados via route
     final args = ModalRoute.of(context)?.settings.arguments as Map?;
-    if (args != null && args.containsKey('servicoInicial')) {
-      final servicoInicial = args['servicoInicial'] as Map<String, dynamic>;
-      // Adiciona o serviço aos itens apenas se a lista ainda estiver vazia
-      if (_itensDoOrcamento.isEmpty) {
+    if (args != null) {
+      // Verifica se há um cliente inicial
+      if (args.containsKey('cliente') && clienteSelecionado == null) {
         setState(() {
-          _itensDoOrcamento.add(servicoInicial);
-          _calcularTotais();
-          // Avança automaticamente para a etapa de itens
-          etapaAtual = 1;
+          clienteSelecionado = args['cliente'] as Cliente;
         });
+      }
+      // Verifica se há um serviço inicial
+      if (args.containsKey('servicoInicial')) {
+        final servicoInicial = args['servicoInicial'] as Map<String, dynamic>;
+        // Adiciona o serviço aos itens apenas se a lista ainda estiver vazia
+        if (_itensDoOrcamento.isEmpty) {
+          setState(() {
+            _itensDoOrcamento.add(servicoInicial);
+            _calcularTotais();
+            // Avança automaticamente para a etapa de itens
+            etapaAtual = 1;
+          });
+        }
       }
     }
   }
