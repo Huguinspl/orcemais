@@ -66,6 +66,7 @@ class BusinessProvider extends ChangeNotifier {
         // ignore: discarded_futures
         carregarDoFirestore();
       } else {
+        // ignore: discarded_futures
         limparDados();
       }
     });
@@ -73,6 +74,11 @@ class BusinessProvider extends ChangeNotifier {
 
   Future<void> carregarDoFirestore() async {
     if (_uid.isEmpty) return;
+    
+    // Limpar dados anteriores ANTES de carregar novos dados
+    // para evitar mistura de dados entre contas diferentes
+    await limparDados();
+    
     final doc = await _docRef.get();
 
     if (doc.exists) {
@@ -103,6 +109,7 @@ class BusinessProvider extends ChangeNotifier {
         }
       } catch (_) {}
     } else {
+      // ignore: discarded_futures
       limparDados(); // <- limpa os dados ao logar com conta nova
     }
 
@@ -495,7 +502,7 @@ class BusinessProvider extends ChangeNotifier {
   }
 
   /* ================== LIMPAR estado local ================== */
-  void limparDados() {
+  Future<void> limparDados() async {
     nomeEmpresa = '';
     telefone = '';
     ramo = '';
@@ -510,7 +517,19 @@ class BusinessProvider extends ChangeNotifier {
     assinaturaUrl = null;
     assinaturaLocalPath = null;
     _assinaturaCacheBytes = null;
+    descricao = null;
+    pdfTheme = null;
     _cachedInfo = BusinessInfo.empty();
+    
+    // Limpar também o SharedPreferences para evitar paths de contas anteriores
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('business_logo_local_path');
+      await prefs.remove('business_assinatura_local_path');
+    } catch (e) {
+      debugPrint('Erro ao limpar SharedPreferences: $e');
+    }
+    
     notifyListeners();
   }
 

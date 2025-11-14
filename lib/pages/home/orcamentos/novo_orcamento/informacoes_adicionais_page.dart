@@ -26,21 +26,16 @@ class _InformacoesAdicionaisPageState extends State<InformacoesAdicionaisPage>
       duration: const Duration(milliseconds: 800),
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
 
     _animationController.forward();
   }
@@ -60,10 +55,7 @@ class _InformacoesAdicionaisPageState extends State<InformacoesAdicionaisPage>
         appBar: AppBar(
           title: const Text(
             'Informações adicionais',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
           ),
           centerTitle: true,
           flexibleSpace: Container(
@@ -209,10 +201,7 @@ class _InformacoesAdicionaisPageState extends State<InformacoesAdicionaisPage>
                               maxLines: null,
                               expands: true,
                               textAlignVertical: TextAlignVertical.top,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                height: 1.5,
-                              ),
+                              style: const TextStyle(fontSize: 16, height: 1.5),
                               decoration: InputDecoration(
                                 labelText: 'Informações adicionais',
                                 alignLabelWithHint: true,
@@ -263,8 +252,9 @@ class _InformacoesAdicionaisPageState extends State<InformacoesAdicionaisPage>
                               icon: const Icon(Icons.clear_all),
                               label: const Text('Limpar'),
                               style: OutlinedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
                                 side: const BorderSide(
                                   color: Color(0xFF388E3C),
                                   width: 2,
@@ -279,15 +269,17 @@ class _InformacoesAdicionaisPageState extends State<InformacoesAdicionaisPage>
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () =>
-                                  Navigator.pop(context, _ctrl.text.trim()),
+                              onPressed:
+                                  () =>
+                                      Navigator.pop(context, _ctrl.text.trim()),
                               icon: const Icon(Icons.check_circle_outline),
                               label: const Text('Salvar'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFF388E3C),
                                 foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
