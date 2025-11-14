@@ -21,18 +21,48 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // ✅ CORREÇÃO APLICADA AQUI
-        // O título agora usa o campo 'numero' e o formata com zeros à esquerda.
         title: Text(
           'Orçamento #${widget.orcamento.numero.toString().padLeft(3, '0')}',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          _buildAbasDeExportacao(),
-          Expanded(child: _buildConteudoAba()),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade700, Colors.blue.shade500],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: Colors.white),
+            tooltip: 'Informações do orçamento',
+            onPressed: () {
+              _mostrarInfoOrcamento();
+            },
+          ),
         ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade50, Colors.white, Colors.white],
+          ),
+        ),
+        child: Column(
+          children: [
+            _buildAbasDeExportacao(),
+            Expanded(child: _buildConteudoAba()),
+          ],
+        ),
       ),
       bottomNavigationBar: _buildRodapeRevisao(),
     );
@@ -40,20 +70,50 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
 
   Widget _buildAbasDeExportacao() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.shade100.withOpacity(0.5),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: SegmentedButton<int>(
-        segments: const [
+        segments: [
           ButtonSegment(
             value: 0,
-            icon: Icon(Icons.picture_as_pdf_outlined),
-            label: Text('PDF'),
+            icon: Icon(
+              Icons.picture_as_pdf_outlined,
+              color: _abaSelecionada == 0 ? Colors.white : Colors.blue.shade700,
+            ),
+            label: Text(
+              'PDF',
+              style: TextStyle(
+                color:
+                    _abaSelecionada == 0 ? Colors.white : Colors.blue.shade700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           ButtonSegment(
             value: 1,
-            icon: Icon(Icons.link),
-            label: Text('Link Web'),
+            icon: Icon(
+              Icons.link,
+              color: _abaSelecionada == 1 ? Colors.white : Colors.blue.shade700,
+            ),
+            label: Text(
+              'Link Web',
+              style: TextStyle(
+                color:
+                    _abaSelecionada == 1 ? Colors.white : Colors.blue.shade700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
         selected: {_abaSelecionada},
@@ -64,7 +124,11 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
         },
         style: SegmentedButton.styleFrom(
           backgroundColor: Colors.transparent,
-          side: const BorderSide(color: Colors.transparent),
+          selectedBackgroundColor: Colors.blue.shade700,
+          side: BorderSide.none,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );
@@ -76,24 +140,50 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
         children: [
           if (widget.orcamento.metodoPagamento != null)
             Container(
-              width: double.infinity,
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceVariant.withOpacity(0.3),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade700, Colors.blue.shade500],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.shade200.withOpacity(0.5),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
-                  const Icon(Icons.payments_outlined),
-                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.payments_outlined,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       _pagamentoResumo(widget.orcamento),
-                      style: const TextStyle(fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+          const SizedBox(height: 16),
           Expanded(
             child: EtapaPdfPage(
               cliente: widget.orcamento.cliente,
@@ -143,83 +233,349 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
     }
   }
 
+  void _mostrarInfoOrcamento() {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    );
+    final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'pt_BR');
+
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue.shade600, Colors.blue.shade400],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.info_outline, color: Colors.white),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Informações',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildInfoRow(
+                    'Número',
+                    '#${widget.orcamento.numero.toString().padLeft(3, '0')}',
+                  ),
+                  const Divider(height: 20),
+                  _buildInfoRow('Cliente', widget.orcamento.cliente.nome),
+                  const Divider(height: 20),
+                  _buildInfoRow(
+                    'Data de criação',
+                    dateFormat.format(widget.orcamento.dataCriacao.toDate()),
+                  ),
+                  const Divider(height: 20),
+                  _buildInfoRow(
+                    'Subtotal',
+                    currencyFormat.format(widget.orcamento.subtotal),
+                  ),
+                  if (widget.orcamento.desconto > 0) ...[
+                    const Divider(height: 20),
+                    _buildInfoRow(
+                      'Desconto',
+                      currencyFormat.format(widget.orcamento.desconto),
+                    ),
+                  ],
+                  const Divider(height: 20),
+                  _buildInfoRow(
+                    'Valor Total',
+                    currencyFormat.format(widget.orcamento.valorTotal),
+                    isTotal: true,
+                  ),
+                  if (widget.orcamento.metodoPagamento != null) ...[
+                    const Divider(height: 20),
+                    _buildInfoRow(
+                      'Pagamento',
+                      _pagamentoResumo(
+                        widget.orcamento,
+                      ).replaceAll('Forma de pagamento: ', ''),
+                    ),
+                  ],
+                  const Divider(height: 20),
+                  _buildInfoRow(
+                    'Status',
+                    widget.orcamento.status,
+                    isStatus: true,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  'Fechar',
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isTotal = false,
+    bool isStatus = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Text(
+            value,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+              color:
+                  isTotal
+                      ? Colors.blue.shade700
+                      : isStatus
+                      ? _getStatusColor(value)
+                      : Colors.grey.shade800,
+              fontSize: isTotal ? 16 : 14,
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'rascunho':
+        return Colors.grey.shade600;
+      case 'enviado':
+        return Colors.blue.shade600;
+      case 'aprovado':
+        return Colors.green.shade600;
+      case 'recusado':
+        return Colors.red.shade600;
+      default:
+        return Colors.grey.shade600;
+    }
+  }
+
   Widget _buildRodapeRevisao() {
-    final theme = Theme.of(context);
     final currencyFormat = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: 'R\$',
     );
 
     return Container(
-      padding: const EdgeInsets.all(16).copyWith(top: 12, bottom: 24),
+      padding: const EdgeInsets.all(20).copyWith(bottom: 24),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+            blurRadius: 12,
+            offset: const Offset(0, -3),
           ),
         ],
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Valor Total', style: theme.textTheme.titleMedium),
-              Text(
-                currencyFormat.format(widget.orcamento.valorTotal),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Indicador visual
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Voltar'),
+            ),
+            // Total
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.blue.shade50,
+                    Colors.blue.shade100.withOpacity(0.3),
+                  ],
                 ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.blue.shade200, width: 1.5),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (_) => CompartilharOrcamentoPage(
-                              orcamento: widget.orcamento,
-                            ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade700,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.attach_money,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Valor Total',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    currencyFormat.format(widget.orcamento.valorTotal),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade700,
                     ),
                   ),
-                  child: const Text('Enviar Orçamento'),
-                ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 16),
+            // Botões
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.blue.shade700, width: 2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.arrow_back, color: Colors.blue.shade700),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Voltar',
+                          style: TextStyle(
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.green.shade600, Colors.green.shade500],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.shade300.withOpacity(0.5),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => CompartilharOrcamentoPage(
+                                  orcamento: widget.orcamento,
+                                ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.send, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            'Enviar Orçamento',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

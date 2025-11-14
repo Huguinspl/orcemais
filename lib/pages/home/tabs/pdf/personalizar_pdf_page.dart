@@ -505,10 +505,51 @@ class _SimpleColorPickerDialog extends StatefulWidget {
       _SimpleColorPickerDialogState();
 }
 
-class _SimpleColorPickerDialogState extends State<_SimpleColorPickerDialog> {
+class _SimpleColorPickerDialogState extends State<_SimpleColorPickerDialog>
+    with SingleTickerProviderStateMixin {
   late double _hue;
   late double _saturation;
   late double _lightness;
+  late TabController _tabController;
+  final TextEditingController _hexController = TextEditingController();
+
+  // Paleta de cores populares para negócios
+  final List<Color> _presetColors = [
+    // Azuis
+    const Color(0xFF2196F3), // Blue
+    const Color(0xFF1976D2), // Blue Dark
+    const Color(0xFF0D47A1), // Blue Darker
+    const Color(0xFF03A9F4), // Light Blue
+    const Color(0xFF00BCD4), // Cyan
+    // Verdes
+    const Color(0xFF4CAF50), // Green
+    const Color(0xFF388E3C), // Green Dark
+    const Color(0xFF1B5E20), // Green Darker
+    const Color(0xFF8BC34A), // Light Green
+    const Color(0xFF009688), // Teal
+    // Laranjas e Amarelos
+    const Color(0xFFFF9800), // Orange
+    const Color(0xFFF57C00), // Orange Dark
+    const Color(0xFFFF5722), // Deep Orange
+    const Color(0xFFFFEB3B), // Yellow
+    const Color(0xFFFFC107), // Amber
+    // Roxos e Rosas
+    const Color(0xFF9C27B0), // Purple
+    const Color(0xFF6A1B9A), // Purple Dark
+    const Color(0xFF4A148C), // Purple Darker
+    const Color(0xFFE91E63), // Pink
+    const Color(0xFFC2185B), // Pink Dark
+    // Vermelhos
+    const Color(0xFFF44336), // Red
+    const Color(0xFFD32F2F), // Red Dark
+    const Color(0xFFB71C1C), // Red Darker
+    // Neutros
+    const Color(0xFF607D8B), // Blue Grey
+    const Color(0xFF455A64), // Blue Grey Dark
+    const Color(0xFF263238), // Blue Grey Darker
+    const Color(0xFF9E9E9E), // Grey
+    const Color(0xFF212121), // Almost Black
+  ];
 
   @override
   void initState() {
@@ -517,76 +558,151 @@ class _SimpleColorPickerDialogState extends State<_SimpleColorPickerDialog> {
     _hue = hsl.hue;
     _saturation = hsl.saturation;
     _lightness = hsl.lightness;
+    _tabController = TabController(length: 3, vsync: this);
+    _updateHexFromColor(widget.initial);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _hexController.dispose();
+    super.dispose();
+  }
+
+  Color get _currentColor =>
+      HSLColor.fromAHSL(1, _hue, _saturation, _lightness).toColor();
+
+  void _updateHexFromColor(Color color) {
+    _hexController.text =
+        '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+  }
+
+  void _setColorFromHex(String hex) {
+    try {
+      String cleanHex = hex.replaceAll('#', '');
+      if (cleanHex.length == 6) {
+        final color = Color(int.parse('FF$cleanHex', radix: 16));
+        final hsl = HSLColor.fromColor(color);
+        setState(() {
+          _hue = hsl.hue;
+          _saturation = hsl.saturation;
+          _lightness = hsl.lightness;
+        });
+      }
+    } catch (e) {
+      // Ignora entrada inválida
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = HSLColor.fromAHSL(1, _hue, _saturation, _lightness).toColor();
+    final color = _currentColor;
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Row(
+      contentPadding: EdgeInsets.zero,
+      title: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.palette, color: Colors.white, size: 24),
               ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.palette, color: Colors.white, size: 24),
+              const SizedBox(width: 12),
+              const Text('Escolher cor'),
+            ],
           ),
-          const SizedBox(width: 12),
-          const Text('Escolher cor'),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+          const SizedBox(height: 16),
+          // Preview da cor selecionada
           Container(
             width: double.infinity,
-            height: 60,
+            height: 80,
             decoration: BoxDecoration(
               color: color,
               border: Border.all(color: Colors.grey.shade300, width: 2),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.3),
-                  blurRadius: 12,
+                  color: color.withOpacity(0.4),
+                  blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 20),
-          _slider(
-            'Matiz',
-            _hue,
-            0,
-            360,
-            (v) => setState(() => _hue = v),
-            Icons.color_lens,
-          ),
-          const SizedBox(height: 8),
-          _slider(
-            'Saturação',
-            _saturation,
-            0,
-            1,
-            (v) => setState(() => _saturation = v),
-            Icons.opacity,
-          ),
-          const SizedBox(height: 8),
-          _slider(
-            'Luminosidade',
-            _lightness,
-            0,
-            1,
-            (v) => setState(() => _lightness = v),
-            Icons.brightness_6,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '#${color.value.toRadixString(16).substring(2).toUpperCase()}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Abas de seleção
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.all(16),
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.grey.shade700,
+                dividerColor: Colors.transparent,
+                tabs: const [
+                  Tab(icon: Icon(Icons.palette, size: 20), text: 'Paleta'),
+                  Tab(icon: Icon(Icons.tune, size: 20), text: 'Ajustar'),
+                  Tab(icon: Icon(Icons.tag, size: 20), text: 'Hex'),
+                ],
+              ),
+            ),
+            // Conteúdo das abas
+            SizedBox(
+              height: 280,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildPaletaTab(),
+                  _buildAjustarTab(),
+                  _buildHexTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -624,6 +740,147 @@ class _SimpleColorPickerDialogState extends State<_SimpleColorPickerDialog> {
           ),
         ),
       ],
+    );
+  }
+
+  // Aba com paleta de cores pré-definidas
+  Widget _buildPaletaTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children:
+            _presetColors.map((presetColor) {
+              final isSelected = presetColor.value == _currentColor.value;
+              return GestureDetector(
+                onTap: () {
+                  final hsl = HSLColor.fromColor(presetColor);
+                  setState(() {
+                    _hue = hsl.hue;
+                    _saturation = hsl.saturation;
+                    _lightness = hsl.lightness;
+                    _updateHexFromColor(presetColor);
+                  });
+                },
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: presetColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? Colors.white : Colors.grey.shade300,
+                      width: isSelected ? 3 : 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: presetColor.withOpacity(0.4),
+                        blurRadius: isSelected ? 12 : 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child:
+                      isSelected
+                          ? const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 28,
+                          )
+                          : null,
+                ),
+              );
+            }).toList(),
+      ),
+    );
+  }
+
+  // Aba de ajuste fino (sliders HSL)
+  Widget _buildAjustarTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _slider('Matiz', _hue, 0, 360, (v) {
+            setState(() {
+              _hue = v;
+              _updateHexFromColor(_currentColor);
+            });
+          }, Icons.color_lens),
+          const SizedBox(height: 12),
+          _slider('Saturação', _saturation, 0, 1, (v) {
+            setState(() {
+              _saturation = v;
+              _updateHexFromColor(_currentColor);
+            });
+          }, Icons.opacity),
+          const SizedBox(height: 12),
+          _slider('Luminosidade', _lightness, 0, 1, (v) {
+            setState(() {
+              _lightness = v;
+              _updateHexFromColor(_currentColor);
+            });
+          }, Icons.brightness_6),
+        ],
+      ),
+    );
+  }
+
+  // Aba de entrada manual de código hex
+  Widget _buildHexTab() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.tag, size: 48, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            'Digite o código da cor',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _hexController,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+            ),
+            decoration: InputDecoration(
+              hintText: '#FF9800',
+              prefixIcon: const Icon(Icons.tag),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6A1B9A),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.grey.shade50,
+            ),
+            onChanged: _setColorFromHex,
+            maxLength: 7,
+            textCapitalization: TextCapitalization.characters,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Ex: #2196F3, #FF5722, #4CAF50',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          ),
+        ],
+      ),
     );
   }
 

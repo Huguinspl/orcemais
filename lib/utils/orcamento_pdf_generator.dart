@@ -330,15 +330,18 @@ class OrcamentoPdfGenerator {
         pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
+            // Título ORÇAMENTO em destaque (maior)
             pw.Text(
-              'Orçamento #${orcamento.numero.toString().padLeft(4, '0')}',
+              'ORÇAMENTO',
               style: pw.TextStyle(
                 font: boldFont,
-                fontSize: 14,
+                fontSize: 28,
                 color: textColor,
+                letterSpacing: 1.2,
               ),
             ),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
+            // Data de criação
             pw.Text(
               'Data: ${DateFormat('dd/MM/yyyy').format(orcamento.dataCriacao.toDate())}',
               style: pw.TextStyle(
@@ -384,55 +387,152 @@ class OrcamentoPdfGenerator {
     pw.Font regularFont,
     pw.Font italicFont,
   ) {
-    const tableHeaders = ['Descrição', 'Qtd.', 'Total'];
-    return pw.Table.fromTextArray(
-      headers: tableHeaders,
-      data: List<List<dynamic>>.generate(itens.length, (index) {
-        final item = itens[index];
-        final nome = item['nome'] ?? 'Item';
-        final descricao = item['descricao'] as String? ?? '';
-        final preco = item['preco'] as double? ?? 0.0;
-        final quantidade = item['quantidade'] as double? ?? 1.0;
-        final totalItem = preco * quantidade;
-
-        return [
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      children: [
+        // Cabeçalho da tabela
+        pw.Container(
+          decoration: pw.BoxDecoration(
+            color: PdfColors.grey200,
+            borderRadius: pw.BorderRadius.circular(8),
+          ),
+          padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          child: pw.Row(
             children: [
-              pw.Text(
-                nome,
-                style: pw.TextStyle(
-                  font: regularFont,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              if (descricao.isNotEmpty)
-                pw.Padding(
-                  padding: const pw.EdgeInsets.only(top: 4),
-                  child: pw.Text(
-                    descricao,
-                    style: pw.TextStyle(
-                      font: italicFont,
-                      fontSize: 9,
-                      color: PdfColors.grey600,
-                    ),
+              pw.Expanded(
+                flex: 5,
+                child: pw.Text(
+                  'Descrição',
+                  style: pw.TextStyle(
+                    font: boldFont,
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 11,
                   ),
                 ),
+              ),
+              pw.SizedBox(width: 8),
+              pw.Container(
+                width: 60,
+                alignment: pw.Alignment.center,
+                child: pw.Text(
+                  'Qtd.',
+                  style: pw.TextStyle(
+                    font: boldFont,
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+              pw.SizedBox(width: 8),
+              pw.Container(
+                width: 80,
+                alignment: pw.Alignment.centerRight,
+                child: pw.Text(
+                  'Total',
+                  style: pw.TextStyle(
+                    font: boldFont,
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
             ],
           ),
-          quantidade.toStringAsFixed(2),
-          currencyFormat.format(totalItem),
-        ];
-      }),
-      headerStyle: pw.TextStyle(font: boldFont, fontWeight: pw.FontWeight.bold),
-      cellStyle: pw.TextStyle(font: regularFont),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey200),
-      cellAlignments: {
-        0: pw.Alignment.centerLeft,
-        1: pw.Alignment.center,
-        2: pw.Alignment.centerRight,
-      },
-      cellPadding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+        ),
+        pw.SizedBox(height: 8),
+        // Itens da tabela
+        ...List<pw.Widget>.generate(itens.length, (index) {
+          final item = itens[index];
+          final nome = item['nome'] ?? 'Item';
+          final descricao = item['descricao'] as String? ?? '';
+          final preco = item['preco'] as double? ?? 0.0;
+          final quantidade = item['quantidade'] as double? ?? 1.0;
+          final totalItem = preco * quantidade;
+
+          return pw.Column(
+            children: [
+              pw.Container(
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey50,
+                  borderRadius: pw.BorderRadius.circular(8),
+                  border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+                ),
+                padding: const pw.EdgeInsets.all(12),
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    // Coluna de descrição
+                    pw.Expanded(
+                      flex: 5,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            nome,
+                            style: pw.TextStyle(
+                              font: boldFont,
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                          if (descricao.isNotEmpty) ...[
+                            pw.SizedBox(height: 6),
+                            pw.Container(
+                              padding: const pw.EdgeInsets.all(8),
+                              decoration: pw.BoxDecoration(
+                                color: PdfColors.white,
+                                borderRadius: pw.BorderRadius.circular(6),
+                                border: pw.Border.all(
+                                  color: PdfColors.grey200,
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: pw.Text(
+                                descricao,
+                                style: pw.TextStyle(
+                                  font: italicFont,
+                                  fontSize: 9,
+                                  color: PdfColors.grey700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(width: 8),
+                    // Coluna de quantidade
+                    pw.Container(
+                      width: 60,
+                      alignment: pw.Alignment.center,
+                      child: pw.Text(
+                        quantidade.toStringAsFixed(2),
+                        style: pw.TextStyle(font: regularFont, fontSize: 11),
+                      ),
+                    ),
+                    pw.SizedBox(width: 8),
+                    // Coluna de total
+                    pw.Container(
+                      width: 80,
+                      alignment: pw.Alignment.centerRight,
+                      child: pw.Text(
+                        currencyFormat.format(totalItem),
+                        style: pw.TextStyle(
+                          font: boldFont,
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Espaçamento entre itens (não adiciona após o último)
+              if (index < itens.length - 1) pw.SizedBox(height: 10),
+            ],
+          );
+        }),
+      ],
     );
   }
 

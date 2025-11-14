@@ -230,102 +230,227 @@ Obrigado pela preferência! 😊
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Compartilhar Orçamento'),
+        title: const Text(
+          'Compartilhar Orçamento',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         centerTitle: true,
         automaticallyImplyLeading: false,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade700, Colors.blue.shade500],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Spacer(),
-            const Icon(
-              Icons.check_circle_outline,
-              color: Colors.green,
-              size: 80,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Orçamento Salvo!',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Agora você pode compartilhá-lo com seu cliente.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 32),
-            _buildActionCard(
-              context,
-              icon: Icons.picture_as_pdf_outlined,
-              label: 'Enviar orçamento em PDF',
-              subtitle: 'Gerar e compartilhar arquivo PDF',
-              onTap: () => _gerarECompartilharPdf(context),
-            ),
-            const SizedBox(height: 12),
-            _buildActionCard(
-              context,
-              icon: Icons.link_rounded,
-              label: 'Enviar orçamento em Link',
-              subtitle: 'Cliente visualiza direto no navegador',
-              onTap: () => _gerarECompartilharLink(context),
-            ),
-            const SizedBox(height: 12),
-            _buildActionCard(
-              context,
-              icon: Icons.bookmark_border,
-              label: 'Salvar como Modelo',
-              subtitle: 'Adicionar itens ao catálogo',
-              onTap: () => _salvarComoModelo(context),
-            ),
-            const SizedBox(height: 32),
-            Row(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade50, Colors.white, Colors.white],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.copy_all_outlined),
-                    label: const Text('Copiar Link'),
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: linkDoOrcamento));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Link do orçamento $numeroFormatado copiado!',
-                          ),
-                          backgroundColor: Colors.green,
+                const Spacer(),
+                // Ícone de sucesso com animação
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.shade200.withOpacity(0.5),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green.shade600,
+                    size: 80,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Orçamento Salvo!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Agora você pode compartilhá-lo com seu cliente.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade600,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                _buildActionCard(
+                  context,
+                  icon: Icons.picture_as_pdf_outlined,
+                  label: 'Enviar orçamento em PDF',
+                  subtitle: 'Gerar e compartilhar arquivo PDF',
+                  color: Colors.red,
+                  onTap: () => _gerarECompartilharPdf(context),
+                ),
+                const SizedBox(height: 14),
+                _buildActionCard(
+                  context,
+                  icon: Icons.link_rounded,
+                  label: 'Enviar orçamento em Link',
+                  subtitle: 'Cliente visualiza direto no navegador',
+                  color: Colors.blue,
+                  onTap: () => _gerarECompartilharLink(context),
+                ),
+                const SizedBox(height: 14),
+                _buildActionCard(
+                  context,
+                  icon: Icons.bookmark_border,
+                  label: 'Salvar como Modelo',
+                  subtitle: 'Adicionar itens ao catálogo',
+                  color: Colors.orange,
+                  onTap: () => _salvarComoModelo(context),
+                ),
+                const SizedBox(height: 32),
+                // Botões de ação rápida
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: Icon(
+                          Icons.copy_all_outlined,
+                          color: Colors.blue.shade700,
                         ),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                        label: Text(
+                          'Copiar Link',
+                          style: TextStyle(
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(text: linkDoOrcamento),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Link do orçamento $numeroFormatado copiado!',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: Colors.green.shade600,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(
+                            color: Colors.blue.shade700,
+                            width: 2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.blue.shade700,
+                              Colors.blue.shade500,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.shade300.withOpacity(0.5),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.share, color: Colors.white),
+                          label: const Text(
+                            'Compartilhar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () => _gerarECompartilharLink(context),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  child: Text(
+                    'Voltar ao início',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.share),
-                    label: const Text('Compartilhar'),
-                    onPressed: () => _gerarECompartilharLink(context),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 8),
               ],
             ),
-            const Spacer(),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-              child: const Text('Voltar ao início'),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -336,21 +461,76 @@ Obrigado pela preferência! 😊
     required IconData icon,
     required String label,
     String? subtitle,
+    required Color color,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-        title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle:
-            subtitle != null
-                ? Text(subtitle, style: const TextStyle(fontSize: 12))
-                : null,
-        trailing: const Icon(Icons.chevron_right),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.chevron_right, color: color, size: 20),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
