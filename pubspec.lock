@@ -174,10 +174,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: f4e7ccc695bd8e79eae9024258f6de520667eba5
+      resolved-ref: "9148bc99407fbc58c35d5910631ba9743b374c27"
       url: "https://github.com/REU8ER/deep-link.git"
     source: git
-    version: "0.0.4"
+    version: "0.0.5"
   equatable:
     dependency: transitive
     description:

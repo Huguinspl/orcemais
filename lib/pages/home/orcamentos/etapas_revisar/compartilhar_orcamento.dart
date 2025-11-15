@@ -90,21 +90,19 @@ class CompartilharOrcamentoPage extends StatelessWidget {
       final link = await DeepLink.createLink(
         LinkModel(
           dominio: 'link.orcemais.com',
-          prefixo: 'orcamento',
           titulo:
               'Orçamento ${orcamento.numero} - ${businessProvider.nomeEmpresa}',
-          slug: '${userProvider.uid}-${orcamento.id}',
+          slug: orcamento.id,
           onlyWeb: true,
           urlImage: businessProvider.logoUrl,
-          urlDesktop:
-              'https://gestorfy-cliente.web.app/orcamento/${userProvider.uid}-${orcamento.id}',
+          urlDesktop: 'https://gestorfy-cliente.web.app',
+          parametrosPersonalizados: {
+            'userId': userProvider.uid,
+            'documentoId': orcamento.id,
+            'tipoDocumento': 'orcamento',
+          },
         ),
       );
-
-      final linkDoOrcamento =
-          'https://${link.dominio}/${link.prefixo}/${link.slug}';
-
-      print('(${link.dominio}) (${link.prefixo})');
 
       // Obter o userId (necessário para buscar o orçamento no Firestore)
       final userId = userProvider.uid;
@@ -123,7 +121,7 @@ Olá, ${orcamento.cliente.nome}! 👋
 Segue o orçamento ${numeroFormatado} de ${businessProvider.nomeEmpresa}.
 
 🔗 Visualize seu orçamento:
-$linkDoOrcamento
+${link.link}
 
 ${businessProvider.telefone.isNotEmpty ? '📞 Contato: ${businessProvider.telefone}' : ''}
 ${businessProvider.emailEmpresa.isNotEmpty ? '📧 Email: ${businessProvider.emailEmpresa}' : ''}

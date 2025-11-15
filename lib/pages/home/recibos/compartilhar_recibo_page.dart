@@ -1,5 +1,8 @@
+import 'package:deep_link/models/link_model.dart';
+import 'package:deep_link/services/link_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gestorfy/providers/user_provider.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -155,8 +158,7 @@ class CompartilharReciboPage extends StatelessWidget {
                   label: 'Enviar recibo em Link',
                   subtitle: 'Cliente visualiza direto no navegador',
                   color: Colors.blue,
-                  onTap:
-                      () => _compartilharLink(context, link, texto, business),
+                  onTap: () => _compartilharLink(context),
                 ),
                 const SizedBox(height: 14),
                 _buildActionCard(
@@ -291,16 +293,95 @@ class CompartilharReciboPage extends StatelessWidget {
     );
   }
 
-  void _compartilharLink(
-    BuildContext context,
-    String link,
-    String texto,
-    BusinessProvider business,
-  ) {
-    Share.share(
-      texto,
-      subject: 'Recibo ${recibo.numero} de ${business.nomeEmpresa}',
+  void _compartilharLink(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+
+    try {
+      final businessProvider = context.read<BusinessProvider>();
+      final userProvider = context.read<UserProvider>();
+
+      final link = await DeepLink.createLink(
+        LinkModel(
+          dominio: 'link.orcemais.com',
+          titulo: 'Recibo ${recibo.numero} - ${businessProvider.nomeEmpresa}',
+          slug: recibo.id,
+          onlyWeb: true,
+          urlImage: businessProvider.logoUrl,
+          urlDesktop: 'https://gestorfy-cliente.web.app',
+          parametrosPersonalizados: {
+            'userId': userProvider.uid,
+            'documentoId': recibo.id,
+            'tipoDocumento': 'recibo',
+          },
+        ),
+      );
+
+      // Obter o userId (necessário para buscar o orçamento no Firestore)
+      final userId = userProvider.uid;
+      if (userId.isEmpty) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      // Gerar o link do orçamento
+      // Formato: https://orcamentos.gestorfy.com/view?u={userId}&o={orcamentoId}
+
+      // Texto de compartilhamento personalizado
+      final numeroFormatado = '#${recibo.numero.toString().padLeft(4, '0')}';
+      final String textoParaCompartilhar = '''
+Olá, ${recibo.cliente.nome}! 👋
+
+Segue o recibo ${numeroFormatado} de ${businessProvider.nomeEmpresa}.
+🔗 Visualize seu recibo:
+${link.link}
+
+${businessProvider.telefone.isNotEmpty ? '📞 Contato: ${businessProvider.telefone}' : ''}
+${businessProvider.emailEmpresa.isNotEmpty ? '📧 Email: ${businessProvider.emailEmpresa}' : ''}
+
+Obrigado pela preferência! 😊
+''';
+
+      // Fecha o loading
+      if (context.mounted) Navigator.of(context).pop();
+
+      // Compartilha o link
+      await Share.share(
+        textoParaCompartilhar,
+        subject: 'Orçamento $numeroFormatado - ${businessProvider.nomeEmpresa}',
+      );
+
+      // Após o compartilhamento, atualiza o status para "Enviado"
+      if (context.mounted) {
+        await context.read<RecibosProvider>().atualizarStatus(
+          recibo.id,
+          'Enviado',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Recibo enviado e status atualizado!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // Fecha o loading em caso de erro
+      if (context.mounted) Navigator.of(context).pop();
+
+      debugPrint('Erro ao compartilhar link: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao compartilhar link: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildActionCard(
