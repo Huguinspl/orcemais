@@ -364,9 +364,133 @@ class _PersonalizarPdfPageState extends State<PersonalizarPdfPage>
                         keyName: 'onTertiaryContainer',
                         color:
                             _getColor('onTertiaryContainer') ??
-                            cs.onTertiaryContainer,
+                            cs.onSecondaryContainer,
                         onChanged: (c) => _setColor('onTertiaryContainer', c),
                       ),
+
+                      // Laudo Técnico
+                      _buildSectionHeader('Laudo Técnico', Icons.assignment),
+                      _ColorTile(
+                        label: 'Fundo da seção',
+                        keyName: 'laudoBackground',
+                        color:
+                            _getColor('laudoBackground') ??
+                            const Color(0xFFF5F5F5),
+                        onChanged: (c) => _setColor('laudoBackground', c),
+                      ),
+                      _ColorTile(
+                        label: 'Texto da seção',
+                        keyName: 'laudoText',
+                        color:
+                            _getColor('laudoText') ?? const Color(0xFF212121),
+                        onChanged: (c) => _setColor('laudoText', c),
+                      ),
+
+                      // Garantia
+                      _buildSectionHeader('Garantia', Icons.verified_user),
+                      _ColorTile(
+                        label: 'Fundo da seção',
+                        keyName: 'garantiaBackground',
+                        color:
+                            _getColor('garantiaBackground') ??
+                            const Color(0xFFE8F5E9),
+                        onChanged: (c) => _setColor('garantiaBackground', c),
+                      ),
+                      _ColorTile(
+                        label: 'Texto da seção',
+                        keyName: 'garantiaText',
+                        color:
+                            _getColor('garantiaText') ??
+                            const Color(0xFF1B5E20),
+                        onChanged: (c) => _setColor('garantiaText', c),
+                      ),
+
+                      // Condições Contratuais
+                      _buildSectionHeader(
+                        'Condições Contratuais',
+                        Icons.description,
+                      ),
+                      _ColorTile(
+                        label: 'Fundo da seção',
+                        keyName: 'contratoBackground',
+                        color:
+                            _getColor('contratoBackground') ??
+                            const Color(0xFFFFF3E0),
+                        onChanged: (c) => _setColor('contratoBackground', c),
+                      ),
+                      _ColorTile(
+                        label: 'Texto da seção',
+                        keyName: 'contratoText',
+                        color:
+                            _getColor('contratoText') ??
+                            const Color(0xFFE65100),
+                        onChanged: (c) => _setColor('contratoText', c),
+                      ),
+
+                      // Fotos do Orçamento
+                      _buildSectionHeader(
+                        'Fotos do Orçamento',
+                        Icons.photo_library,
+                      ),
+                      _ColorTile(
+                        label: 'Fundo da seção',
+                        keyName: 'fotosBackground',
+                        color:
+                            _getColor('fotosBackground') ??
+                            const Color(0xFFE3F2FD),
+                        onChanged: (c) => _setColor('fotosBackground', c),
+                      ),
+                      _ColorTile(
+                        label: 'Texto da seção',
+                        keyName: 'fotosText',
+                        color:
+                            _getColor('fotosText') ?? const Color(0xFF0D47A1),
+                        onChanged: (c) => _setColor('fotosText', c),
+                      ),
+
+                      // Condições de Pagamento
+                      _buildSectionHeader(
+                        'Condições de Pagamento',
+                        Icons.payment,
+                      ),
+                      _ColorTile(
+                        label: 'Fundo da seção',
+                        keyName: 'pagamentoBackground',
+                        color:
+                            _getColor('pagamentoBackground') ??
+                            const Color(0xFFF3E5F5),
+                        onChanged: (c) => _setColor('pagamentoBackground', c),
+                      ),
+                      _ColorTile(
+                        label: 'Texto da seção',
+                        keyName: 'pagamentoText',
+                        color:
+                            _getColor('pagamentoText') ??
+                            const Color(0xFF4A148C),
+                        onChanged: (c) => _setColor('pagamentoText', c),
+                      ),
+
+                      // Card de Valores
+                      _buildSectionHeader(
+                        'Card de Valores',
+                        Icons.attach_money,
+                      ),
+                      _ColorTile(
+                        label: 'Fundo da seção',
+                        keyName: 'valoresBackground',
+                        color:
+                            _getColor('valoresBackground') ??
+                            const Color(0xFFE0F2F1),
+                        onChanged: (c) => _setColor('valoresBackground', c),
+                      ),
+                      _ColorTile(
+                        label: 'Texto da seção',
+                        keyName: 'valoresText',
+                        color:
+                            _getColor('valoresText') ?? const Color(0xFF004D40),
+                        onChanged: (c) => _setColor('valoresText', c),
+                      ),
+
                       _buildSectionHeader(
                         'Bordas e Divisores',
                         Icons.border_all,

@@ -2,42 +2,22 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../../models/cliente.dart';
-import '../../../../providers/business_provider.dart';
+import '../../../models/recibo.dart';
+import '../../../providers/business_provider.dart';
 
-class EtapaLinkWebPage extends StatefulWidget {
-  final Cliente cliente;
-  final List<Map<String, dynamic>> itens;
-  final double subtotal;
-  final double desconto;
-  final double valorTotal;
+class EtapaLinkWebReciboPage extends StatefulWidget {
+  final Recibo recibo;
 
-  const EtapaLinkWebPage({
-    super.key,
-    required this.cliente,
-    required this.itens,
-    required this.subtotal,
-    required this.desconto,
-    required this.valorTotal,
-  });
+  const EtapaLinkWebReciboPage({super.key, required this.recibo});
 
   @override
-  State<EtapaLinkWebPage> createState() => _EtapaLinkWebPageState();
+  State<EtapaLinkWebReciboPage> createState() => _EtapaLinkWebReciboPageState();
 }
 
-class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
+class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
   @override
   void initState() {
     super.initState();
-
-    // Debug: valores recebidos no construtor
-    debugPrint('🔵 EtapaLinkWebPage - Valores recebidos:');
-    debugPrint('   Subtotal: ${widget.subtotal}');
-    debugPrint('   Desconto: ${widget.desconto}');
-    debugPrint('   Valor Total: ${widget.valorTotal}');
-    debugPrint('   Cliente: ${widget.cliente.nome}');
-    debugPrint('   Itens: ${widget.itens.length}');
-
     // Garante que os dados do negócio sejam carregados, caso ainda não tenham sido.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BusinessProvider>().carregarDoFirestore();
@@ -49,28 +29,28 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     // Usamos 'watch' para que a tela seja redesenhada quando os dados do negócio chegarem.
     final businessProvider = context.watch<BusinessProvider>();
 
-    // Carregar cores personalizadas do PDF ou usar padrão azul
+    // Carregar cores personalizadas do PDF ou usar padrão laranja
     final theme = businessProvider.pdfTheme;
     final primaryColor =
         theme != null && theme['primary'] != null
             ? Color(theme['primary'] as int)
-            : Colors.blue.shade600;
+            : Colors.orange.shade600;
     final secondaryContainerColor =
         theme != null && theme['secondaryContainer'] != null
             ? Color(theme['secondaryContainer'] as int)
-            : Colors.blue.shade50;
+            : Colors.orange.shade50;
     final tertiaryContainerColor =
         theme != null && theme['tertiaryContainer'] != null
             ? Color(theme['tertiaryContainer'] as int)
-            : Colors.blue.shade100;
+            : Colors.orange.shade100;
     final onSecondaryContainerColor =
         theme != null && theme['onSecondaryContainer'] != null
             ? Color(theme['onSecondaryContainer'] as int)
-            : Colors.blue.shade900;
+            : Colors.orange.shade900;
     final onTertiaryContainerColor =
         theme != null && theme['onTertiaryContainer'] != null
             ? Color(theme['onTertiaryContainer'] as int)
-            : Colors.blue.shade900;
+            : Colors.orange.shade900;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -128,7 +108,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
             _buildClientInfo(context),
             const SizedBox(height: 24),
             _sectionLabel(
-              'Itens do Orçamento',
+              'Itens do Recibo',
               bg: tertiaryContainerColor,
               fg: onTertiaryContainerColor,
             ),
@@ -235,16 +215,16 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
         Text(
-          widget.cliente.nome,
+          widget.recibo.cliente.nome,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        if (widget.cliente.celular.isNotEmpty) ...[
+        if (widget.recibo.cliente.celular.isNotEmpty) ...[
           const SizedBox(height: 4),
-          Text(widget.cliente.celular),
+          Text(widget.recibo.cliente.celular),
         ],
-        if (widget.cliente.email.isNotEmpty) ...[
+        if (widget.recibo.cliente.email.isNotEmpty) ...[
           const SizedBox(height: 4),
-          Text(widget.cliente.email),
+          Text(widget.recibo.cliente.email),
         ],
       ],
     );
@@ -261,11 +241,11 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     final primaryColor =
         theme != null && theme['primary'] != null
             ? Color(theme['primary'] as int)
-            : Colors.blue.shade600;
+            : Colors.orange.shade600;
 
     return Column(
-      children: List.generate(widget.itens.length, (index) {
-        final item = widget.itens[index];
+      children: List.generate(widget.recibo.itens.length, (index) {
+        final item = widget.recibo.itens[index];
         final nome = item['nome'] ?? 'Item';
         final descricao = item['descricao'] as String? ?? '';
         final preco = (item['preco'] ?? 0).toDouble();
@@ -426,7 +406,8 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                 ],
               ),
             ),
-            if (index < widget.itens.length - 1) const SizedBox(height: 16),
+            if (index < widget.recibo.itens.length - 1)
+              const SizedBox(height: 16),
           ],
         );
       }),
@@ -482,13 +463,6 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
       locale: 'pt_BR',
       symbol: 'R\$',
     );
-
-    // Debug: verificar valores
-    debugPrint('🔵 Link Web - Valores dos totais:');
-    debugPrint('   Subtotal: ${widget.subtotal}');
-    debugPrint('   Desconto: ${widget.desconto}');
-    debugPrint('   Valor Total: ${widget.valorTotal}');
-
     return Align(
       alignment: Alignment.centerRight,
       child: SizedBox(
@@ -496,16 +470,15 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            _totalRow('Subtotal', currencyFormat.format(widget.subtotal)),
-            if (widget.desconto > 0)
+            if (widget.recibo.itens.isNotEmpty)
               _totalRow(
-                'Desconto',
-                '- ${currencyFormat.format(widget.desconto)}',
+                'Subtotal',
+                currencyFormat.format(widget.recibo.subtotalItens),
               ),
             const Divider(height: 20),
             _totalRow(
               'Valor Total',
-              currencyFormat.format(widget.valorTotal),
+              currencyFormat.format(widget.recibo.valorTotal),
               isTotal: true,
             ),
           ],
@@ -529,13 +502,9 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
   }
 
   Widget _totalRow(String label, String value, {bool isTotal = false}) {
-    // Debug: verificar chamadas do método
-    debugPrint('🔍 _totalRow chamado: $label = $value (isTotal: $isTotal)');
-
     final style = TextStyle(
       fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
       fontSize: isTotal ? 16 : 14,
-      color: Colors.black87, // Cor explícita para garantir visibilidade
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),

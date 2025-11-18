@@ -48,6 +48,57 @@ class OrcamentoPdfGenerator {
       theme?['outlineVariant'] as int?,
       PdfColors.grey400,
     );
+
+    // Cores personalizadas para seções específicas
+    final laudoBackground = PdfColorUtils.fromArgbInt(
+      theme?['laudoBackground'] as int?,
+      PdfColors.grey200,
+    );
+    final laudoText = PdfColorUtils.fromArgbInt(
+      theme?['laudoText'] as int?,
+      PdfColors.black,
+    );
+    final garantiaBackground = PdfColorUtils.fromArgbInt(
+      theme?['garantiaBackground'] as int?,
+      PdfColor.fromHex('#E8F5E9'),
+    );
+    final garantiaText = PdfColorUtils.fromArgbInt(
+      theme?['garantiaText'] as int?,
+      PdfColor.fromHex('#1B5E20'),
+    );
+    final contratoBackground = PdfColorUtils.fromArgbInt(
+      theme?['contratoBackground'] as int?,
+      PdfColor.fromHex('#FFF3E0'),
+    );
+    final contratoText = PdfColorUtils.fromArgbInt(
+      theme?['contratoText'] as int?,
+      PdfColor.fromHex('#E65100'),
+    );
+    final fotosBackground = PdfColorUtils.fromArgbInt(
+      theme?['fotosBackground'] as int?,
+      PdfColor.fromHex('#E3F2FD'),
+    );
+    final fotosText = PdfColorUtils.fromArgbInt(
+      theme?['fotosText'] as int?,
+      PdfColor.fromHex('#0D47A1'),
+    );
+    final pagamentoBackground = PdfColorUtils.fromArgbInt(
+      theme?['pagamentoBackground'] as int?,
+      PdfColor.fromHex('#F3E5F5'),
+    );
+    final pagamentoText = PdfColorUtils.fromArgbInt(
+      theme?['pagamentoText'] as int?,
+      PdfColor.fromHex('#4A148C'),
+    );
+    final valoresBackground = PdfColorUtils.fromArgbInt(
+      theme?['valoresBackground'] as int?,
+      PdfColor.fromHex('#E0F2F1'),
+    );
+    final valoresText = PdfColorUtils.fromArgbInt(
+      theme?['valoresText'] as int?,
+      PdfColor.fromHex('#004D40'),
+    );
+
     // Garante que dados da empresa estejam carregados
     try {
       await businessProvider.carregarDoFirestore();
@@ -155,8 +206,8 @@ class OrcamentoPdfGenerator {
               pw.SizedBox(height: 24),
               _sectionLabel(
                 'Condições de pagamento',
-                bg: tertiaryContainer,
-                fg: onTertiaryContainer,
+                bg: pagamentoBackground,
+                fg: pagamentoText,
                 font: boldFont,
               ),
               pw.SizedBox(height: 8),
@@ -170,8 +221,8 @@ class OrcamentoPdfGenerator {
               if ((orcamento.laudoTecnico ?? '').trim().isNotEmpty) ...[
                 _sectionLabel(
                   'Laudo técnico',
-                  bg: tertiaryContainer,
-                  fg: onTertiaryContainer,
+                  bg: laudoBackground,
+                  fg: laudoText,
                   font: boldFont,
                 ),
                 pw.SizedBox(height: 8),
@@ -181,8 +232,8 @@ class OrcamentoPdfGenerator {
               if ((orcamento.garantia ?? '').trim().isNotEmpty) ...[
                 _sectionLabel(
                   'Garantia',
-                  bg: tertiaryContainer,
-                  fg: onTertiaryContainer,
+                  bg: garantiaBackground,
+                  fg: garantiaText,
                   font: boldFont,
                 ),
                 pw.SizedBox(height: 8),
@@ -192,8 +243,8 @@ class OrcamentoPdfGenerator {
               if ((orcamento.condicoesContratuais ?? '').trim().isNotEmpty) ...[
                 _sectionLabel(
                   'Condições Contratuais',
-                  bg: tertiaryContainer,
-                  fg: onTertiaryContainer,
+                  bg: contratoBackground,
+                  fg: contratoText,
                   font: boldFont,
                 ),
                 pw.SizedBox(height: 8),
@@ -224,8 +275,8 @@ class OrcamentoPdfGenerator {
               if (fotosBytes.isNotEmpty) ...[
                 _sectionLabel(
                   'Fotos do Orçamento',
-                  bg: tertiaryContainer,
-                  fg: onTertiaryContainer,
+                  bg: fotosBackground,
+                  fg: fotosText,
                   font: boldFont,
                 ),
                 pw.SizedBox(height: 8),
@@ -237,7 +288,7 @@ class OrcamentoPdfGenerator {
                 children: [
                   pw.Container(
                     decoration: pw.BoxDecoration(
-                      color: secondaryContainer,
+                      color: valoresBackground,
                       borderRadius: pw.BorderRadius.circular(12),
                       border: pw.Border.all(color: outlineVariant, width: 0.5),
                     ),
@@ -247,6 +298,7 @@ class OrcamentoPdfGenerator {
                       currencyFormat,
                       boldFont,
                       font,
+                      textColor: valoresText,
                     ),
                   ),
                   if (assinaturaBytes != null &&
@@ -540,8 +592,10 @@ class OrcamentoPdfGenerator {
     Orcamento orcamento,
     NumberFormat currencyFormat,
     pw.Font boldFont,
-    pw.Font regularFont,
-  ) {
+    pw.Font regularFont, {
+    PdfColor? textColor,
+  }) {
+    final color = textColor ?? PdfColors.black;
     double custoTotal = 0.0;
     for (var item in orcamento.itens) {
       final custo = item['custo'] as double? ?? 0.0;
@@ -558,10 +612,13 @@ class OrcamentoPdfGenerator {
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Text('Subtotal:', style: pw.TextStyle(font: regularFont)),
+                pw.Text(
+                  'Subtotal:',
+                  style: pw.TextStyle(font: regularFont, color: color),
+                ),
                 pw.Text(
                   currencyFormat.format(orcamento.subtotal),
-                  style: pw.TextStyle(font: regularFont),
+                  style: pw.TextStyle(font: regularFont, color: color),
                 ),
               ],
             ),
@@ -571,11 +628,11 @@ class OrcamentoPdfGenerator {
                 children: [
                   pw.Text(
                     'Custos Adicionais:',
-                    style: pw.TextStyle(font: regularFont),
+                    style: pw.TextStyle(font: regularFont, color: color),
                   ),
                   pw.Text(
                     currencyFormat.format(custoTotal),
-                    style: pw.TextStyle(font: regularFont),
+                    style: pw.TextStyle(font: regularFont, color: color),
                   ),
                 ],
               ),
@@ -583,14 +640,17 @@ class OrcamentoPdfGenerator {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Desconto:', style: pw.TextStyle(font: regularFont)),
+                  pw.Text(
+                    'Desconto:',
+                    style: pw.TextStyle(font: regularFont, color: color),
+                  ),
                   pw.Text(
                     '- ${currencyFormat.format(orcamento.desconto)}',
-                    style: pw.TextStyle(font: regularFont),
+                    style: pw.TextStyle(font: regularFont, color: color),
                   ),
                 ],
               ),
-            pw.Divider(height: 10),
+            pw.Divider(height: 10, color: color),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
@@ -600,6 +660,7 @@ class OrcamentoPdfGenerator {
                     font: boldFont,
                     fontWeight: pw.FontWeight.bold,
                     fontSize: 14,
+                    color: color,
                   ),
                 ),
                 pw.Text(
@@ -608,6 +669,7 @@ class OrcamentoPdfGenerator {
                     font: boldFont,
                     fontWeight: pw.FontWeight.bold,
                     fontSize: 14,
+                    color: color,
                   ),
                 ),
               ],

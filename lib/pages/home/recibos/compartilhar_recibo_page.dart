@@ -22,15 +22,31 @@ class CompartilharReciboPage extends StatelessWidget {
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
     try {
+      debugPrint('🔵 Iniciando geração do PDF do recibo...');
       final business = context.read<BusinessProvider>();
+
+      debugPrint('🔵 Carregando dados do negócio...');
       await business.carregarDoFirestore();
+      debugPrint('✅ Dados do negócio carregados');
+
+      debugPrint('🔵 Gerando PDF do recibo...');
       final bytes = await ReciboPdfGenerator.generate(recibo, business);
-      if (context.mounted) Navigator.pop(context);
+      debugPrint('✅ PDF gerado com sucesso: ${bytes.length} bytes');
+
+      if (context.mounted) {
+        Navigator.pop(context);
+        debugPrint('🔵 Dialog fechado');
+      }
+
+      debugPrint('🔵 Abrindo compartilhamento...');
       await Printing.sharePdf(
         bytes: bytes,
         filename: 'recibo_${recibo.numero.toString().padLeft(4, '0')}.pdf',
       );
+      debugPrint('✅ Compartilhamento concluído');
+
       if (context.mounted) {
+        debugPrint('🔵 Atualizando status para Enviado...');
         await context.read<RecibosProvider>().atualizarStatus(
           recibo.id,
           'Enviado',
@@ -39,16 +55,21 @@ class CompartilharReciboPage extends StatelessWidget {
           const SnackBar(
             content: Text('Recibo enviado e status atualizado!'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
+        debugPrint('✅ Status atualizado');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (context.mounted) Navigator.pop(context);
+      debugPrint('❌ ERRO ao gerar ou compartilhar PDF do recibo: $e');
+      debugPrint('Stack trace: $stackTrace');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erro ao gerar/compartilhar: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -304,6 +325,37 @@ class CompartilharReciboPage extends StatelessWidget {
       final businessProvider = context.read<BusinessProvider>();
       final userProvider = context.read<UserProvider>();
 
+      // Preparar parâmetros personalizados incluindo cores do PDF
+      final parametrosPersonalizados = <String, dynamic>{
+        'userId': userProvider.uid,
+        'documentoId': recibo.id,
+        'tipoDocumento': 'recibo',
+      };
+
+      // Adicionar cores personalizadas se existirem
+      if (businessProvider.pdfTheme != null) {
+        final theme = businessProvider.pdfTheme!;
+        if (theme['primary'] != null) {
+          parametrosPersonalizados['corPrimaria'] = theme['primary'].toString();
+        }
+        if (theme['secondaryContainer'] != null) {
+          parametrosPersonalizados['corSecundaria'] =
+              theme['secondaryContainer'].toString();
+        }
+        if (theme['tertiaryContainer'] != null) {
+          parametrosPersonalizados['corTerciaria'] =
+              theme['tertiaryContainer'].toString();
+        }
+        if (theme['onSecondaryContainer'] != null) {
+          parametrosPersonalizados['corTextoSecundario'] =
+              theme['onSecondaryContainer'].toString();
+        }
+        if (theme['onTertiaryContainer'] != null) {
+          parametrosPersonalizados['corTextoTerciario'] =
+              theme['onTertiaryContainer'].toString();
+        }
+      }
+
       final link = await DeepLink.createLink(
         LinkModel(
           dominio: 'link.orcemais.com',
@@ -312,22 +364,9 @@ class CompartilharReciboPage extends StatelessWidget {
           onlyWeb: true,
           urlImage: businessProvider.logoUrl,
           urlDesktop: 'https://gestorfy-cliente.web.app',
-          parametrosPersonalizados: {
-            'userId': userProvider.uid,
-            'documentoId': recibo.id,
-            'tipoDocumento': 'recibo',
-          },
+          parametrosPersonalizados: parametrosPersonalizados,
         ),
       );
-
-      // Obter o userId (necessário para buscar o orçamento no Firestore)
-      final userId = userProvider.uid;
-      if (userId.isEmpty) {
-        throw Exception('Usuário não autenticado');
-      }
-
-      // Gerar o link do orçamento
-      // Formato: https://orcamentos.gestorfy.com/view?u={userId}&o={orcamentoId}
 
       // Texto de compartilhamento personalizado
       final numeroFormatado = '#${recibo.numero.toString().padLeft(4, '0')}';

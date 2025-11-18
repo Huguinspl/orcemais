@@ -74,6 +74,42 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
       outlineVariant:
           ColorUtils.fromArgbInt(theme?['outlineVariant']) ??
           csBase.outlineVariant,
+      laudoBackground:
+          ColorUtils.fromArgbInt(theme?['laudoBackground']) ??
+          const Color(0xFFF5F5F5),
+      laudoText:
+          ColorUtils.fromArgbInt(theme?['laudoText']) ??
+          const Color(0xFF212121),
+      garantiaBackground:
+          ColorUtils.fromArgbInt(theme?['garantiaBackground']) ??
+          const Color(0xFFE8F5E9),
+      garantiaText:
+          ColorUtils.fromArgbInt(theme?['garantiaText']) ??
+          const Color(0xFF1B5E20),
+      contratoBackground:
+          ColorUtils.fromArgbInt(theme?['contratoBackground']) ??
+          const Color(0xFFFFF3E0),
+      contratoText:
+          ColorUtils.fromArgbInt(theme?['contratoText']) ??
+          const Color(0xFFE65100),
+      fotosBackground:
+          ColorUtils.fromArgbInt(theme?['fotosBackground']) ??
+          const Color(0xFFE3F2FD),
+      fotosText:
+          ColorUtils.fromArgbInt(theme?['fotosText']) ??
+          const Color(0xFF0D47A1),
+      pagamentoBackground:
+          ColorUtils.fromArgbInt(theme?['pagamentoBackground']) ??
+          const Color(0xFFF3E5F5),
+      pagamentoText:
+          ColorUtils.fromArgbInt(theme?['pagamentoText']) ??
+          const Color(0xFF4A148C),
+      valoresBackground:
+          ColorUtils.fromArgbInt(theme?['valoresBackground']) ??
+          const Color(0xFFE0F2F1),
+      valoresText:
+          ColorUtils.fromArgbInt(theme?['valoresText']) ??
+          const Color(0xFF004D40),
     );
 
     return SingleChildScrollView(
@@ -150,8 +186,8 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
             _sectionLabel(
               context,
               'Condições de pagamento',
-              bg: cs.secondaryContainer,
-              fg: cs.onSecondaryContainer,
+              bg: cs.pagamentoBackground,
+              fg: cs.pagamentoText,
             ),
             const SizedBox(height: 8),
             _buildPagamentoSection(context, businessProvider),
@@ -160,8 +196,8 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
               _sectionLabel(
                 context,
                 'Laudo técnico',
-                bg: cs.tertiaryContainer,
-                fg: cs.onTertiaryContainer,
+                bg: cs.laudoBackground,
+                fg: cs.laudoText,
               ),
               const SizedBox(height: 8),
               Container(
@@ -184,8 +220,8 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
               _sectionLabel(
                 context,
                 'Condições contratuais',
-                bg: cs.tertiaryContainer,
-                fg: cs.onTertiaryContainer,
+                bg: cs.contratoBackground,
+                fg: cs.contratoText,
               ),
               const SizedBox(height: 8),
               Container(
@@ -208,8 +244,8 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
               _sectionLabel(
                 context,
                 'Garantia',
-                bg: cs.tertiaryContainer,
-                fg: cs.onTertiaryContainer,
+                bg: cs.garantiaBackground,
+                fg: cs.garantiaText,
               ),
               const SizedBox(height: 8),
               Container(
@@ -256,8 +292,8 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
               _sectionLabel(
                 context,
                 'Fotos do Orçamento',
-                bg: cs.tertiaryContainer,
-                fg: cs.onTertiaryContainer,
+                bg: cs.fotosBackground,
+                fg: cs.fotosText,
               ),
               const SizedBox(height: 8),
               _buildFotosGrid(context, cs.outlineVariant),
@@ -266,12 +302,12 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
             // Caixa de totais com destaque
             Container(
               decoration: BoxDecoration(
-                color: cs.secondaryContainer,
+                color: cs.valoresBackground,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: cs.outlineVariant),
               ),
               padding: const EdgeInsets.all(16),
-              child: _buildTotals(context),
+              child: _buildTotals(context, textColor: cs.valoresText),
             ),
             const SizedBox(height: 24),
             _buildAssinaturaSection(context, businessProvider),
@@ -566,7 +602,8 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
     );
   }
 
-  Widget _buildTotals(BuildContext context) {
+  Widget _buildTotals(BuildContext context, {Color? textColor}) {
+    final color = textColor ?? Colors.black87;
     final currencyFormat = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: 'R\$',
@@ -583,19 +620,29 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            _totalRow('Subtotal', currencyFormat.format(widget.subtotal)),
+            _totalRow(
+              'Subtotal',
+              currencyFormat.format(widget.subtotal),
+              color: color,
+            ),
             if (custoTotal > 0)
-              _totalRow('Custos Adicionais', currencyFormat.format(custoTotal)),
+              _totalRow(
+                'Custos Adicionais',
+                currencyFormat.format(custoTotal),
+                color: color,
+              ),
             if (widget.desconto > 0)
               _totalRow(
                 'Desconto',
                 '- ${currencyFormat.format(widget.desconto)}',
+                color: color,
               ),
-            const Divider(height: 20),
+            Divider(height: 20, color: color),
             _totalRow(
               'Valor Total',
               currencyFormat.format(widget.valorTotal),
               isTotal: true,
+              color: color,
             ),
           ],
         ),
@@ -604,10 +651,17 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
   }
 
   // Removido: _tableHeader não é mais utilizado após migrar para lista flexível de itens.
-  Widget _totalRow(String label, String value, {bool isTotal = false}) {
+  Widget _totalRow(
+    String label,
+    String value, {
+    bool isTotal = false,
+    Color? color,
+  }) {
+    final textColor = color ?? Colors.black87;
     final style = TextStyle(
       fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
       fontSize: isTotal ? 16 : 14,
+      color: textColor,
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -747,6 +801,18 @@ class _ResolvedColors {
   final Color tertiaryContainer;
   final Color onTertiaryContainer;
   final Color outlineVariant;
+  final Color laudoBackground;
+  final Color laudoText;
+  final Color garantiaBackground;
+  final Color garantiaText;
+  final Color contratoBackground;
+  final Color contratoText;
+  final Color fotosBackground;
+  final Color fotosText;
+  final Color pagamentoBackground;
+  final Color pagamentoText;
+  final Color valoresBackground;
+  final Color valoresText;
 
   const _ResolvedColors({
     required this.primary,
@@ -756,5 +822,17 @@ class _ResolvedColors {
     required this.tertiaryContainer,
     required this.onTertiaryContainer,
     required this.outlineVariant,
+    required this.laudoBackground,
+    required this.laudoText,
+    required this.garantiaBackground,
+    required this.garantiaText,
+    required this.contratoBackground,
+    required this.contratoText,
+    required this.fotosBackground,
+    required this.fotosText,
+    required this.pagamentoBackground,
+    required this.pagamentoText,
+    required this.valoresBackground,
+    required this.valoresText,
   });
 }

@@ -28,27 +28,39 @@ class CompartilharOrcamentoPage extends StatelessWidget {
     );
 
     try {
+      debugPrint('🔵 Iniciando geração do PDF...');
       final businessProvider = context.read<BusinessProvider>();
-      // Garante que os dados do negócio estejam carregados
-      await businessProvider.carregarDoFirestore();
 
+      // Garante que os dados do negócio estejam carregados
+      debugPrint('🔵 Carregando dados do negócio...');
+      await businessProvider.carregarDoFirestore();
+      debugPrint('✅ Dados do negócio carregados');
+
+      debugPrint('🔵 Gerando PDF...');
       final pdfBytes = await OrcamentoPdfGenerator.generate(
         orcamento, // Passa o objeto Orcamento inteiro
         businessProvider,
       );
+      debugPrint('✅ PDF gerado com sucesso: ${pdfBytes.length} bytes');
 
       // Fecha o diálogo de carregamento ANTES de abrir o compartilhamento
-      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        debugPrint('🔵 Dialog fechado');
+      }
 
       // Compartilha o PDF com formato explícito
+      debugPrint('🔵 Abrindo compartilhamento...');
       await Printing.sharePdf(
         bytes: pdfBytes,
         filename:
             'orcamento_${orcamento.cliente.nome.replaceAll(' ', '_')}.pdf',
       );
+      debugPrint('✅ Compartilhamento concluído');
 
       // Após o compartilhamento, atualiza o status para "Enviado"
       if (context.mounted) {
+        debugPrint('🔵 Atualizando status para Enviado...');
         await context.read<OrcamentosProvider>().atualizarStatus(
           orcamento.id,
           'Enviado',
@@ -57,17 +69,21 @@ class CompartilharOrcamentoPage extends StatelessWidget {
           const SnackBar(
             content: Text('Orçamento enviado e status atualizado!'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
+        debugPrint('✅ Status atualizado');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (context.mounted) Navigator.of(context).pop();
-      debugPrint('Erro ao gerar ou compartilhar PDF: $e');
+      debugPrint('❌ ERRO ao gerar ou compartilhar PDF: $e');
+      debugPrint('Stack trace: $stackTrace');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erro ao processar PDF: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -84,8 +100,101 @@ class CompartilharOrcamentoPage extends StatelessWidget {
     );
 
     try {
+      debugPrint('🌐 Iniciando geração do Link Web...');
       final businessProvider = context.read<BusinessProvider>();
       final userProvider = context.read<UserProvider>();
+
+      debugPrint('🌐 UserId: ${userProvider.uid}');
+      debugPrint('🌐 OrcamentoId: ${orcamento.id}');
+
+      // Preparar parâmetros personalizados incluindo cores do PDF
+      final parametrosPersonalizados = <String, dynamic>{
+        'userId': userProvider.uid,
+        'documentoId': orcamento.id,
+        'tipoDocumento': 'orcamento',
+      };
+
+      // Adicionar cores personalizadas se existirem
+      if (businessProvider.pdfTheme != null) {
+        debugPrint('🌐 Adicionando cores personalizadas...');
+        final theme = businessProvider.pdfTheme!;
+        if (theme['primary'] != null) {
+          parametrosPersonalizados['corPrimaria'] = theme['primary'].toString();
+        }
+        if (theme['secondaryContainer'] != null) {
+          parametrosPersonalizados['corSecundaria'] =
+              theme['secondaryContainer'].toString();
+        }
+        if (theme['tertiaryContainer'] != null) {
+          parametrosPersonalizados['corTerciaria'] =
+              theme['tertiaryContainer'].toString();
+        }
+        if (theme['onSecondaryContainer'] != null) {
+          parametrosPersonalizados['corTextoSecundario'] =
+              theme['onSecondaryContainer'].toString();
+        }
+        if (theme['onTertiaryContainer'] != null) {
+          parametrosPersonalizados['corTextoTerciario'] =
+              theme['onTertiaryContainer'].toString();
+        }
+
+        // Cores das novas seções
+        if (theme['laudoBackground'] != null) {
+          parametrosPersonalizados['laudoBackground'] =
+              theme['laudoBackground'].toString();
+        }
+        if (theme['laudoText'] != null) {
+          parametrosPersonalizados['laudoText'] = theme['laudoText'].toString();
+        }
+        if (theme['garantiaBackground'] != null) {
+          parametrosPersonalizados['garantiaBackground'] =
+              theme['garantiaBackground'].toString();
+        }
+        if (theme['garantiaText'] != null) {
+          parametrosPersonalizados['garantiaText'] =
+              theme['garantiaText'].toString();
+        }
+        if (theme['contratoBackground'] != null) {
+          parametrosPersonalizados['contratoBackground'] =
+              theme['contratoBackground'].toString();
+        }
+        if (theme['contratoText'] != null) {
+          parametrosPersonalizados['contratoText'] =
+              theme['contratoText'].toString();
+        }
+        if (theme['fotosBackground'] != null) {
+          parametrosPersonalizados['fotosBackground'] =
+              theme['fotosBackground'].toString();
+        }
+        if (theme['fotosText'] != null) {
+          parametrosPersonalizados['fotosText'] = theme['fotosText'].toString();
+        }
+        if (theme['pagamentoBackground'] != null) {
+          parametrosPersonalizados['pagamentoBackground'] =
+              theme['pagamentoBackground'].toString();
+        }
+        if (theme['pagamentoText'] != null) {
+          parametrosPersonalizados['pagamentoText'] =
+              theme['pagamentoText'].toString();
+        }
+        if (theme['valoresBackground'] != null) {
+          parametrosPersonalizados['valoresBackground'] =
+              theme['valoresBackground'].toString();
+        }
+        if (theme['valoresText'] != null) {
+          parametrosPersonalizados['valoresText'] =
+              theme['valoresText'].toString();
+        }
+
+        debugPrint(
+          '✅ Cores adicionadas: ${parametrosPersonalizados.length} parâmetros',
+        );
+      } else {
+        debugPrint('⚠️ Sem tema personalizado');
+      }
+
+      debugPrint('🌐 Criando Deep Link...');
+      debugPrint('🌐 Parâmetros: $parametrosPersonalizados');
 
       final link = await DeepLink.createLink(
         LinkModel(
@@ -96,22 +205,11 @@ class CompartilharOrcamentoPage extends StatelessWidget {
           onlyWeb: true,
           urlImage: businessProvider.logoUrl,
           urlDesktop: 'https://gestorfy-cliente.web.app',
-          parametrosPersonalizados: {
-            'userId': userProvider.uid,
-            'documentoId': orcamento.id,
-            'tipoDocumento': 'orcamento',
-          },
+          parametrosPersonalizados: parametrosPersonalizados,
         ),
       );
 
-      // Obter o userId (necessário para buscar o orçamento no Firestore)
-      final userId = userProvider.uid;
-      if (userId.isEmpty) {
-        throw Exception('Usuário não autenticado');
-      }
-
-      // Gerar o link do orçamento
-      // Formato: https://orcamentos.gestorfy.com/view?u={userId}&o={orcamentoId}
+      debugPrint('✅ Link criado: ${link.link}');
 
       // Texto de compartilhamento personalizado
       final numeroFormatado = '#${orcamento.numero.toString().padLeft(4, '0')}';

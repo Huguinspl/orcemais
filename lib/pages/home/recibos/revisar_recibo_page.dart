@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../models/recibo.dart';
 import '../../../providers/business_provider.dart';
 import 'compartilhar_recibo_page.dart';
+import 'etapa_link_web_recibo_page.dart';
 
 class RevisarReciboPage extends StatefulWidget {
   final Recibo recibo;
@@ -244,71 +245,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
   }
 
   Widget _buildLinkWeb() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.link, size: 64, color: Colors.orange.shade600),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Link Web do Recibo',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Compartilhe este recibo através de um link que seus clientes podem visualizar online.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey.shade600,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Colors.orange.shade600,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Esta funcionalidade estará disponível em breve.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return EtapaLinkWebReciboPage(recibo: widget.recibo);
   }
 
   Widget _buildHeaderRecibo(BusinessProvider provider) {
