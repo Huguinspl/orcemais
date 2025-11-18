@@ -1,24 +1,18 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../../../models/cliente.dart';
+import 'package:deep_link/models/link_model.dart';
+import 'package:deep_link/services/link_service.dart';
+import '../../../../models/orcamento.dart';
 import '../../../../providers/business_provider.dart';
+import '../../../../providers/user_provider.dart';
 
 class EtapaLinkWebPage extends StatefulWidget {
-  final Cliente cliente;
-  final List<Map<String, dynamic>> itens;
-  final double subtotal;
-  final double desconto;
-  final double valorTotal;
+  final Orcamento orcamento;
 
   const EtapaLinkWebPage({
     super.key,
-    required this.cliente,
-    required this.itens,
-    required this.subtotal,
-    required this.desconto,
-    required this.valorTotal,
+    required this.orcamento,
   });
 
   @override
@@ -26,523 +20,262 @@ class EtapaLinkWebPage extends StatefulWidget {
 }
 
 class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
+  late WebViewController _controller;
+  bool _isLoading = true;
+  String? _linkWeb;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
-
-    // Debug: valores recebidos no construtor
-    debugPrint('🔵 EtapaLinkWebPage - Valores recebidos:');
-    debugPrint('   Subtotal: ${widget.subtotal}');
-    debugPrint('   Desconto: ${widget.desconto}');
-    debugPrint('   Valor Total: ${widget.valorTotal}');
-    debugPrint('   Cliente: ${widget.cliente.nome}');
-    debugPrint('   Itens: ${widget.itens.length}');
-
-    // Garante que os dados do negócio sejam carregados, caso ainda não tenham sido.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BusinessProvider>().carregarDoFirestore();
+      _gerarLinkWeb();
     });
+  }
+
+  Future<void> _gerarLinkWeb() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final businessProvider = context.read<BusinessProvider>();
+      final userProvider = context.read<UserProvider>();
+      
+      // Carregar dados do negócio se necessário
+      if (businessProvider.nomeEmpresa.isEmpty) {
+        await businessProvider.carregarDoFirestore();
+      }
+
+      // Obter cores personalizadas do PDF
+      final pdfTheme = businessProvider.pdfTheme;
+      final Map<String, dynamic> parametrosPersonalizados = {
+        'userId': userProvider.uid,
+        'orcamentoId': widget.orcamento.id,
+        'tipoDocumento': 'orcamento',
+      };
+
+      // Adicionar cores personalizadas se existirem
+      if (pdfTheme != null) {
+        if (pdfTheme['primary'] != null) {
+          parametrosPersonalizados['primary'] = pdfTheme['primary'].toString();
+        }
+        if (pdfTheme['laudoBackground'] != null) {
+          parametrosPersonalizados['laudoBackground'] =
+              pdfTheme['laudoBackground'].toString();
+        }
+        if (pdfTheme['laudoText'] != null) {
+          parametrosPersonalizados['laudoText'] =
+              pdfTheme['laudoText'].toString();
+        }
+        if (pdfTheme['garantiaBackground'] != null) {
+          parametrosPersonalizados['garantiaBackground'] =
+              pdfTheme['garantiaBackground'].toString();
+        }
+        if (pdfTheme['garantiaText'] != null) {
+          parametrosPersonalizados['garantiaText'] =
+              pdfTheme['garantiaText'].toString();
+        }
+        if (pdfTheme['contratoBackground'] != null) {
+          parametrosPersonalizados['contratoBackground'] =
+              pdfTheme['contratoBackground'].toString();
+        }
+        if (pdfTheme['contratoText'] != null) {
+          parametrosPersonalizados['contratoText'] =
+              pdfTheme['contratoText'].toString();
+        }
+        if (pdfTheme['fotosBackground'] != null) {
+          parametrosPersonalizados['fotosBackground'] =
+              pdfTheme['fotosBackground'].toString();
+        }
+        if (pdfTheme['fotosText'] != null) {
+          parametrosPersonalizados['fotosText'] =
+              pdfTheme['fotosText'].toString();
+        }
+        if (pdfTheme['pagamentoBackground'] != null) {
+          parametrosPersonalizados['pagamentoBackground'] =
+              pdfTheme['pagamentoBackground'].toString();
+        }
+        if (pdfTheme['pagamentoText'] != null) {
+          parametrosPersonalizados['pagamentoText'] =
+              pdfTheme['pagamentoText'].toString();
+        }
+        if (pdfTheme['valoresBackground'] != null) {
+          parametrosPersonalizados['valoresBackground'] =
+              pdfTheme['valoresBackground'].toString();
+        }
+        if (pdfTheme['valoresText'] != null) {
+          parametrosPersonalizados['valoresText'] =
+              pdfTheme['valoresText'].toString();
+        }
+      }
+
+      // Gerar o link usando o deep_link
+      final link = await DeepLink.createLink(
+        LinkModel(
+          dominio: 'link.orcemais.com',
+          titulo:
+              'Orçamento ${widget.orcamento.numero} - ${businessProvider.nomeEmpresa}',
+          slug: widget.orcamento.id,
+          onlyWeb: true,
+          urlImage: businessProvider.logoUrl,
+          urlDesktop: 'https://gestorfy-cliente.web.app',
+          parametrosPersonalizados: parametrosPersonalizados,
+        ),
+      );
+
+      debugPrint('✅ Link Web gerado: ${link.link}');
+
+      setState(() {
+        _linkWeb = link.link;
+        _isLoading = false;
+      });
+
+      // Configurar o WebViewController
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onProgress: (int progress) {
+              debugPrint('🔄 Carregando Link Web: $progress%');
+            },
+            onPageStarted: (String url) {
+              debugPrint('🌐 Iniciando carregamento: $url');
+            },
+            onPageFinished: (String url) {
+              debugPrint('✅ Página carregada: $url');
+            },
+            onWebResourceError: (WebResourceError error) {
+              debugPrint('❌ Erro ao carregar Link Web: ${error.description}');
+            },
+          ),
+        )
+        ..loadRequest(Uri.parse(link.link));
+    } catch (e) {
+      debugPrint('❌ Erro ao gerar Link Web: $e');
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Usamos 'watch' para que a tela seja redesenhada quando os dados do negócio chegarem.
-    final businessProvider = context.watch<BusinessProvider>();
-
-    // Carregar cores personalizadas do PDF ou usar padrão azul
-    final theme = businessProvider.pdfTheme;
-    final primaryColor =
-        theme != null && theme['primary'] != null
-            ? Color(theme['primary'] as int)
-            : Colors.blue.shade600;
-    final secondaryContainerColor =
-        theme != null && theme['secondaryContainer'] != null
-            ? Color(theme['secondaryContainer'] as int)
-            : Colors.blue.shade50;
-    final tertiaryContainerColor =
-        theme != null && theme['tertiaryContainer'] != null
-            ? Color(theme['tertiaryContainer'] as int)
-            : Colors.blue.shade100;
-    final onSecondaryContainerColor =
-        theme != null && theme['onSecondaryContainer'] != null
-            ? Color(theme['onSecondaryContainer'] as int)
-            : Colors.blue.shade900;
-    final onTertiaryContainerColor =
-        theme != null && theme['onTertiaryContainer'] != null
-            ? Color(theme['onTertiaryContainer'] as int)
-            : Colors.blue.shade900;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        padding: const EdgeInsets.all(24.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Link Web - Pré-visualização'),
+        actions: [
+          if (_linkWeb != null)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Recarregar',
+              onPressed: () {
+                _controller.reload();
+              },
             ),
-          ],
-          border: Border.all(color: Colors.grey.shade300),
-        ),
+        ],
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Mostra um indicador de carregamento enquanto os dados do negócio não chegam.
-            if (businessProvider.nomeEmpresa.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else ...[
-              // Cabeçalho com faixa colorida personalizada
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _buildHeader(context, businessProvider),
-              ),
-              if ((businessProvider.descricao ?? '').isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  businessProvider.descricao!,
-                  style: const TextStyle(color: Colors.black87),
-                ),
-              ],
-            ],
-
-            const Divider(height: 40, thickness: 1),
-            _sectionLabel(
-              'Dados do Cliente',
-              bg: secondaryContainerColor,
-              fg: onSecondaryContainerColor,
-            ),
-            const SizedBox(height: 12),
-            _buildClientInfo(context),
-            const SizedBox(height: 24),
-            _sectionLabel(
-              'Itens do Orçamento',
-              bg: tertiaryContainerColor,
-              fg: onTertiaryContainerColor,
-            ),
-            const SizedBox(height: 16),
-            _buildItemsList(context),
-            const SizedBox(height: 24),
-            // Caixa de totais com destaque personalizado
-            Container(
-              decoration: BoxDecoration(
-                color: secondaryContainerColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primaryColor.withOpacity(0.3)),
-              ),
-              padding: const EdgeInsets.all(16),
-              child: _buildTotals(context),
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Gerando Link Web...'),
+            SizedBox(height: 8),
+            Text(
+              'Aguarde enquanto preparamos a visualização',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildHeader(BuildContext context, BusinessProvider provider) {
-    return FutureBuilder<Uint8List?>(
-      future: provider.getLogoBytes(),
-      builder: (context, snap) {
-        final logoBytes = snap.data;
-        Widget? logo;
-        if (logoBytes != null && logoBytes.isNotEmpty) {
-          logo = Image.memory(logoBytes, fit: BoxFit.contain);
-        } else if (provider.logoUrl != null && provider.logoUrl!.isNotEmpty) {
-          logo = Image.network(provider.logoUrl!, fit: BoxFit.contain);
-        }
-
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (logo != null)
-              Container(
-                width: 60,
-                height: 60,
-                margin: const EdgeInsets.only(right: 12),
-                child: logo,
-              ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    provider.nomeEmpresa.isNotEmpty
-                        ? provider.nomeEmpresa
-                        : 'Minha Empresa',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (provider.telefone.isNotEmpty)
-                    _buildInfoLinha(Icons.phone_outlined, provider.telefone),
-                  if (provider.emailEmpresa.isNotEmpty)
-                    _buildInfoLinha(
-                      Icons.email_outlined,
-                      provider.emailEmpresa,
-                    ),
-                  if (provider.endereco.isNotEmpty)
-                    _buildInfoLinha(
-                      Icons.location_on_outlined,
-                      provider.endereco,
-                    ),
-                  if (provider.cnpj.isNotEmpty)
-                    _buildInfoLinha(Icons.badge_outlined, provider.cnpj),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildInfoLinha(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: const TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClientInfo(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Cliente:',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-        ),
-        Text(
-          widget.cliente.nome,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        if (widget.cliente.celular.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(widget.cliente.celular),
-        ],
-        if (widget.cliente.email.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(widget.cliente.email),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildItemsList(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'pt_BR',
-      symbol: 'R\$',
-    );
-
-    final businessProvider = context.watch<BusinessProvider>();
-    final theme = businessProvider.pdfTheme;
-    final primaryColor =
-        theme != null && theme['primary'] != null
-            ? Color(theme['primary'] as int)
-            : Colors.blue.shade600;
-
-    return Column(
-      children: List.generate(widget.itens.length, (index) {
-        final item = widget.itens[index];
-        final nome = item['nome'] ?? 'Item';
-        final descricao = item['descricao'] as String? ?? '';
-        final preco = (item['preco'] ?? 0).toDouble();
-        final quantidade = (item['quantidade'] ?? 1).toDouble();
-        final totalItem = preco * quantidade;
-
-        return Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: primaryColor.withOpacity(0.2),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Header do item com gradiente
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          primaryColor.withOpacity(0.1),
-                          primaryColor.withOpacity(0.05),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        topRight: Radius.circular(10),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: primaryColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            nome,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Corpo do item
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (descricao.isNotEmpty) ...[
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.description_outlined,
-                                size: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  descricao,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade700,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        // Informações em linha
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildInfoChip(
-                                icon: Icons.shopping_basket_outlined,
-                                label: 'Quantidade',
-                                value: quantidade.toStringAsFixed(2),
-                                color: primaryColor,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildInfoChip(
-                                icon: Icons.attach_money,
-                                label: 'Valor Unit.',
-                                value: currencyFormat.format(preco),
-                                color: primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        const Divider(height: 1),
-                        const SizedBox(height: 12),
-                        // Total do item em destaque
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total do Item',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                            Text(
-                              currencyFormat.format(totalItem),
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (index < widget.itens.length - 1) const SizedBox(height: 16),
-          ],
-        );
-      }),
-    );
-  }
-
-  Widget _buildInfoChip({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 6),
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text(
+                'Erro ao gerar Link Web',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
               Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _gerarLinkWeb,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Tentar Novamente'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_linkWeb == null) {
+      return const Center(
+        child: Text('Link não disponível'),
+      );
+    }
+
+    // Mostrar o link web em um WebView
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          color: Colors.blue.shade50,
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.blue),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Pré-visualização do Link Web',
+                      style: TextStyle(
+                        color: Colors.blue.shade900,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Esta é a visualização que o cliente verá ao acessar o link',
+                      style: TextStyle(
+                        color: Colors.blue.shade700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTotals(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'pt_BR',
-      symbol: 'R\$',
-    );
-
-    // Debug: verificar valores
-    debugPrint('🔵 Link Web - Valores dos totais:');
-    debugPrint('   Subtotal: ${widget.subtotal}');
-    debugPrint('   Desconto: ${widget.desconto}');
-    debugPrint('   Valor Total: ${widget.valorTotal}');
-
-    return Align(
-      alignment: Alignment.centerRight,
-      child: SizedBox(
-        width: 220,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            _totalRow('Subtotal', currencyFormat.format(widget.subtotal)),
-            if (widget.desconto > 0)
-              _totalRow(
-                'Desconto',
-                '- ${currencyFormat.format(widget.desconto)}',
-              ),
-            const Divider(height: 20),
-            _totalRow(
-              'Valor Total',
-              currencyFormat.format(widget.valorTotal),
-              isTotal: true,
-            ),
-          ],
         ),
-      ),
-    );
-  }
-
-  Widget _sectionLabel(String text, {required Color bg, required Color fg}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: fg),
-      ),
-    );
-  }
-
-  Widget _totalRow(String label, String value, {bool isTotal = false}) {
-    // Debug: verificar chamadas do método
-    debugPrint('🔍 _totalRow chamado: $label = $value (isTotal: $isTotal)');
-
-    final style = TextStyle(
-      fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-      fontSize: isTotal ? 16 : 14,
-      color: Colors.black87, // Cor explícita para garantir visibilidade
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(label, style: style), Text(value, style: style)],
-      ),
+        Expanded(
+          child: WebViewWidget(controller: _controller),
+        ),
+      ],
     );
   }
 }
