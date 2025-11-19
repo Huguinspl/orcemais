@@ -109,6 +109,36 @@ class OrcamentosProvider with ChangeNotifier {
     }
   }
 
+  // Método para atualizar apenas o link web do orçamento
+  Future<void> atualizarLinkWeb(String orcamentoId, String linkWeb) async {
+    await _orcamentosRef.doc(orcamentoId).update({'linkWeb': linkWeb});
+
+    final index = _orcamentos.indexWhere((o) => o.id == orcamentoId);
+    if (index != -1) {
+      final orcamentoAntigo = _orcamentos[index];
+      _orcamentos[index] = Orcamento(
+        id: orcamentoAntigo.id,
+        numero: orcamentoAntigo.numero,
+        cliente: orcamentoAntigo.cliente,
+        itens: orcamentoAntigo.itens,
+        subtotal: orcamentoAntigo.subtotal,
+        desconto: orcamentoAntigo.desconto,
+        valorTotal: orcamentoAntigo.valorTotal,
+        status: orcamentoAntigo.status,
+        dataCriacao: orcamentoAntigo.dataCriacao,
+        metodoPagamento: orcamentoAntigo.metodoPagamento,
+        parcelas: orcamentoAntigo.parcelas,
+        laudoTecnico: orcamentoAntigo.laudoTecnico,
+        condicoesContratuais: orcamentoAntigo.condicoesContratuais,
+        garantia: orcamentoAntigo.garantia,
+        informacoesAdicionais: orcamentoAntigo.informacoesAdicionais,
+        fotos: orcamentoAntigo.fotos,
+        linkWeb: linkWeb, // ✅ Atualiza apenas o link web
+      );
+      notifyListeners();
+    }
+  }
+
   Future<void> excluirOrcamento(String orcamentoId) async {
     await _orcamentosRef.doc(orcamentoId).delete();
     _orcamentos.removeWhere((o) => o.id == orcamentoId);

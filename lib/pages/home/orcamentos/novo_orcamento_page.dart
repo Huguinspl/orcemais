@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:deep_link/models/link_model.dart';
+import 'package:deep_link/services/link_service.dart';
 import '../../../models/cliente.dart';
 import '../../../models/orcamento.dart';
 import '../../../providers/orcamentos_provider.dart';
+import '../../../providers/business_provider.dart';
+import '../../../providers/user_provider.dart';
 import '../tabs/clientes_page.dart';
 import 'novo_orcamento/etapa_cliente.dart';
 import 'novo_orcamento/etapa_itens.dart';
@@ -359,6 +363,7 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
         garantia: _garantia,
         informacoesAdicionais: _informacoesAdicionais,
         fotos: _fotos.isNotEmpty ? _fotos : null,
+        linkWeb: widget.orcamento?.linkWeb, // Mantém o link existente se houver
       );
 
       print(
@@ -376,19 +381,27 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
 
       print('🔍 DEBUG: Orçamento final com fotos: ${orcamentoFinal.fotos}');
 
+      // ✅ NOVO: Gerar link web automaticamente após salvar
+      Orcamento orcamentoComLink = orcamentoFinal;
+      if (mounted) {
+        print('🌐 Gerando link web automaticamente...');
+        orcamentoComLink = await _gerarLinkWebAutomatico(orcamentoFinal);
+      }
+
+      // Navegar com o orçamento atualizado (com link)
       if (mounted) {
         if (widget.orcamento != null) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => RevisarOrcamentoPage(orcamento: orcamentoFinal),
+              builder: (_) => RevisarOrcamentoPage(orcamento: orcamentoComLink),
             ),
           );
         } else {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => RevisarOrcamentoPage(orcamento: orcamentoFinal),
+              builder: (_) => RevisarOrcamentoPage(orcamento: orcamentoComLink),
             ),
           );
         }
@@ -404,6 +417,132 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  // ✅ NOVO: Método para gerar link web automaticamente
+  Future<Orcamento> _gerarLinkWebAutomatico(Orcamento orcamento) async {
+    try {
+      final businessProvider = context.read<BusinessProvider>();
+      final userProvider = context.read<UserProvider>();
+
+      // Carregar dados do negócio se necessário
+      if (businessProvider.nomeEmpresa.isEmpty) {
+        await businessProvider.carregarDoFirestore();
+      }
+
+      // Preparar parâmetros personalizados
+      final parametrosPersonalizados = <String, dynamic>{
+        'userId': userProvider.uid,
+        'documentoId': orcamento.id,
+        'tipoDocumento': 'orcamento',
+      };
+
+      print('📋 DEBUG: Gerando link com parâmetros:');
+      print('  userId: ${userProvider.uid}');
+      print('  documentoId: ${orcamento.id}');
+      print('  tipoDocumento: orcamento');
+
+      // Adicionar cores personalizadas se existirem
+      if (businessProvider.pdfTheme != null) {
+        final theme = businessProvider.pdfTheme!;
+        if (theme['primary'] != null) {
+          parametrosPersonalizados['primary'] = theme['primary'].toString();
+        }
+        if (theme['laudoBackground'] != null) {
+          parametrosPersonalizados['laudoBackground'] =
+              theme['laudoBackground'].toString();
+        }
+        if (theme['laudoText'] != null) {
+          parametrosPersonalizados['laudoText'] = theme['laudoText'].toString();
+        }
+        if (theme['garantiaBackground'] != null) {
+          parametrosPersonalizados['garantiaBackground'] =
+              theme['garantiaBackground'].toString();
+        }
+        if (theme['garantiaText'] != null) {
+          parametrosPersonalizados['garantiaText'] =
+              theme['garantiaText'].toString();
+        }
+        if (theme['contratoBackground'] != null) {
+          parametrosPersonalizados['contratoBackground'] =
+              theme['contratoBackground'].toString();
+        }
+        if (theme['contratoText'] != null) {
+          parametrosPersonalizados['contratoText'] =
+              theme['contratoText'].toString();
+        }
+        if (theme['fotosBackground'] != null) {
+          parametrosPersonalizados['fotosBackground'] =
+              theme['fotosBackground'].toString();
+        }
+        if (theme['fotosText'] != null) {
+          parametrosPersonalizados['fotosText'] = theme['fotosText'].toString();
+        }
+        if (theme['pagamentoBackground'] != null) {
+          parametrosPersonalizados['pagamentoBackground'] =
+              theme['pagamentoBackground'].toString();
+        }
+        if (theme['pagamentoText'] != null) {
+          parametrosPersonalizados['pagamentoText'] =
+              theme['pagamentoText'].toString();
+        }
+        if (theme['valoresBackground'] != null) {
+          parametrosPersonalizados['valoresBackground'] =
+              theme['valoresBackground'].toString();
+        }
+        if (theme['valoresText'] != null) {
+          parametrosPersonalizados['valoresText'] =
+              theme['valoresText'].toString();
+        }
+      }
+
+      // Gerar o link
+      final link = await DeepLink.createLink(
+        LinkModel(
+          dominio: 'link.orcemais.com',
+          titulo:
+              'Orçamento ${orcamento.numero} - ${businessProvider.nomeEmpresa}',
+          slug: orcamento.id,
+          onlyWeb: true,
+          urlImage: businessProvider.logoUrl,
+          urlDesktop: 'https://gestorfy-cliente.web.app',
+          parametrosPersonalizados: parametrosPersonalizados,
+        ),
+      );
+
+      print('✅ Link web gerado automaticamente: ${link.link}');
+
+      // Salvar o link no orçamento
+      await context.read<OrcamentosProvider>().atualizarLinkWeb(
+        orcamento.id,
+        link.link,
+      );
+
+      // ✅ Retornar orçamento atualizado com o link
+      return Orcamento(
+        id: orcamento.id,
+        numero: orcamento.numero,
+        cliente: orcamento.cliente,
+        itens: orcamento.itens,
+        subtotal: orcamento.subtotal,
+        desconto: orcamento.desconto,
+        valorTotal: orcamento.valorTotal,
+        status: orcamento.status,
+        dataCriacao: orcamento.dataCriacao,
+        metodoPagamento: orcamento.metodoPagamento,
+        parcelas: orcamento.parcelas,
+        laudoTecnico: orcamento.laudoTecnico,
+        condicoesContratuais: orcamento.condicoesContratuais,
+        garantia: orcamento.garantia,
+        informacoesAdicionais: orcamento.informacoesAdicionais,
+        fotos: orcamento.fotos,
+        linkWeb: link.link, // ✅ Link atualizado
+      );
+    } catch (e) {
+      print('⚠️ Erro ao gerar link web automaticamente: $e');
+      // Retorna orçamento original se houver erro
+      return orcamento;
     }
   }
 

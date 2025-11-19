@@ -19,6 +19,7 @@ class Orcamento {
   final String? garantia; // texto livre
   final String? informacoesAdicionais; // texto livre
   final List<String>? fotos; // URLs das fotos do orçamento
+  final String? linkWeb; // Link web gerado para compartilhamento
 
   Orcamento({
     required this.id,
@@ -37,6 +38,7 @@ class Orcamento {
     this.garantia,
     this.informacoesAdicionais,
     this.fotos,
+    this.linkWeb,
   });
 
   factory Orcamento.fromFirestore(DocumentSnapshot doc) {
@@ -58,6 +60,7 @@ class Orcamento {
       garantia: data['garantia'],
       informacoesAdicionais: data['informacoesAdicionais'],
       fotos: data['fotos'] != null ? List<String>.from(data['fotos']) : null,
+      linkWeb: data['linkWeb'],
     );
   }
 
@@ -78,6 +81,7 @@ class Orcamento {
       'garantia': garantia,
       'informacoesAdicionais': informacoesAdicionais,
       'fotos': fotos,
+      'linkWeb': linkWeb,
     };
   }
 }

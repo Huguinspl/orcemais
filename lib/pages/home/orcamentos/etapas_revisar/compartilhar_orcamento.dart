@@ -90,8 +90,78 @@ class CompartilharOrcamentoPage extends StatelessWidget {
     }
   }
 
+  // ✅ NOVO: Método para compartilhar link existente
+  Future<void> _compartilharLinkExistente(BuildContext context) async {
+    try {
+      final businessProvider = context.read<BusinessProvider>();
+
+      // Carregar dados do negócio se necessário
+      if (businessProvider.nomeEmpresa.isEmpty) {
+        await businessProvider.carregarDoFirestore();
+      }
+
+      // Texto de compartilhamento personalizado
+      final numeroFormatado = '#${orcamento.numero.toString().padLeft(4, '0')}';
+      final String textoParaCompartilhar = '''
+Olá, ${orcamento.cliente.nome}! 👋
+
+Segue o orçamento ${numeroFormatado} de ${businessProvider.nomeEmpresa}.
+
+🔗 Visualize seu orçamento:
+${orcamento.linkWeb}
+
+${businessProvider.telefone.isNotEmpty ? '📞 Contato: ${businessProvider.telefone}' : ''}
+${businessProvider.emailEmpresa.isNotEmpty ? '📧 Email: ${businessProvider.emailEmpresa}' : ''}
+
+Obrigado pela preferência! 😊
+''';
+
+      // Compartilha o link
+      await Share.share(
+        textoParaCompartilhar,
+        subject: 'Orçamento $numeroFormatado - ${businessProvider.nomeEmpresa}',
+      );
+
+      // Após o compartilhamento, atualiza o status para "Enviado"
+      if (context.mounted) {
+        await context.read<OrcamentosProvider>().atualizarStatus(
+          orcamento.id,
+          'Enviado',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Orçamento enviado e status atualizado!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Erro ao compartilhar link existente: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao compartilhar link: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
   // Função para gerar e compartilhar o link do orçamento
   Future<void> _gerarECompartilharLink(BuildContext context) async {
+    // ✅ Verificar se o link já foi gerado
+    if (orcamento.linkWeb != null && orcamento.linkWeb!.isNotEmpty) {
+      debugPrint('✅ Usando link web existente: ${orcamento.linkWeb}');
+      await _compartilharLinkExistente(context);
+      return;
+    }
+
+    // Se não existe, gerar novo link
+    debugPrint('🌐 Link web não existe, gerando novo...');
+
     // Mostra loading
     showDialog(
       context: context,
@@ -211,6 +281,13 @@ class CompartilharOrcamentoPage extends StatelessWidget {
 
       debugPrint('✅ Link criado: ${link.link}');
 
+      // ✅ Salvar o link no orçamento
+      await context.read<OrcamentosProvider>().atualizarLinkWeb(
+        orcamento.id,
+        link.link,
+      );
+      debugPrint('✅ Link salvo no orçamento');
+
       // Texto de compartilhamento personalizado
       final numeroFormatado = '#${orcamento.numero.toString().padLeft(4, '0')}';
       final String textoParaCompartilhar = '''
@@ -313,15 +390,6 @@ Obrigado pela preferência! 😊
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.read<UserProvider>();
-
-    // Gerar o link com os parâmetros corretos
-    final userId = userProvider.uid;
-    final linkDoOrcamento =
-        userId.isNotEmpty
-            ? 'https://orcamentos.gestorfy.com/view?u=$userId&o=${orcamento.id}'
-            : 'https://orcamentos.gestorfy.com/view?o=${orcamento.id}';
-
     final numeroFormatado = '#${orcamento.numero.toString().padLeft(4, '0')}';
 
     return Scaffold(
@@ -448,8 +516,35 @@ Obrigado pela preferência! 😊
                           ),
                         ),
                         onPressed: () {
+                          // ✅ Copiar link gerado
+                          final linkParaCopiar = orcamento.linkWeb;
+                          if (linkParaCopiar == null ||
+                              linkParaCopiar.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: const [
+                                    Icon(Icons.warning, color: Colors.white),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Link ainda não foi gerado. Use a opção "Enviar orçamento em Link" primeiro.',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: Colors.orange.shade600,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
                           Clipboard.setData(
-                            ClipboardData(text: linkDoOrcamento),
+                            ClipboardData(text: linkParaCopiar),
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

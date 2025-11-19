@@ -6,14 +6,12 @@ import 'package:deep_link/services/link_service.dart';
 import '../../../../models/orcamento.dart';
 import '../../../../providers/business_provider.dart';
 import '../../../../providers/user_provider.dart';
+import '../../../../providers/orcamentos_provider.dart';
 
 class EtapaLinkWebPage extends StatefulWidget {
   final Orcamento orcamento;
 
-  const EtapaLinkWebPage({
-    super.key,
-    required this.orcamento,
-  });
+  const EtapaLinkWebPage({super.key, required this.orcamento});
 
   @override
   State<EtapaLinkWebPage> createState() => _EtapaLinkWebPageState();
@@ -29,8 +27,106 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _gerarLinkWeb();
+      _verificarOuGerarLinkWeb();
     });
+  }
+
+  Future<void> _verificarOuGerarLinkWeb() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // ✅ Verificar se o link já foi gerado
+      if (widget.orcamento.linkWeb != null &&
+          widget.orcamento.linkWeb!.isNotEmpty) {
+        debugPrint('✅ Link web já existe: ${widget.orcamento.linkWeb}');
+
+        // 🔧 CORREÇÃO: Ao invés de carregar o link curto (que redireciona e expira),
+        // carregamos diretamente a URL do cliente com os parâmetros
+        final urlCliente = await _construirUrlClienteWeb();
+
+        setState(() {
+          _linkWeb = widget.orcamento.linkWeb;
+          _isLoading = false;
+        });
+
+        // Configurar o WebViewController com a URL direta do cliente
+        _controller =
+            WebViewController()
+              ..setJavaScriptMode(JavaScriptMode.unrestricted)
+              ..setNavigationDelegate(
+                NavigationDelegate(
+                  onProgress: (int progress) {
+                    debugPrint('🔄 Carregando Link Web: $progress%');
+                  },
+                  onPageStarted: (String url) {
+                    debugPrint('🌐 Iniciando carregamento: $url');
+                  },
+                  onPageFinished: (String url) {
+                    debugPrint('✅ Página carregada: $url');
+                  },
+                  onWebResourceError: (WebResourceError error) {
+                    debugPrint(
+                      '❌ Erro ao carregar Link Web: ${error.description}',
+                    );
+                    if (mounted) {
+                      setState(() {
+                        _errorMessage = 'Erro ao carregar visualização.';
+                      });
+                    }
+                  },
+                ),
+              )
+              ..loadRequest(Uri.parse(urlCliente));
+        return;
+      }
+
+      // Se não existe, gerar novo link
+      debugPrint('🌐 Link web não existe, gerando novo...');
+      await _gerarLinkWeb();
+    } catch (e) {
+      debugPrint('❌ Erro ao verificar/gerar Link Web: $e');
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Constrói a URL direta do cliente web para visualização no WebView
+  Future<String> _construirUrlClienteWeb() async {
+    final businessProvider = context.read<BusinessProvider>();
+    final userProvider = context.read<UserProvider>();
+
+    // Carregar dados do negócio se necessário
+    if (businessProvider.nomeEmpresa.isEmpty) {
+      await businessProvider.carregarDoFirestore();
+    }
+
+    final pdfTheme = businessProvider.pdfTheme;
+    final parametros = StringBuffer();
+    parametros.write('?userId=${userProvider.uid}');
+    parametros.write('&documentoId=${widget.orcamento.id}');
+    parametros.write('&tipoDocumento=orcamento');
+
+    // Adicionar cores personalizadas
+    if (pdfTheme != null) {
+      if (pdfTheme['primary'] != null) {
+        parametros.write('&primary=${pdfTheme['primary']}');
+      }
+      if (pdfTheme['laudoBackground'] != null) {
+        parametros.write('&laudoBackground=${pdfTheme['laudoBackground']}');
+      }
+      if (pdfTheme['laudoText'] != null) {
+        parametros.write('&laudoText=${pdfTheme['laudoText']}');
+      }
+    }
+
+    final urlFinal = 'https://gestorfy-cliente.web.app$parametros';
+    debugPrint('🌐 URL construída para WebView: $urlFinal');
+    return urlFinal;
   }
 
   Future<void> _gerarLinkWeb() async {
@@ -42,7 +138,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     try {
       final businessProvider = context.read<BusinessProvider>();
       final userProvider = context.read<UserProvider>();
-      
+
       // Carregar dados do negócio se necessário
       if (businessProvider.nomeEmpresa.isEmpty) {
         await businessProvider.carregarDoFirestore();
@@ -52,9 +148,14 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
       final pdfTheme = businessProvider.pdfTheme;
       final Map<String, dynamic> parametrosPersonalizados = {
         'userId': userProvider.uid,
-        'orcamentoId': widget.orcamento.id,
+        'documentoId': widget.orcamento.id,
         'tipoDocumento': 'orcamento',
       };
+
+      debugPrint('📋 DEBUG etapa_link_web: Gerando link com parâmetros:');
+      debugPrint('  userId: ${userProvider.uid}');
+      debugPrint('  documentoId: ${widget.orcamento.id}');
+      debugPrint('  tipoDocumento: orcamento');
 
       // Adicionar cores personalizadas se existirem
       if (pdfTheme != null) {
@@ -132,26 +233,39 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
         _isLoading = false;
       });
 
+      // ✅ Salvar o link no orçamento
+      await context.read<OrcamentosProvider>().atualizarLinkWeb(
+        widget.orcamento.id,
+        link.link,
+      );
+      debugPrint('✅ Link salvo no orçamento');
+
+      // 🔧 CORREÇÃO: Carregar URL direta do cliente ao invés do link curto
+      final urlCliente = await _construirUrlClienteWeb();
+
       // Configurar o WebViewController
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onProgress: (int progress) {
-              debugPrint('🔄 Carregando Link Web: $progress%');
-            },
-            onPageStarted: (String url) {
-              debugPrint('🌐 Iniciando carregamento: $url');
-            },
-            onPageFinished: (String url) {
-              debugPrint('✅ Página carregada: $url');
-            },
-            onWebResourceError: (WebResourceError error) {
-              debugPrint('❌ Erro ao carregar Link Web: ${error.description}');
-            },
-          ),
-        )
-        ..loadRequest(Uri.parse(link.link));
+      _controller =
+          WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setNavigationDelegate(
+              NavigationDelegate(
+                onProgress: (int progress) {
+                  debugPrint('🔄 Carregando Link Web: $progress%');
+                },
+                onPageStarted: (String url) {
+                  debugPrint('🌐 Iniciando carregamento: $url');
+                },
+                onPageFinished: (String url) {
+                  debugPrint('✅ Página carregada: $url');
+                },
+                onWebResourceError: (WebResourceError error) {
+                  debugPrint(
+                    '❌ Erro ao carregar Link Web: ${error.description}',
+                  );
+                },
+              ),
+            )
+            ..loadRequest(Uri.parse(urlCliente));
     } catch (e) {
       debugPrint('❌ Erro ao gerar Link Web: $e');
       setState(() {
@@ -170,7 +284,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
           if (_linkWeb != null)
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'Recarregar',
+              tooltip: 'Recarregar página',
               onPressed: () {
                 _controller.reload();
               },
@@ -221,7 +335,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: _gerarLinkWeb,
+                onPressed: _verificarOuGerarLinkWeb,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Tentar Novamente'),
               ),
@@ -232,9 +346,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     }
 
     if (_linkWeb == null) {
-      return const Center(
-        child: Text('Link não disponível'),
-      );
+      return const Center(child: Text('Link não disponível'));
     }
 
     // Mostrar o link web em um WebView
@@ -272,9 +384,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
             ],
           ),
         ),
-        Expanded(
-          child: WebViewWidget(controller: _controller),
-        ),
+        Expanded(child: WebViewWidget(controller: _controller)),
       ],
     );
   }

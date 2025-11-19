@@ -203,13 +203,7 @@ class _RevisarOrcamentoPageState extends State<RevisarOrcamentoPage> {
         ],
       );
     } else {
-      return EtapaLinkWebPage(
-        cliente: widget.orcamento.cliente,
-        itens: widget.orcamento.itens,
-        subtotal: widget.orcamento.subtotal,
-        desconto: widget.orcamento.desconto,
-        valorTotal: widget.orcamento.valorTotal,
-      );
+      return EtapaLinkWebPage(orcamento: widget.orcamento);
     }
   }
 
