@@ -277,9 +277,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _buildBody(),
-    );
+    return Scaffold(body: _buildBody());
   }
 
   Widget _buildBody() {

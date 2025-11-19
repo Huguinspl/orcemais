@@ -18,7 +18,14 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
   String _filtroSelecionado = 'Aberto';
   String _termoBusca = '';
 
-  final List<String> _status = ['Todos', 'Aberto', 'Enviado', 'Concluído'];
+  final List<String> _status = [
+    'Todos',
+    'Aberto',
+    'Enviado',
+    'Aprovado',
+    'Recusado',
+    'Concluído',
+  ];
 
   @override
   void initState() {
@@ -243,8 +250,16 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                         icone = Icons.send_outlined;
                         cor = Colors.blue;
                         break;
-                      case 'concluído':
+                      case 'aprovado':
                         icone = Icons.check_circle_outline;
+                        cor = const Color(0xFF10B981);
+                        break;
+                      case 'recusado':
+                        icone = Icons.cancel_outlined;
+                        cor = const Color(0xFFEF4444);
+                        break;
+                      case 'concluído':
+                        icone = Icons.task_alt;
                         cor = Colors.green;
                         break;
                       default:
@@ -513,9 +528,17 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
         statusColor = Colors.blue;
         statusIcon = Icons.send_outlined;
         break;
+      case 'aprovado':
+        statusColor = const Color(0xFF10B981);
+        statusIcon = Icons.check_circle_outline;
+        break;
+      case 'recusado':
+        statusColor = const Color(0xFFEF4444);
+        statusIcon = Icons.cancel_outlined;
+        break;
       case 'concluído':
         statusColor = Colors.green;
-        statusIcon = Icons.check_circle_outline;
+        statusIcon = Icons.task_alt;
         break;
       default:
         statusColor = Colors.blueGrey;
@@ -855,9 +878,17 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
               icone = Icons.send_outlined;
               cor = Colors.blue;
               break;
-            case 'concluído':
+            case 'aprovado':
               icone = Icons.check_circle_outline;
               cor = Colors.green;
+              break;
+            case 'recusado':
+              icone = Icons.cancel_outlined;
+              cor = Colors.red;
+              break;
+            case 'concluído':
+              icone = Icons.task_alt;
+              cor = Colors.teal;
               break;
             default:
               icone = Icons.info_outline;
