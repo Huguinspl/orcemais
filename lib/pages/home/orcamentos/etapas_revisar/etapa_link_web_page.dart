@@ -278,19 +278,6 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Link Web - Pré-visualização'),
-        actions: [
-          if (_linkWeb != null)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              tooltip: 'Recarregar página',
-              onPressed: () {
-                _controller.reload();
-              },
-            ),
-        ],
-      ),
       body: _buildBody(),
     );
   }
@@ -350,42 +337,6 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     }
 
     // Mostrar o link web em um WebView
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          color: Colors.blue.shade50,
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline, color: Colors.blue),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pré-visualização do Link Web',
-                      style: TextStyle(
-                        color: Colors.blue.shade900,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Esta é a visualização que o cliente verá ao acessar o link',
-                      style: TextStyle(
-                        color: Colors.blue.shade700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(child: WebViewWidget(controller: _controller)),
-      ],
-    );
+    return WebViewWidget(controller: _controller);
   }
 }
