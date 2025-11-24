@@ -1,4 +1,4 @@
-package com.company.gestorfy
+package com.orcemais.app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:gestorfy/routes/app_routes.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:orcemais/routes/app_routes.dart';
 
 class CatalogoPage extends StatelessWidget {
   const CatalogoPage({super.key});

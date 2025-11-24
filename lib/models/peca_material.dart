@@ -1,4 +1,4 @@
-class PecaMaterial {
+﻿class PecaMaterial {
   final String id;
   final String nome;
   final double? preco;

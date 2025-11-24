@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../novo_orcamento_page.dart'; // Import necessário para o Enum DescontoTipo
 
 class DialogoDesconto extends StatefulWidget {

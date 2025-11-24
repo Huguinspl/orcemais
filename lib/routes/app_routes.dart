@@ -1,4 +1,4 @@
-class AppRoutes {
+﻿class AppRoutes {
   static const splash = '/splash';
   static const apresentacao = '/apresentacao';
   static const login = '/login';

@@ -1,4 +1,4 @@
-// lib/utils/cnpj_validator.dart
+﻿// lib/utils/cnpj_validator.dart
 //
 // Validação básica de CNPJ 🇧🇷.
 

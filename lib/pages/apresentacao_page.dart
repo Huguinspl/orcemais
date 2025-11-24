@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../widgets/slide_widget.dart';
 import '../routes/app_routes.dart';

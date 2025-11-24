@@ -1,8 +1,8 @@
-import 'package:deep_link/models/link_model.dart';
+﻿import 'package:deep_link/models/link_model.dart';
 import 'package:deep_link/services/link_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gestorfy/providers/user_provider.dart';
+import 'package:orcemais/providers/user_provider.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';

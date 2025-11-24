@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 /// Tela branca com um CircularProgressIndicator preto.
 /// Pode ser usada em qualquer lugar do app enquanto dados assíncronos carregam.

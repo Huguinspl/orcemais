@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../services/tutorial_service.dart';
 
 class TutorialOverlay extends StatefulWidget {
@@ -98,7 +98,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
 
                     // Título
                     const Text(
-                      'Bem-vindo ao Gestorfy!',
+                      'Bem-vindo ao Orcemais!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 24,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import para formatação de moeda
 import 'package:provider/provider.dart';
 import '../../../providers/services_provider.dart';

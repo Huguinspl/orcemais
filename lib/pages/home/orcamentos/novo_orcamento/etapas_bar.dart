@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class EtapasBar extends StatelessWidget {
   final List<Map<String, dynamic>> etapas;

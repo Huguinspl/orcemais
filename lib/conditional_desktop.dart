@@ -1,4 +1,4 @@
-// lib/conditional_desktop.dart
+﻿// lib/conditional_desktop.dart
 import 'dart:io';
 import 'dart:ui'; // Rect & Size
 import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;

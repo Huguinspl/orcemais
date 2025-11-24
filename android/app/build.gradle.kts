@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.company.gestorfy"
+    namespace = "com.orcemais.app"
     // Utilize as versões fornecidas pelo plugin Flutter para manter alinhado ao SDK suportado
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-    applicationId = "com.company.gestorfy"
+    applicationId = "com.orcemais.app"
         // Em Kotlin DSL a sintaxe correta é 'minSdk = 24' ou usar a constante do Flutter
         // minSdk = 24
         minSdk = flutter.minSdkVersion

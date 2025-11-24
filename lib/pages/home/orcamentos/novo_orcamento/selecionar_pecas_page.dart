@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../scanner_page.dart'; // ✅ MUDANÇA 1: Importar a página de scanner
 

@@ -1,4 +1,4 @@
-import 'package:deep_link/deep_link.dart';
+﻿import 'package:deep_link/deep_link.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -16,7 +16,7 @@ import 'providers/clients_provider.dart';
 import 'providers/services_provider.dart';
 import 'providers/pecas_provider.dart';
 import 'providers/assinatura_provider.dart';
-import 'package:gestorfy/providers/orcamentos_provider.dart';
+import 'package:orcemais/providers/orcamentos_provider.dart';
 import 'providers/agendamentos_provider.dart';
 import 'providers/recibos_provider.dart';
 import 'providers/despesas_provider.dart';

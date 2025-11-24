@@ -1,4 +1,4 @@
-import 'package:pdf/pdf.dart';
+﻿import 'package:pdf/pdf.dart';
 
 class PdfColorUtils {
   /// Converte um inteiro ARGB (0xAARRGGBB) em PdfColor.

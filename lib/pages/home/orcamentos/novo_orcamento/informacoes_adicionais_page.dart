@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class InformacoesAdicionaisPage extends StatefulWidget {
   final String? textoInicial;

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
-import 'package:gestorfy/pages/home/home_page.dart';
+import 'package:orcemais/pages/home/home_page.dart';
 
 class InformacoesOrcamentoPage extends StatefulWidget {
   const InformacoesOrcamentoPage({super.key});

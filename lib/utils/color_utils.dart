@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class ColorUtils {
   /// Converte um inteiro ARGB (0xAARRGGBB) para Color do Flutter.
