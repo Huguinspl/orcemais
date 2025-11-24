@@ -58,6 +58,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                 ],
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildSection(
                     icon: Icons.person_outline,
@@ -69,6 +70,12 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                     icon: Icons.list_alt,
                     title: 'Itens do Orçamento',
                     child: _buildItemsListWeb(context),
+                  ),
+                  const Divider(height: 1),
+                  _buildSection(
+                    icon: Icons.receipt_long,
+                    title: 'Resumo Financeiro',
+                    child: _buildResumoFinanceiro(context),
                   ),
                   const Divider(height: 1),
                   if (widget.orcamento.metodoPagamento != null &&
@@ -544,6 +551,85 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildResumoFinanceiro(BuildContext context) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          _buildResumoRow(
+            'Subtotal',
+            currencyFormat.format(widget.orcamento.subtotal),
+            color: Colors.grey.shade800,
+          ),
+          if (widget.orcamento.desconto > 0) ...[
+            const SizedBox(height: 12),
+            _buildResumoRow(
+              'Desconto',
+              '- ${currencyFormat.format(widget.orcamento.desconto)}',
+              color: const Color(0xFF10B981),
+            ),
+          ],
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Divider(thickness: 1.5),
+          ),
+          _buildResumoRow(
+            'VALOR TOTAL',
+            currencyFormat.format(widget.orcamento.valorTotal),
+            isBold: true,
+            fontSize: 24,
+            color: Color(0xFF1976D2),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumoRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    double fontSize = 16,
+    Color? color,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color,
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
     );
   }
 }
