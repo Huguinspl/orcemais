@@ -26,104 +26,96 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos 'watch' para que a tela seja redesenhada quando os dados do negócio chegarem.
     final businessProvider = context.watch<BusinessProvider>();
+    final primaryColor = Color(0xFF1976D2);
 
-    // Carregar cores personalizadas do PDF ou usar padrão laranja
-    final theme = businessProvider.pdfTheme;
-    final primaryColor =
-        theme != null && theme['primary'] != null
-            ? Color(theme['primary'] as int)
-            : Colors.orange.shade600;
-    final secondaryContainerColor =
-        theme != null && theme['secondaryContainer'] != null
-            ? Color(theme['secondaryContainer'] as int)
-            : Colors.orange.shade50;
-    final tertiaryContainerColor =
-        theme != null && theme['tertiaryContainer'] != null
-            ? Color(theme['tertiaryContainer'] as int)
-            : Colors.orange.shade100;
-    final onSecondaryContainerColor =
-        theme != null && theme['onSecondaryContainer'] != null
-            ? Color(theme['onSecondaryContainer'] as int)
-            : Colors.orange.shade900;
-    final onTertiaryContainerColor =
-        theme != null && theme['onTertiaryContainer'] != null
-            ? Color(theme['onTertiaryContainer'] as int)
-            : Colors.orange.shade900;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        padding: const EdgeInsets.all(24.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(color: Colors.grey.shade300),
-        ),
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Mostra um indicador de carregamento enquanto os dados do negócio não chegam.
-            if (businessProvider.nomeEmpresa.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else ...[
-              // Cabeçalho com faixa colorida personalizada
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _buildHeader(context, businessProvider),
-              ),
-              if ((businessProvider.descricao ?? '').isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  businessProvider.descricao!,
-                  style: const TextStyle(color: Colors.black87),
-                ),
-              ],
-            ],
-
-            const Divider(height: 40, thickness: 1),
-            _sectionLabel(
-              'Dados do Cliente',
-              bg: secondaryContainerColor,
-              fg: onSecondaryContainerColor,
-            ),
-            const SizedBox(height: 12),
-            _buildClientInfo(context),
-            const SizedBox(height: 24),
-            _sectionLabel(
-              'Itens do Recibo',
-              bg: tertiaryContainerColor,
-              fg: onTertiaryContainerColor,
-            ),
-            const SizedBox(height: 16),
-            _buildItemsList(context),
-            const SizedBox(height: 24),
-            // Caixa de totais com destaque personalizado
             Container(
+              width: double.infinity,
+              color: primaryColor,
+              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+              child:
+                  businessProvider.nomeEmpresa.isEmpty
+                      ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                      : _buildHeaderWeb(context, businessProvider),
+            ),
+            Container(
+              constraints: const BoxConstraints(maxWidth: 900),
+              margin: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: secondaryContainerColor,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primaryColor.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              padding: const EdgeInsets.all(16),
-              child: _buildTotals(context),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildSection(
+                    icon: Icons.person_outline,
+                    title: 'Dados do Cliente',
+                    child: _buildClientInfoWeb(context),
+                  ),
+                  const Divider(height: 1),
+                  _buildSection(
+                    icon: Icons.list_alt,
+                    title: 'Itens do Recibo',
+                    child: _buildItemsListWeb(context),
+                  ),
+                  const Divider(height: 1),
+                  _buildSection(
+                    icon: Icons.receipt_long,
+                    title: 'Resumo Financeiro',
+                    child: _buildResumoFinanceiro(context),
+                  ),
+                  if (businessProvider.assinaturaUrl != null &&
+                      businessProvider.assinaturaUrl!.isNotEmpty) ...[
+                    const Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: _buildAssinaturaWeb(context, businessProvider),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              color: Colors.grey.shade100,
+              child: Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'Recibo gerado por',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      businessProvider.nomeEmpresa,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -131,106 +123,135 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, BusinessProvider provider) {
+  Widget _buildSection({
+    required IconData icon,
+    required String title,
+    required Widget child,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 24, color: Colors.grey.shade700),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderWeb(BuildContext context, BusinessProvider provider) {
     return FutureBuilder<Uint8List?>(
       future: provider.getLogoBytes(),
       builder: (context, snap) {
         final logoBytes = snap.data;
         Widget? logo;
         if (logoBytes != null && logoBytes.isNotEmpty) {
-          logo = Image.memory(logoBytes, fit: BoxFit.contain);
+          logo = Image.memory(logoBytes, fit: BoxFit.contain, height: 80);
         } else if (provider.logoUrl != null && provider.logoUrl!.isNotEmpty) {
-          logo = Image.network(provider.logoUrl!, fit: BoxFit.contain);
+          logo = Image.network(
+            provider.logoUrl!,
+            fit: BoxFit.contain,
+            height: 80,
+          );
         }
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (logo != null)
-              Container(
-                width: 60,
-                height: 60,
-                margin: const EdgeInsets.only(right: 12),
-                child: logo,
+        return Center(
+          child: Column(
+            children: [
+              if (logo != null) ...[
+                Container(
+                  height: 80,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: logo,
+                ),
+              ],
+              Text(
+                provider.nomeEmpresa,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
               ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    provider.nomeEmpresa.isNotEmpty
-                        ? provider.nomeEmpresa
-                        : 'Minha Empresa',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (provider.telefone.isNotEmpty)
-                    _buildInfoLinha(Icons.phone_outlined, provider.telefone),
-                  if (provider.emailEmpresa.isNotEmpty)
-                    _buildInfoLinha(
-                      Icons.email_outlined,
-                      provider.emailEmpresa,
-                    ),
-                  if (provider.endereco.isNotEmpty)
-                    _buildInfoLinha(
-                      Icons.location_on_outlined,
-                      provider.endereco,
-                    ),
-                  if (provider.cnpj.isNotEmpty)
-                    _buildInfoLinha(Icons.badge_outlined, provider.cnpj),
-                ],
-              ),
-            ),
-          ],
+              if (provider.telefone.isNotEmpty ||
+                  provider.emailEmpresa.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 16,
+                  runSpacing: 8,
+                  children: [
+                    if (provider.telefone.isNotEmpty)
+                      _buildHeaderInfo(Icons.phone, provider.telefone),
+                    if (provider.emailEmpresa.isNotEmpty)
+                      _buildHeaderInfo(Icons.email, provider.emailEmpresa),
+                  ],
+                ),
+              ],
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildInfoLinha(IconData icon, String text) {
+  Widget _buildHeaderInfo(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: Colors.white70),
+        const SizedBox(width: 6),
+        Text(text, style: const TextStyle(fontSize: 14, color: Colors.white70)),
+      ],
+    );
+  }
+
+  Widget _buildClientInfoWeb(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.recibo.cliente.nome,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        if (widget.recibo.cliente.celular.isNotEmpty)
+          _buildInfoRow(Icons.phone, widget.recibo.cliente.celular),
+        if (widget.recibo.cliente.email.isNotEmpty)
+          _buildInfoRow(Icons.email, widget.recibo.cliente.email),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.only(top: 4.0),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: Colors.white),
+          Icon(icon, size: 18, color: Colors.grey.shade600),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: const TextStyle(color: Colors.white)),
-          ),
+          Text(text, style: const TextStyle(fontSize: 15)),
         ],
       ),
     );
   }
 
-  Widget _buildClientInfo(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Cliente:',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-        ),
-        Text(
-          widget.recibo.cliente.nome,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        if (widget.recibo.cliente.celular.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(widget.recibo.cliente.celular),
-        ],
-        if (widget.recibo.cliente.email.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(widget.recibo.cliente.email),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildItemsList(BuildContext context) {
+  Widget _buildItemsListWeb(BuildContext context) {
     final currencyFormat = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: 'R\$',
@@ -458,60 +479,112 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
     );
   }
 
-  Widget _buildTotals(BuildContext context) {
+  Widget _buildResumoFinanceiro(BuildContext context) {
     final currencyFormat = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: 'R\$',
     );
-    return Align(
-      alignment: Alignment.centerRight,
-      child: SizedBox(
-        width: 220,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          _buildResumoRow(
+            'Subtotal',
+            currencyFormat.format(widget.recibo.subtotalItens),
+            color: Colors.grey.shade800,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Divider(thickness: 1.5),
+          ),
+          _buildResumoRow(
+            'VALOR TOTAL',
+            currencyFormat.format(widget.recibo.valorTotal),
+            isBold: true,
+            fontSize: 24,
+            color: Color(0xFF1976D2),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumoRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    double fontSize = 16,
+    Color? color,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color,
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAssinaturaWeb(BuildContext context, BusinessProvider provider) {
+    return FutureBuilder<Uint8List?>(
+      future: provider.getAssinaturaBytes(),
+      builder: (context, snap) {
+        Widget? assinatura;
+        if (snap.hasData && snap.data != null) {
+          assinatura = Image.memory(
+            snap.data!,
+            height: 80,
+            fit: BoxFit.contain,
+          );
+        } else if (provider.assinaturaUrl != null &&
+            provider.assinaturaUrl!.isNotEmpty) {
+          assinatura = Image.network(
+            provider.assinaturaUrl!,
+            height: 80,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          );
+        }
+        if (assinatura == null) return const SizedBox.shrink();
+
+        return Column(
           children: [
-            if (widget.recibo.itens.isNotEmpty)
-              _totalRow(
-                'Subtotal',
-                currencyFormat.format(widget.recibo.subtotalItens),
-              ),
-            const Divider(height: 20),
-            _totalRow(
-              'Valor Total',
-              currencyFormat.format(widget.recibo.valorTotal),
-              isTotal: true,
+            assinatura,
+            const SizedBox(height: 8),
+            Container(height: 2, width: 200, color: Colors.grey.shade300),
+            const SizedBox(height: 8),
+            Text(
+              'Assinatura',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionLabel(String text, {required Color bg, required Color fg}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: fg),
-      ),
-    );
-  }
-
-  Widget _totalRow(String label, String value, {bool isTotal = false}) {
-    final style = TextStyle(
-      fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-      fontSize: isTotal ? 16 : 14,
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(label, style: style), Text(value, style: style)],
-      ),
+        );
+      },
     );
   }
 }

@@ -325,36 +325,12 @@ class CompartilharReciboPage extends StatelessWidget {
       final businessProvider = context.read<BusinessProvider>();
       final userProvider = context.read<UserProvider>();
 
-      // Preparar parâmetros personalizados incluindo cores do PDF
+      // Preparar parâmetros personalizados
       final parametrosPersonalizados = <String, dynamic>{
         'userId': userProvider.uid,
         'documentoId': recibo.id,
         'tipoDocumento': 'recibo',
       };
-
-      // Adicionar cores personalizadas se existirem
-      if (businessProvider.pdfTheme != null) {
-        final theme = businessProvider.pdfTheme!;
-        if (theme['primary'] != null) {
-          parametrosPersonalizados['corPrimaria'] = theme['primary'].toString();
-        }
-        if (theme['secondaryContainer'] != null) {
-          parametrosPersonalizados['corSecundaria'] =
-              theme['secondaryContainer'].toString();
-        }
-        if (theme['tertiaryContainer'] != null) {
-          parametrosPersonalizados['corTerciaria'] =
-              theme['tertiaryContainer'].toString();
-        }
-        if (theme['onSecondaryContainer'] != null) {
-          parametrosPersonalizados['corTextoSecundario'] =
-              theme['onSecondaryContainer'].toString();
-        }
-        if (theme['onTertiaryContainer'] != null) {
-          parametrosPersonalizados['corTextoTerciario'] =
-              theme['onTertiaryContainer'].toString();
-        }
-      }
 
       final link = await DeepLink.createLink(
         LinkModel(
