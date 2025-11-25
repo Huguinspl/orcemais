@@ -34,8 +34,18 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
           children: [
             Container(
               width: double.infinity,
-              color: primaryColor,
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1565C0),
+                    Color(0xFF1976D2),
+                    Color(0xFF1E88E5),
+                  ],
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
               child:
                   businessProvider.nomeEmpresa.isEmpty
                       ? const Center(
@@ -46,27 +56,50 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
             if ((businessProvider.descricao ?? '').isNotEmpty) ...[
               Container(
                 constraints: const BoxConstraints(maxWidth: 900),
-                margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
                     ),
                   ],
-                ),
-                child: Text(
-                  businessProvider.descricao!,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey.shade700,
-                    height: 1.5,
+                  border: Border.all(
+                    color: Colors.grey.shade100,
+                    width: 1,
                   ),
-                  textAlign: TextAlign.center,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF1976D2).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.info_outline,
+                        color: Color(0xFF1976D2),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        businessProvider.descricao!,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey.shade700,
+                          height: 1.6,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -75,14 +108,25 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
               margin: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 48,
+                    offset: const Offset(0, 16),
+                    spreadRadius: 0,
                   ),
                 ],
+                border: Border.all(
+                  color: Colors.grey.shade100,
+                  width: 1,
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -214,24 +258,44 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     required Widget child,
   }) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 24, color: Colors.grey.shade700),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF1976D2).withOpacity(0.1),
+                      Color(0xFF1976D2).withOpacity(0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 22,
+                  color: Color(0xFF1976D2),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade900,
+                    letterSpacing: -0.5,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           child,
         ],
       ),
@@ -259,17 +323,36 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
             children: [
               if (logo != null) ...[
                 Container(
-                  height: 80,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: logo,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: SizedBox(
+                    height: 90,
+                    child: logo,
+                  ),
                 ),
               ],
               Text(
                 provider.nomeEmpresa,
                 style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
+                  letterSpacing: -0.5,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -277,21 +360,41 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                   provider.emailEmpresa.isNotEmpty ||
                   provider.endereco.isNotEmpty ||
                   provider.cnpj.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 16,
-                  runSpacing: 8,
-                  children: [
-                    if (provider.telefone.isNotEmpty)
-                      _buildHeaderInfo(Icons.phone, provider.telefone),
-                    if (provider.emailEmpresa.isNotEmpty)
-                      _buildHeaderInfo(Icons.email, provider.emailEmpresa),
-                    if (provider.endereco.isNotEmpty)
-                      _buildHeaderInfo(Icons.location_on, provider.endereco),
-                    if (provider.cnpj.isNotEmpty)
-                      _buildHeaderInfo(Icons.badge, provider.cnpj),
-                  ],
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      if (provider.telefone.isNotEmpty)
+                        _buildHeaderInfo(Icons.phone, provider.telefone),
+                      if (provider.emailEmpresa.isNotEmpty) ...[
+                        if (provider.telefone.isNotEmpty)
+                          const SizedBox(height: 8),
+                        _buildHeaderInfo(Icons.email, provider.emailEmpresa),
+                      ],
+                      if (provider.endereco.isNotEmpty) ...[
+                        if (provider.telefone.isNotEmpty ||
+                            provider.emailEmpresa.isNotEmpty)
+                          const SizedBox(height: 8),
+                        _buildHeaderInfo(Icons.location_on, provider.endereco),
+                      ],
+                      if (provider.cnpj.isNotEmpty) ...[
+                        if (provider.telefone.isNotEmpty ||
+                            provider.emailEmpresa.isNotEmpty ||
+                            provider.endereco.isNotEmpty)
+                          const SizedBox(height: 8),
+                        _buildHeaderInfo(Icons.badge, provider.cnpj),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ],
@@ -305,9 +408,19 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: Colors.white70),
-        const SizedBox(width: 6),
-        Text(text, style: const TextStyle(fontSize: 14, color: Colors.white70)),
+        Icon(icon, size: 16, color: Colors.white.withOpacity(0.9)),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.95),
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
       ],
     );
   }
