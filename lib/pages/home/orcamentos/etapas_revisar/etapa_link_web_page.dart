@@ -68,10 +68,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                       offset: const Offset(0, 8),
                     ),
                   ],
-                  border: Border.all(
-                    color: Colors.grey.shade100,
-                    width: 1,
-                  ),
+                  border: Border.all(color: Colors.grey.shade100, width: 1),
                 ),
                 child: Row(
                   children: [
@@ -123,10 +120,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                     spreadRadius: 0,
                   ),
                 ],
-                border: Border.all(
-                  color: Colors.grey.shade100,
-                  width: 1,
-                ),
+                border: Border.all(color: Colors.grey.shade100, width: 1),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -275,11 +269,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: Color(0xFF1976D2),
-                ),
+                child: Icon(icon, size: 22, color: Color(0xFF1976D2)),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -333,10 +323,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                       width: 2,
                     ),
                   ),
-                  child: SizedBox(
-                    height: 90,
-                    child: logo,
-                  ),
+                  child: SizedBox(height: 90, child: logo),
                 ),
               ],
               Text(
@@ -362,7 +349,10 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                   provider.cnpj.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),

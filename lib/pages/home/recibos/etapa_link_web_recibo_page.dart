@@ -36,8 +36,18 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
           children: [
             Container(
               width: double.infinity,
-              color: primaryColor,
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF1565C0),
+                    Color(0xFF1976D2),
+                    Color(0xFF1E88E5),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               child:
                   businessProvider.nomeEmpresa.isEmpty
                       ? const Center(
@@ -129,24 +139,39 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
     required Widget child,
   }) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 24, color: Colors.grey.shade700),
-              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF1976D2),
+                      Color(0xFF1E88E5),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 20, color: Colors.white),
+              ),
+              const SizedBox(width: 16),
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           child,
         ],
       ),
@@ -174,33 +199,58 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
             children: [
               if (logo != null) ...[
                 Container(
-                  height: 80,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: logo,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: SizedBox(
+                    height: 80,
+                    child: logo,
+                  ),
                 ),
+                const SizedBox(height: 20),
               ],
               Text(
                 provider.nomeEmpresa,
                 style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
+                  letterSpacing: -0.5,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
                 textAlign: TextAlign.center,
               ),
               if (provider.telefone.isNotEmpty ||
                   provider.emailEmpresa.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 16,
-                  runSpacing: 8,
-                  children: [
-                    if (provider.telefone.isNotEmpty)
-                      _buildHeaderInfo(Icons.phone, provider.telefone),
-                    if (provider.emailEmpresa.isNotEmpty)
-                      _buildHeaderInfo(Icons.email, provider.emailEmpresa),
-                  ],
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      if (provider.telefone.isNotEmpty)
+                        _buildHeaderInfo(Icons.phone, provider.telefone),
+                      if (provider.telefone.isNotEmpty && provider.emailEmpresa.isNotEmpty)
+                        const SizedBox(height: 8),
+                      if (provider.emailEmpresa.isNotEmpty)
+                        _buildHeaderInfo(Icons.email, provider.emailEmpresa),
+                    ],
+                  ),
                 ),
               ],
             ],
@@ -214,9 +264,18 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: Colors.white70),
-        const SizedBox(width: 6),
-        Text(text, style: const TextStyle(fontSize: 14, color: Colors.white70)),
+        Icon(icon, size: 16, color: Colors.white.withOpacity(0.9)),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withOpacity(0.95),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -485,32 +544,84 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
       symbol: 'R\$',
     );
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          _buildResumoRow(
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: _buildResumoRow(
             'Subtotal',
             currencyFormat.format(widget.recibo.subtotalItens),
             color: Colors.grey.shade800,
+            fontSize: 16,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(thickness: 1.5),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF2E7D32),
+                Color(0xFF388E3C),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0xFF2E7D32).withOpacity(0.3),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          _buildResumoRow(
-            'VALOR TOTAL',
-            currencyFormat.format(widget.recibo.valorTotal),
-            isBold: true,
-            fontSize: 24,
-            color: Color(0xFF1976D2),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Text(
+                    'VALOR PAGO',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                currencyFormat.format(widget.recibo.valorTotal),
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
