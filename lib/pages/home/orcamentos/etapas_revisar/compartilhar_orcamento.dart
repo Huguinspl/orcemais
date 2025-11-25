@@ -14,10 +14,27 @@ import '../../../../providers/orcamentos_provider.dart';
 import '../../../../providers/user_provider.dart';
 import '../../../../utils/orcamento_pdf_generator.dart';
 
-class CompartilharOrcamentoPage extends StatelessWidget {
+class CompartilharOrcamentoPage extends StatefulWidget {
   final Orcamento orcamento;
 
   const CompartilharOrcamentoPage({super.key, required this.orcamento});
+
+  @override
+  State<CompartilharOrcamentoPage> createState() =>
+      _CompartilharOrcamentoPageState();
+}
+
+class _CompartilharOrcamentoPageState extends State<CompartilharOrcamentoPage> {
+  String? _linkGerado; // Armazena o link gerado
+
+  @override
+  void initState() {
+    super.initState();
+    // Se o orçamento já tem link, usar ele
+    _linkGerado = widget.orcamento.linkWeb;
+  }
+
+  Orcamento get orcamento => widget.orcamento;
 
   // ✅ CORREÇÃO 1: Adicionando a função para gerar e compartilhar o PDF
   Future<void> _gerarECompartilharPdf(BuildContext context) async {
@@ -150,24 +167,35 @@ Obrigado pela preferência! 😊
     }
   }
 
-  // Função para gerar e compartilhar o link do orçamento
-  Future<void> _gerarECompartilharLink(BuildContext context) async {
+  // Função para gerar o link (sem compartilhar automaticamente)
+  Future<String?> _gerarLink(
+    BuildContext context, {
+    bool mostrarLoading = true,
+  }) async {
     // ✅ Verificar se o link já foi gerado
+    if (_linkGerado != null && _linkGerado!.isNotEmpty) {
+      debugPrint('✅ Usando link web já gerado: $_linkGerado');
+      return _linkGerado;
+    }
+
     if (orcamento.linkWeb != null && orcamento.linkWeb!.isNotEmpty) {
-      debugPrint('✅ Usando link web existente: ${orcamento.linkWeb}');
-      await _compartilharLinkExistente(context);
-      return;
+      debugPrint(
+        '✅ Usando link web existente do orçamento: ${orcamento.linkWeb}',
+      );
+      setState(() => _linkGerado = orcamento.linkWeb);
+      return orcamento.linkWeb;
     }
 
     // Se não existe, gerar novo link
     debugPrint('🌐 Link web não existe, gerando novo...');
 
-    // Mostra loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+    if (mostrarLoading) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     try {
       debugPrint('🌐 Iniciando geração do Link Web...');
@@ -177,95 +205,14 @@ Obrigado pela preferência! 😊
       debugPrint('🌐 UserId: ${userProvider.uid}');
       debugPrint('🌐 OrcamentoId: ${orcamento.id}');
 
-      // Preparar parâmetros personalizados incluindo cores do PDF
+      // Preparar parâmetros personalizados
       final parametrosPersonalizados = <String, dynamic>{
         'userId': userProvider.uid,
         'documentoId': orcamento.id,
         'tipoDocumento': 'orcamento',
       };
 
-      // Adicionar cores personalizadas se existirem
-      if (businessProvider.pdfTheme != null) {
-        debugPrint('🌐 Adicionando cores personalizadas...');
-        final theme = businessProvider.pdfTheme!;
-        if (theme['primary'] != null) {
-          parametrosPersonalizados['corPrimaria'] = theme['primary'].toString();
-        }
-        if (theme['secondaryContainer'] != null) {
-          parametrosPersonalizados['corSecundaria'] =
-              theme['secondaryContainer'].toString();
-        }
-        if (theme['tertiaryContainer'] != null) {
-          parametrosPersonalizados['corTerciaria'] =
-              theme['tertiaryContainer'].toString();
-        }
-        if (theme['onSecondaryContainer'] != null) {
-          parametrosPersonalizados['corTextoSecundario'] =
-              theme['onSecondaryContainer'].toString();
-        }
-        if (theme['onTertiaryContainer'] != null) {
-          parametrosPersonalizados['corTextoTerciario'] =
-              theme['onTertiaryContainer'].toString();
-        }
-
-        // Cores das novas seções
-        if (theme['laudoBackground'] != null) {
-          parametrosPersonalizados['laudoBackground'] =
-              theme['laudoBackground'].toString();
-        }
-        if (theme['laudoText'] != null) {
-          parametrosPersonalizados['laudoText'] = theme['laudoText'].toString();
-        }
-        if (theme['garantiaBackground'] != null) {
-          parametrosPersonalizados['garantiaBackground'] =
-              theme['garantiaBackground'].toString();
-        }
-        if (theme['garantiaText'] != null) {
-          parametrosPersonalizados['garantiaText'] =
-              theme['garantiaText'].toString();
-        }
-        if (theme['contratoBackground'] != null) {
-          parametrosPersonalizados['contratoBackground'] =
-              theme['contratoBackground'].toString();
-        }
-        if (theme['contratoText'] != null) {
-          parametrosPersonalizados['contratoText'] =
-              theme['contratoText'].toString();
-        }
-        if (theme['fotosBackground'] != null) {
-          parametrosPersonalizados['fotosBackground'] =
-              theme['fotosBackground'].toString();
-        }
-        if (theme['fotosText'] != null) {
-          parametrosPersonalizados['fotosText'] = theme['fotosText'].toString();
-        }
-        if (theme['pagamentoBackground'] != null) {
-          parametrosPersonalizados['pagamentoBackground'] =
-              theme['pagamentoBackground'].toString();
-        }
-        if (theme['pagamentoText'] != null) {
-          parametrosPersonalizados['pagamentoText'] =
-              theme['pagamentoText'].toString();
-        }
-        if (theme['valoresBackground'] != null) {
-          parametrosPersonalizados['valoresBackground'] =
-              theme['valoresBackground'].toString();
-        }
-        if (theme['valoresText'] != null) {
-          parametrosPersonalizados['valoresText'] =
-              theme['valoresText'].toString();
-        }
-
-        debugPrint(
-          '✅ Cores adicionadas: ${parametrosPersonalizados.length} parâmetros',
-        );
-      } else {
-        debugPrint('⚠️ Sem tema personalizado');
-      }
-
       debugPrint('🌐 Criando Deep Link...');
-      debugPrint('🌐 Parâmetros: $parametrosPersonalizados');
-
       final link = await DeepLink.createLink(
         LinkModel(
           dominio: 'link.orcemais.com',
@@ -288,6 +235,47 @@ Obrigado pela preferência! 😊
       );
       debugPrint('✅ Link salvo no orçamento');
 
+      // Atualizar o estado local
+      setState(() => _linkGerado = link.link);
+
+      if (mostrarLoading && context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      return link.link;
+    } catch (e) {
+      if (mostrarLoading && context.mounted) {
+        Navigator.of(context).pop();
+      }
+      debugPrint('Erro ao gerar link: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao gerar link: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
+  // Função para gerar e compartilhar o link do orçamento
+  Future<void> _gerarECompartilharLink(BuildContext context) async {
+    // Gerar o link primeiro (se ainda não foi gerado)
+    final link = await _gerarLink(context);
+
+    if (link == null) return;
+
+    // Agora compartilhar o link gerado
+    try {
+      final businessProvider = context.read<BusinessProvider>();
+
+      // Carregar dados do negócio se necessário
+      if (businessProvider.nomeEmpresa.isEmpty) {
+        await businessProvider.carregarDoFirestore();
+      }
+
       // Texto de compartilhamento personalizado
       final numeroFormatado = '#${orcamento.numero.toString().padLeft(4, '0')}';
       final String textoParaCompartilhar = '''
@@ -296,16 +284,13 @@ Olá, ${orcamento.cliente.nome}! 👋
 Segue o orçamento ${numeroFormatado} de ${businessProvider.nomeEmpresa}.
 
 🔗 Visualize seu orçamento:
-${link.link}
+$link
 
 ${businessProvider.telefone.isNotEmpty ? '📞 Contato: ${businessProvider.telefone}' : ''}
 ${businessProvider.emailEmpresa.isNotEmpty ? '📧 Email: ${businessProvider.emailEmpresa}' : ''}
 
 Obrigado pela preferência! 😊
 ''';
-
-      // Fecha o loading
-      if (context.mounted) Navigator.of(context).pop();
 
       // Compartilha o link
       await Share.share(
@@ -515,25 +500,25 @@ Obrigado pela preferência! 😊
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        onPressed: () {
-                          // ✅ Copiar link gerado
-                          final linkParaCopiar = orcamento.linkWeb;
-                          if (linkParaCopiar == null ||
-                              linkParaCopiar.isEmpty) {
+                        onPressed: () async {
+                          // ✅ Gerar link automaticamente se não existir
+                          final link = await _gerarLink(context);
+
+                          if (link == null || link.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Row(
                                   children: const [
-                                    Icon(Icons.warning, color: Colors.white),
+                                    Icon(Icons.error, color: Colors.white),
                                     SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        'Link ainda não foi gerado. Use a opção "Enviar orçamento em Link" primeiro.',
+                                        'Erro ao gerar link. Tente novamente.',
                                       ),
                                     ),
                                   ],
                                 ),
-                                backgroundColor: Colors.orange.shade600,
+                                backgroundColor: Colors.red.shade600,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -543,9 +528,7 @@ Obrigado pela preferência! 😊
                             return;
                           }
 
-                          Clipboard.setData(
-                            ClipboardData(text: linkParaCopiar),
-                          );
+                          Clipboard.setData(ClipboardData(text: link));
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Row(

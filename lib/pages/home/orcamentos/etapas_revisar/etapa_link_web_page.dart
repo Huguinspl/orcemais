@@ -43,6 +43,33 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                       )
                       : _buildHeaderWeb(context, businessProvider),
             ),
+            if ((businessProvider.descricao ?? '').isNotEmpty) ...[
+              Container(
+                constraints: const BoxConstraints(maxWidth: 900),
+                margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  businessProvider.descricao!,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade700,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
             Container(
               constraints: const BoxConstraints(maxWidth: 900),
               margin: const EdgeInsets.all(24),
@@ -70,12 +97,6 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                     icon: Icons.list_alt,
                     title: 'Itens do Orçamento',
                     child: _buildItemsListWeb(context),
-                  ),
-                  const Divider(height: 1),
-                  _buildSection(
-                    icon: Icons.receipt_long,
-                    title: 'Resumo Financeiro',
-                    child: _buildResumoFinanceiro(context),
                   ),
                   const Divider(height: 1),
                   if (widget.orcamento.metodoPagamento != null &&
@@ -138,8 +159,14 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                     ),
                     const Divider(height: 1),
                   ],
+                  _buildSection(
+                    icon: Icons.receipt_long,
+                    title: 'Resumo Financeiro',
+                    child: _buildResumoFinanceiro(context),
+                  ),
                   if (businessProvider.assinaturaUrl != null &&
                       businessProvider.assinaturaUrl!.isNotEmpty) ...[
+                    const Divider(height: 1),
                     Padding(
                       padding: const EdgeInsets.all(32),
                       child: _buildAssinaturaWeb(context, businessProvider),
@@ -247,7 +274,9 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                 textAlign: TextAlign.center,
               ),
               if (provider.telefone.isNotEmpty ||
-                  provider.emailEmpresa.isNotEmpty) ...[
+                  provider.emailEmpresa.isNotEmpty ||
+                  provider.endereco.isNotEmpty ||
+                  provider.cnpj.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Wrap(
                   alignment: WrapAlignment.center,
@@ -258,6 +287,10 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                       _buildHeaderInfo(Icons.phone, provider.telefone),
                     if (provider.emailEmpresa.isNotEmpty)
                       _buildHeaderInfo(Icons.email, provider.emailEmpresa),
+                    if (provider.endereco.isNotEmpty)
+                      _buildHeaderInfo(Icons.location_on, provider.endereco),
+                    if (provider.cnpj.isNotEmpty)
+                      _buildHeaderInfo(Icons.badge, provider.cnpj),
                   ],
                 ),
               ],
@@ -560,6 +593,13 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
       symbol: 'R\$',
     );
 
+    // Calcular custos adicionais
+    double custoTotal = 0.0;
+    for (var item in widget.orcamento.itens) {
+      final custo = double.tryParse(item['custo'].toString()) ?? 0.0;
+      custoTotal += custo;
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -573,6 +613,14 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
             currencyFormat.format(widget.orcamento.subtotal),
             color: Colors.grey.shade800,
           ),
+          if (custoTotal > 0) ...[
+            const SizedBox(height: 12),
+            _buildResumoRow(
+              'Custos Adicionais',
+              currencyFormat.format(custoTotal),
+              color: Colors.grey.shade800,
+            ),
+          ],
           if (widget.orcamento.desconto > 0) ...[
             const SizedBox(height: 12),
             _buildResumoRow(
