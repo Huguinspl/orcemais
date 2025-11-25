@@ -580,8 +580,8 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
               ),
             ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
@@ -598,17 +598,21 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
-                    'VALOR PAGO',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
+                  const Expanded(
+                    child: Text(
+                      'VALOR PAGO',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
               Text(
                 currencyFormat.format(widget.recibo.valorTotal),
                 style: const TextStyle(
@@ -617,6 +621,7 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
                   color: Colors.white,
                   letterSpacing: -0.5,
                 ),
+                textAlign: TextAlign.right,
               ),
             ],
           ),
