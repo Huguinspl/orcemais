@@ -29,29 +29,53 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     final primaryColor = Color(0xFF1976D2);
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text(
+          'Orçamento',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+        ),
+        centerTitle: true,
+        toolbarHeight: 80,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF1565C0), Color(0xFF1976D2), Color(0xFF1E88E5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1565C0),
-                    Color(0xFF1976D2),
-                    Color(0xFF1E88E5),
+            // Card com dados do negócio
+            Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 900),
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
                   ],
                 ),
+                child:
+                    businessProvider.nomeEmpresa.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildBusinessHeader(context, businessProvider),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-              child:
-                  businessProvider.nomeEmpresa.isEmpty
-                      ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
-                      : _buildHeaderWeb(context, businessProvider),
             ),
             if ((businessProvider.descricao ?? '').isNotEmpty) ...[
               Container(
@@ -292,123 +316,111 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     );
   }
 
-  Widget _buildHeaderWeb(BuildContext context, BusinessProvider provider) {
-    return FutureBuilder<Uint8List?>(
-      future: provider.getLogoBytes(),
-      builder: (context, snap) {
-        final logoBytes = snap.data;
-        Widget? logo;
-        if (logoBytes != null && logoBytes.isNotEmpty) {
-          logo = Image.memory(logoBytes, fit: BoxFit.contain, height: 80);
-        } else if (provider.logoUrl != null && provider.logoUrl!.isNotEmpty) {
-          logo = Image.network(
-            provider.logoUrl!,
-            fit: BoxFit.contain,
-            height: 80,
-          );
-        }
+  Widget _buildBusinessHeader(BuildContext context, BusinessProvider provider) {
+    return Column(
+      children: [
+        FutureBuilder<Uint8List?>(
+          future: provider.getLogoBytes(),
+          builder: (context, snap) {
+            final logoBytes = snap.data;
+            Widget? logo;
+            if (logoBytes != null && logoBytes.isNotEmpty) {
+              logo = Image.memory(logoBytes, fit: BoxFit.contain, height: 100);
+            } else if (provider.logoUrl != null &&
+                provider.logoUrl!.isNotEmpty) {
+              logo = Image.network(
+                provider.logoUrl!,
+                fit: BoxFit.contain,
+                height: 100,
+                loadingBuilder:
+                    (context, child, loadingProgress) =>
+                        loadingProgress == null
+                            ? child
+                            : const CircularProgressIndicator(),
+                errorBuilder:
+                    (_, __, ___) => Icon(
+                      Icons.business,
+                      size: 80,
+                      color: Color(0xFF1976D2),
+                    ),
+              );
+            }
 
-        return Center(
-          child: Column(
-            children: [
-              if (logo != null) ...[
-                Container(
-                  margin: const EdgeInsets.only(bottom: 20),
-                  padding: const EdgeInsets.all(16),
+            return logo != null
+                ? Container(
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Color(0xFF1976D2).withOpacity(0.1),
                       width: 2,
                     ),
                   ),
-                  child: SizedBox(height: 90, child: logo),
-                ),
-              ],
-              Text(
-                provider.nomeEmpresa,
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black26,
-                      offset: Offset(0, 2),
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (provider.telefone.isNotEmpty ||
-                  provider.emailEmpresa.isNotEmpty ||
-                  provider.endereco.isNotEmpty ||
-                  provider.cnpj.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      if (provider.telefone.isNotEmpty)
-                        _buildHeaderInfo(Icons.phone, provider.telefone),
-                      if (provider.emailEmpresa.isNotEmpty) ...[
-                        if (provider.telefone.isNotEmpty)
-                          const SizedBox(height: 8),
-                        _buildHeaderInfo(Icons.email, provider.emailEmpresa),
-                      ],
-                      if (provider.endereco.isNotEmpty) ...[
-                        if (provider.telefone.isNotEmpty ||
-                            provider.emailEmpresa.isNotEmpty)
-                          const SizedBox(height: 8),
-                        _buildHeaderInfo(Icons.location_on, provider.endereco),
-                      ],
-                      if (provider.cnpj.isNotEmpty) ...[
-                        if (provider.telefone.isNotEmpty ||
-                            provider.emailEmpresa.isNotEmpty ||
-                            provider.endereco.isNotEmpty)
-                          const SizedBox(height: 8),
-                        _buildHeaderInfo(Icons.badge, provider.cnpj),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
+                  child: logo,
+                )
+                : const SizedBox.shrink();
+          },
+        ),
+        const SizedBox(height: 20),
+        Text(
+          provider.nomeEmpresa,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1976D2),
+            letterSpacing: 0.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        if (provider.ramo.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            provider.ramo,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Wrap(
+            spacing: 24,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: [
+              if (provider.telefone.isNotEmpty)
+                _buildInfoRowBusiness(Icons.phone, provider.telefone),
+              if (provider.emailEmpresa.isNotEmpty)
+                _buildInfoRowBusiness(Icons.email, provider.emailEmpresa),
+              if (provider.endereco.isNotEmpty)
+                _buildInfoRowBusiness(Icons.location_on, provider.endereco),
             ],
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
-  Widget _buildHeaderInfo(IconData icon, String text) {
+  Widget _buildInfoRowBusiness(IconData icon, String text) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: Colors.white.withOpacity(0.9)),
+        Icon(icon, size: 18, color: Colors.grey.shade600),
         const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.95),
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[800],
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],

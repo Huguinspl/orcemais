@@ -31,29 +31,53 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text(
+          'Recibo',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+        ),
+        centerTitle: true,
+        toolbarHeight: 80,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF1565C0), Color(0xFF1976D2), Color(0xFF1E88E5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF1565C0),
-                    Color(0xFF1976D2),
-                    Color(0xFF1E88E5),
+            // Card com dados do negócio
+            Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 900),
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
                   ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
                 ),
+                child:
+                    businessProvider.nomeEmpresa.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildBusinessHeader(context, businessProvider),
               ),
-              child:
-                  businessProvider.nomeEmpresa.isEmpty
-                      ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
-                      : _buildHeaderWeb(context, businessProvider),
             ),
             Container(
               constraints: const BoxConstraints(maxWidth: 900),
@@ -133,6 +157,110 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
     );
   }
 
+  Widget _buildBusinessHeader(BuildContext context, BusinessProvider provider) {
+    return Column(
+      children: [
+        if (provider.logoUrl != null && provider.logoUrl!.isNotEmpty) ...[
+          FutureBuilder<Uint8List?>(
+            future: provider.getLogoBytes(),
+            builder: (context, snap) {
+              Widget? logo;
+              if (snap.hasData && snap.data != null) {
+                logo = Image.memory(
+                  snap.data!,
+                  height: 80,
+                  fit: BoxFit.contain,
+                );
+              } else if (provider.logoUrl != null &&
+                  provider.logoUrl!.isNotEmpty) {
+                logo = Image.network(
+                  provider.logoUrl!,
+                  height: 80,
+                  fit: BoxFit.contain,
+                  errorBuilder:
+                      (_, __, ___) => Icon(
+                        Icons.business,
+                        size: 80,
+                        color: Color(0xFF1976D2),
+                      ),
+                );
+              }
+
+              return logo != null
+                  ? Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Color(0xFF1976D2).withOpacity(0.1),
+                        width: 2,
+                      ),
+                    ),
+                    child: logo,
+                  )
+                  : const SizedBox.shrink();
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+        Text(
+          provider.nomeEmpresa,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1976D2),
+            letterSpacing: 0.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        if (provider.ramo.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            provider.ramo,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Wrap(
+            spacing: 24,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: [
+              if (provider.telefone.isNotEmpty)
+                _buildInfoRow(Icons.phone, provider.telefone),
+              if (provider.emailEmpresa.isNotEmpty)
+                _buildInfoRow(Icons.email, provider.emailEmpresa),
+              if (provider.endereco.isNotEmpty)
+                _buildInfoRow(Icons.location_on, provider.endereco),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoText(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 14,
+        color: Colors.grey[800],
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
   Widget _buildSection({
     required IconData icon,
     required String title,
@@ -149,10 +277,7 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF1976D2),
-                      Color(0xFF1E88E5),
-                    ],
+                    colors: [Color(0xFF1976D2), Color(0xFF1E88E5)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -178,108 +303,6 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
     );
   }
 
-  Widget _buildHeaderWeb(BuildContext context, BusinessProvider provider) {
-    return FutureBuilder<Uint8List?>(
-      future: provider.getLogoBytes(),
-      builder: (context, snap) {
-        final logoBytes = snap.data;
-        Widget? logo;
-        if (logoBytes != null && logoBytes.isNotEmpty) {
-          logo = Image.memory(logoBytes, fit: BoxFit.contain, height: 80);
-        } else if (provider.logoUrl != null && provider.logoUrl!.isNotEmpty) {
-          logo = Image.network(
-            provider.logoUrl!,
-            fit: BoxFit.contain,
-            height: 80,
-          );
-        }
-
-        return Center(
-          child: Column(
-            children: [
-              if (logo != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 2,
-                    ),
-                  ),
-                  child: SizedBox(
-                    height: 80,
-                    child: logo,
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-              Text(
-                provider.nomeEmpresa,
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black26,
-                      offset: Offset(0, 2),
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (provider.telefone.isNotEmpty ||
-                  provider.emailEmpresa.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      if (provider.telefone.isNotEmpty)
-                        _buildHeaderInfo(Icons.phone, provider.telefone),
-                      if (provider.telefone.isNotEmpty && provider.emailEmpresa.isNotEmpty)
-                        const SizedBox(height: 8),
-                      if (provider.emailEmpresa.isNotEmpty)
-                        _buildHeaderInfo(Icons.email, provider.emailEmpresa),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHeaderInfo(IconData icon, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: Colors.white.withOpacity(0.9)),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white.withOpacity(0.95),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildClientInfoWeb(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,15 +321,20 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
   }
 
   Widget _buildInfoRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey.shade600),
-          const SizedBox(width: 8),
-          Text(text, style: const TextStyle(fontSize: 15)),
-        ],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: Colors.grey.shade600),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[800],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -564,10 +592,7 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Color(0xFF2E7D32),
-                Color(0xFF388E3C),
-              ],
+              colors: [Color(0xFF2E7D32), Color(0xFF388E3C)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
