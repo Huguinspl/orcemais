@@ -79,7 +79,7 @@ class CompartilharReciboPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final business = context.read<BusinessProvider>();
-    final link = 'https://seu-app-web.com/recibo/${recibo.id}';
+    final link = recibo.link ?? 'Link não disponível';
     final numeroFormatado = '#${recibo.numero.toString().padLeft(4, '0')}';
     final texto =
         'Olá, ${recibo.cliente.nome}! Segue o recibo $numeroFormatado de ${business.nomeEmpresa}:\n$link';
@@ -207,32 +207,7 @@ class CompartilharReciboPage extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: link));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.check_circle,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      'Link do recibo $numeroFormatado copiado!',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              backgroundColor: Colors.green.shade600,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: () => _copiarLink(context),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           side: BorderSide(
@@ -273,12 +248,7 @@ class CompartilharReciboPage extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          onPressed:
-                              () => Share.share(
-                                texto,
-                                subject:
-                                    'Recibo $numeroFormatado de ${business.nomeEmpresa}',
-                              ),
+                          onPressed: () => _compartilharLinkSimples(context),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             backgroundColor: Colors.transparent,
@@ -315,43 +285,27 @@ class CompartilharReciboPage extends StatelessWidget {
   }
 
   void _compartilharLink(BuildContext context) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+    if (recibo.link == null || recibo.link!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link não disponível. Tente gerar novamente.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
 
     try {
       final businessProvider = context.read<BusinessProvider>();
-      final userProvider = context.read<UserProvider>();
-
-      // Preparar parâmetros personalizados
-      final parametrosPersonalizados = <String, dynamic>{
-        'userId': userProvider.uid,
-        'documentoId': recibo.id,
-        'tipoDocumento': 'recibo',
-      };
-
-      final link = await DeepLink.createLink(
-        LinkModel(
-          dominio: 'link.orcemais.com',
-          titulo: 'Recibo ${recibo.numero} - ${businessProvider.nomeEmpresa}',
-          slug: recibo.id,
-          onlyWeb: true,
-          urlImage: businessProvider.logoUrl,
-          urlDesktop: 'https://gestorfy-cliente.web.app',
-          parametrosPersonalizados: parametrosPersonalizados,
-        ),
-      );
-
-      // Texto de compartilhamento personalizado
       final numeroFormatado = '#${recibo.numero.toString().padLeft(4, '0')}';
+
       final String textoParaCompartilhar = '''
 Olá, ${recibo.cliente.nome}! 👋
 
 Segue o recibo ${numeroFormatado} de ${businessProvider.nomeEmpresa}.
 🔗 Visualize seu recibo:
-${link.link}
+${recibo.link}
 
 ${businessProvider.telefone.isNotEmpty ? '📞 Contato: ${businessProvider.telefone}' : ''}
 ${businessProvider.emailEmpresa.isNotEmpty ? '📧 Email: ${businessProvider.emailEmpresa}' : ''}
@@ -359,13 +313,9 @@ ${businessProvider.emailEmpresa.isNotEmpty ? '📧 Email: ${businessProvider.ema
 Obrigado pela preferência! 😊
 ''';
 
-      // Fecha o loading
-      if (context.mounted) Navigator.of(context).pop();
-
-      // Compartilha o link
       await Share.share(
         textoParaCompartilhar,
-        subject: 'Orçamento $numeroFormatado - ${businessProvider.nomeEmpresa}',
+        subject: 'Recibo $numeroFormatado - ${businessProvider.nomeEmpresa}',
       );
 
       // Após o compartilhamento, atualiza o status para "Enviado"
@@ -383,9 +333,6 @@ Obrigado pela preferência! 😊
         );
       }
     } catch (e) {
-      // Fecha o loading em caso de erro
-      if (context.mounted) Navigator.of(context).pop();
-
       debugPrint('Erro ao compartilhar link: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -393,6 +340,59 @@ Obrigado pela preferência! 😊
             content: Text('Erro ao compartilhar link: $e'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
+  void _copiarLink(BuildContext context) {
+    if (recibo.link == null || recibo.link!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link não disponível. Tente gerar novamente.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    Clipboard.setData(ClipboardData(text: recibo.link!));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Link copiado para a área de transferência!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _compartilharLinkSimples(BuildContext context) async {
+    if (recibo.link == null || recibo.link!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Link não disponível. Tente gerar novamente.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await Share.share(
+        recibo.link!,
+        subject: 'Link do Recibo #${recibo.numero.toString().padLeft(4, '0')}',
+      );
+    } catch (e) {
+      debugPrint('Erro ao compartilhar link: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao compartilhar: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }

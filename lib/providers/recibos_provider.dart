@@ -86,6 +86,19 @@ class RecibosProvider with ChangeNotifier {
     }
   }
 
+  Future<void> atualizarLink(String reciboId, String link) async {
+    await _recibosRef.doc(reciboId).update({
+      'link': link,
+      'atualizadoEm': Timestamp.now(),
+    });
+    final idx = _recibos.indexWhere((r) => r.id == reciboId);
+    if (idx != -1) {
+      final r = _recibos[idx];
+      _recibos[idx] = r.copyWith(link: link, atualizadoEm: Timestamp.now());
+      notifyListeners();
+    }
+  }
+
   // Helpers para (re)calcular valores
   Recibo recalcular(Recibo recibo) {
     final subtotalItens = recibo.itens.fold<double>(0, (acc, item) {

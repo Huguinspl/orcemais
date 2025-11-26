@@ -1,9 +1,13 @@
 ﻿import 'dart:typed_data';
+import 'package:deep_link/models/link_model.dart';
+import 'package:deep_link/services/link_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../models/recibo.dart';
 import '../../../providers/business_provider.dart';
+import '../../../providers/recibos_provider.dart';
+import '../../../providers/user_provider.dart';
 import 'compartilhar_recibo_page.dart';
 import 'etapa_link_web_recibo_page.dart';
 
@@ -17,6 +21,77 @@ class RevisarReciboPage extends StatefulWidget {
 
 class _RevisarReciboPageState extends State<RevisarReciboPage> {
   int _abaSelecionada = 0; // 0 PDF, 1 Link Web
+
+  Future<void> _gerarENavegar() async {
+    try {
+      // Mostra loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final businessProvider = context.read<BusinessProvider>();
+      final userProvider = context.read<UserProvider>();
+      final recibosProvider = context.read<RecibosProvider>();
+
+      // Prepara parâmetros personalizados
+      final parametrosPersonalizados = <String, dynamic>{
+        'userId': userProvider.uid,
+        'documentoId': widget.recibo.id,
+        'tipoDocumento': 'recibo',
+      };
+
+      // Gera o link
+      final link = await DeepLink.createLink(
+        LinkModel(
+          dominio: 'link.orcemais.com',
+          titulo:
+              'Recibo ${widget.recibo.numero} - ${businessProvider.nomeEmpresa}',
+          slug: widget.recibo.id,
+          onlyWeb: true,
+          urlImage: businessProvider.logoUrl,
+          urlDesktop: 'https://gestorfy-cliente.web.app',
+          parametrosPersonalizados: parametrosPersonalizados,
+        ),
+      );
+
+      // Salva o link no Firestore
+      await recibosProvider.atualizarLink(widget.recibo.id, link.link);
+
+      // Fecha o loading
+      if (mounted) Navigator.pop(context);
+
+      // Navega para a página de compartilhar com o recibo atualizado
+      if (mounted) {
+        // Busca o recibo atualizado da lista
+        final reciboAtualizado = recibosProvider.recibos.firstWhere(
+          (r) => r.id == widget.recibo.id,
+        );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CompartilharReciboPage(recibo: reciboAtualizado),
+          ),
+        );
+      }
+    } catch (e) {
+      // Fecha o loading
+      if (mounted) Navigator.pop(context);
+
+      debugPrint('Erro ao gerar link: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao gerar link: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -725,15 +800,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (_) => CompartilharReciboPage(recibo: recibo),
-                          ),
-                        );
-                      },
+                      onPressed: _gerarENavegar,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,

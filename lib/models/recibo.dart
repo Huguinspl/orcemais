@@ -15,6 +15,7 @@ class Recibo {
   final double
   valorTotal; // regra: se itens >0 usa subtotalItens, senão totalValoresRecebidos
   final String status; // Aberto, Emitido, Cancelado
+  final String? link; // Link compartilhável do recibo
   final Timestamp criadoEm;
   final Timestamp atualizadoEm;
 
@@ -30,6 +31,7 @@ class Recibo {
     required this.totalValoresRecebidos,
     required this.valorTotal,
     required this.status,
+    this.link,
     required this.criadoEm,
     required this.atualizadoEm,
   });
@@ -51,6 +53,7 @@ class Recibo {
       totalValoresRecebidos: (data['totalValoresRecebidos'] ?? 0).toDouble(),
       valorTotal: (data['valorTotal'] ?? 0).toDouble(),
       status: data['status'] ?? 'Aberto',
+      link: data['link'],
       criadoEm: data['criadoEm'] ?? Timestamp.now(),
       atualizadoEm: data['atualizadoEm'] ?? Timestamp.now(),
     );
@@ -67,6 +70,7 @@ class Recibo {
     'totalValoresRecebidos': totalValoresRecebidos,
     'valorTotal': valorTotal,
     'status': status,
+    'link': link,
     'criadoEm': criadoEm,
     'atualizadoEm': atualizadoEm,
   };
@@ -83,6 +87,7 @@ class Recibo {
     double? totalValoresRecebidos,
     double? valorTotal,
     String? status,
+    String? link,
     Timestamp? criadoEm,
     Timestamp? atualizadoEm,
   }) => Recibo(
@@ -97,6 +102,7 @@ class Recibo {
     totalValoresRecebidos: totalValoresRecebidos ?? this.totalValoresRecebidos,
     valorTotal: valorTotal ?? this.valorTotal,
     status: status ?? this.status,
+    link: link ?? this.link,
     criadoEm: criadoEm ?? this.criadoEm,
     atualizadoEm: atualizadoEm ?? this.atualizadoEm,
   );
