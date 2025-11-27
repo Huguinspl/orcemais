@@ -578,15 +578,6 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                     ),
                   ),
                 ),
-                // Subtotal destacado
-                Text(
-                  currencyFormat.format(subtotal),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1976D2),
-                  ),
-                ),
               ],
             ),
           ),
@@ -635,6 +626,39 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                       ),
                     ),
                   ],
+                ),
+              ],
+            ),
+          ),
+
+          // Rodapé com valor total
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1976D2).withOpacity(0.08),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total do Item',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                Text(
+                  currencyFormat.format(subtotal),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1976D2),
+                  ),
                 ),
               ],
             ),
