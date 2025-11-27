@@ -28,6 +28,16 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
     
+    // Regras específicas para orçamentos - permite leitura pública e atualização de status
+    match /business/{userId}/orcamentos/{orcamentoId} {
+      // Permite leitura pública (para links compartilhados)
+      allow read: if true;
+      // Permite ao dono fazer qualquer operação
+      allow write: if isOwner(userId);
+      // Permite atualização apenas do campo 'status' por qualquer pessoa (clientes aprovando)
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+    }
+    
     // Regras para transações financeiras (receitas e despesas)
     match /transacoes/{transacaoId} {
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
