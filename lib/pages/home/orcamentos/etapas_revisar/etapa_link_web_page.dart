@@ -15,6 +15,17 @@ class EtapaLinkWebPage extends StatefulWidget {
 }
 
 class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
+  String _formatCnpj(String cnpj) {
+    if (cnpj.isEmpty) return '';
+    String numbers = cnpj.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 14) {
+      return '${numbers.substring(0, 2)}.${numbers.substring(2, 5)}.${numbers.substring(5, 8)}/${numbers.substring(8, 12)}-${numbers.substring(12)}';
+    } else if (numbers.length == 11) {
+      return '${numbers.substring(0, 3)}.${numbers.substring(3, 6)}.${numbers.substring(6, 9)}-${numbers.substring(9)}';
+    }
+    return cnpj;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -94,46 +105,21 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                   ],
                   border: Border.all(color: Colors.grey.shade100, width: 1),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Color(0xFF1976D2).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.info_outline,
-                        color: Color(0xFF1976D2),
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        businessProvider.descricao!,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey.shade700,
-                          height: 1.6,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  businessProvider.descricao!,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade700,
+                    height: 1.6,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             ],
-            // Card de Dados do Cliente
-            _buildClientCard(context),
-            
-            // Card de Itens do Orçamento  
-            _buildItensCard(context),
-            
-            // Container com seções restantes
+            // Card principal com design moderno
             Container(
               constraints: const BoxConstraints(maxWidth: 900),
-              margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              margin: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -156,6 +142,21 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Dados do Cliente
+                  _buildSection(
+                    icon: Icons.person_outline,
+                    title: 'Dados do Cliente',
+                    child: _buildClientInfoWeb(context),
+                  ),
+                  const Divider(height: 1),
+
+                  // Itens do Orçamento
+                  _buildSection(
+                    icon: Icons.list_alt,
+                    title: 'Itens do Orçamento',
+                    child: _buildItemsListWeb(context),
+                  ),
+                  const Divider(height: 1),
                   if (widget.orcamento.metodoPagamento != null &&
                       widget.orcamento.metodoPagamento!.isNotEmpty) ...[
                     _buildSection(
@@ -393,6 +394,11 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
             children: [
               if (provider.telefone.isNotEmpty)
                 _buildInfoRowBusiness(Icons.phone, provider.telefone),
+              if (provider.cnpj.isNotEmpty)
+                _buildInfoRowBusiness(
+                  Icons.badge_outlined,
+                  _formatCnpj(provider.cnpj),
+                ),
               if (provider.emailEmpresa.isNotEmpty)
                 _buildInfoRowBusiness(Icons.email, provider.emailEmpresa),
               if (provider.endereco.isNotEmpty)
@@ -422,602 +428,263 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     );
   }
 
-  Widget _buildClientCard(BuildContext context) {
-    final cliente = widget.orcamento.cliente;
-    
-    return Center(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 900),
-        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1976D2).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.person_outline,
-                      color: Color(0xFF1976D2),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Dados do Cliente',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1976D2),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    _buildClientInfoRow('Nome', cliente.nome),
-                    if (cliente.celular.isNotEmpty)
-                      _buildClientInfoRow('Celular', cliente.celular),
-                    if (cliente.email.isNotEmpty)
-                      _buildClientInfoRow('Email', cliente.email),
-                    if (cliente.cpfCnpj.isNotEmpty)
-                      _buildClientInfoRow('CPF/CNPJ', cliente.cpfCnpj),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildClientInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF1F2937),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItensCard(BuildContext context) {
-    return Center(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 900),
-        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1976D2).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.list_alt,
-                      color: Color(0xFF1976D2),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Itens do Orçamento',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1976D2),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...widget.orcamento.itens.map((item) => _buildItemCardIndividual(item)),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildClientInfoWeb(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.orcamento.cliente.nome,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        if (widget.orcamento.cliente.celular.isNotEmpty)
-          _buildInfoRow(Icons.phone, widget.orcamento.cliente.celular),
-        if (widget.orcamento.cliente.email.isNotEmpty)
-          _buildInfoRow(Icons.email, widget.orcamento.cliente.email),
-      ],
-    );
-  }
+    final cliente = widget.orcamento.cliente;
 
-  Widget _buildInfoRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey.shade600),
-          const SizedBox(width: 8),
-          Text(text, style: const TextStyle(fontSize: 15)),
-        ],
+    final items = [
+      if (cliente.nome.isNotEmpty)
+        {'icon': Icons.person_outline, 'label': 'Nome', 'value': cliente.nome},
+      if (cliente.celular.isNotEmpty)
+        {
+          'icon': Icons.phone_android,
+          'label': 'Celular',
+          'value': cliente.celular,
+        },
+      if (cliente.telefone.isNotEmpty)
+        {'icon': Icons.phone, 'label': 'Telefone', 'value': cliente.telefone},
+      if (cliente.email.isNotEmpty)
+        {
+          'icon': Icons.email_outlined,
+          'label': 'Email',
+          'value': cliente.email,
+        },
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
+      ),
+      child: Wrap(
+        spacing: 24,
+        runSpacing: 16,
+        children:
+            items
+                .map(
+                  (item) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        item['icon'] as IconData,
+                        color: const Color(0xFF1976D2),
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${item['label']}: ',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      Text(
+                        item['value'] as String,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade900,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .toList(),
       ),
     );
   }
 
   Widget _buildItemsListWeb(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'pt_BR',
-      symbol: 'R\$',
-    );
-
     return Column(
-      children:
-          widget.orcamento.itens.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            final nome = item['nome'] as String? ?? 'Item';
-            final descricao = item['descricao'] as String? ?? '';
-            final preco = double.tryParse(item['preco'].toString()) ?? 0.0;
-            final quantidade =
-                double.tryParse(item['quantidade'].toString()) ?? 1.0;
-            final totalItem = preco * quantidade;
-
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                border:
-                    index < widget.orcamento.itens.length - 1
-                        ? Border(
-                          bottom: BorderSide(color: Colors.grey.shade200),
-                        )
-                        : null,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          nome,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (descricao.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            descricao,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              'Qtd: ${quantidade.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Text(
-                              currencyFormat.format(totalItem),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
+      children: List.generate(widget.orcamento.itens.length, (index) {
+        final item = widget.orcamento.itens[index];
+        return _buildItemWeb(index + 1, item);
+      }),
     );
   }
 
-  Widget _buildItemCardIndividual(Map<String, dynamic> item) {
+  Widget _buildItemWeb(int numero, Map<String, dynamic> item) {
     final currencyFormat = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: 'R\$',
     );
 
-    final tipo = item['tipo'] ?? 'produto';
-    final nome = item['nome'] ?? '';
-    final descricao = item['descricao'] ?? '';
-    final quantidade = (item['quantidade'] ?? 1).toDouble();
-    final preco = (item['preco'] ?? 0.0).toDouble();
-    final subtotal = quantidade * preco;
-    final unidade = item['unidade'] ?? 'un';
-
-    // Ícones por tipo
-    IconData iconData;
-    Color iconColor;
-    Color backgroundColor;
-
-    switch (tipo.toLowerCase()) {
-      case 'servico':
-      case 'serviço':
-        iconData = Icons.build_outlined;
-        iconColor = const Color(0xFF3B82F6);
-        backgroundColor = const Color(0xFF3B82F6).withOpacity(0.1);
-        break;
-      case 'peca':
-      case 'peça':
-      case 'material':
-        iconData = Icons.inventory_2_outlined;
-        iconColor = const Color(0xFF10B981);
-        backgroundColor = const Color(0xFF10B981).withOpacity(0.1);
-        break;
-      case 'mao_de_obra':
-      case 'mão de obra':
-        iconData = Icons.engineering_outlined;
-        iconColor = const Color(0xFFF59E0B);
-        backgroundColor = const Color(0xFFF59E0B).withOpacity(0.1);
-        break;
-      default:
-        iconData = Icons.shopping_bag_outlined;
-        iconColor = const Color(0xFF1976D2);
-        backgroundColor = const Color(0xFF1976D2).withOpacity(0.1);
-    }
+    final nome = item['nome'] ?? '---';
+    final descricao = item['descricao'];
+    final quantidade = double.tryParse(item['quantidade'].toString()) ?? 1.0;
+    final preco = double.tryParse(item['preco'].toString()) ?? 0.0;
+    final subtotal = (quantidade * preco).toDouble();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cabeçalho com ícone e nome
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Cabeçalho do item
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1976D2).withOpacity(0.05),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            child: Row(
               children: [
+                // Número do item
                 Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(10),
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1976D2),
+                    shape: BoxShape.circle,
                   ),
-                  child: Icon(iconData, color: iconColor, size: 22),
+                  child: Center(
+                    child: Text(
+                      '$numero',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
+                // Nome do item
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        nome,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                      if (tipo.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: backgroundColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            _formatarTipo(tipo),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: iconColor,
-                            ),
-                          ),
-                        ),
-                    ],
+                  child: Text(
+                    nome,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey.shade900,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+                // Subtotal destacado
+                Text(
+                  currencyFormat.format(subtotal),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1976D2),
                   ),
                 ),
               ],
             ),
+          ),
 
-            // Descrição (se existir)
-            if (descricao.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.notes_outlined,
-                      size: 16,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        descricao,
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 13,
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 16),
-
-            // Informações de quantidade e preço
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.numbers,
-                            size: 16,
-                            color: Colors.grey.shade600,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Quantidade:',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        '${quantidade.toStringAsFixed(quantidade.truncateToDouble() == quantidade ? 0 : 2)} $unidade',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.attach_money,
-                            size: 16,
-                            color: Colors.grey.shade600,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Preço Unitário:',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        currencyFormat.format(preco),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-            const Divider(height: 1, thickness: 1),
-            const SizedBox(height: 12),
-
-            // Subtotal destacado
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF1976D2).withOpacity(0.08),
-                    const Color(0xFF1976D2).withOpacity(0.04),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: const Color(0xFF1976D2).withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1976D2),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Icon(
-                          Icons.calculate,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Subtotal:',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                    ],
-                  ),
+          // Conteúdo do item
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Descrição (se existir)
+                if (descricao != null && descricao.toString().isNotEmpty) ...[
                   Text(
-                    currencyFormat.format(subtotal),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1976D2),
+                    descricao.toString(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                      height: 1.5,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Divider(color: Colors.grey.shade200, height: 1),
+                  const SizedBox(height: 16),
                 ],
-              ),
+
+                // Detalhes organizados em grid
+                Row(
+                  children: [
+                    // Quantidade
+                    Expanded(
+                      child: _buildInfoBox(
+                        label: 'Quantidade',
+                        value: quantidade.toStringAsFixed(
+                          quantidade.truncateToDouble() == quantidade ? 0 : 2,
+                        ),
+                        icon: Icons.inventory_2_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Preço unitário
+                    Expanded(
+                      child: _buildInfoBox(
+                        label: 'Preço Unit.',
+                        value: currencyFormat.format(preco),
+                        icon: Icons.payments_outlined,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  String _formatarTipo(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'servico':
-      case 'serviço':
-        return 'Serviço';
-      case 'peca':
-      case 'peça':
-        return 'Peça';
-      case 'material':
-        return 'Material';
-      case 'mao_de_obra':
-      case 'mão de obra':
-        return 'Mão de Obra';
-      default:
-        return tipo;
-    }
+  Widget _buildInfoBox({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: Colors.grey.shade600),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade900,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPagamentoWeb(BuildContext context, BusinessProvider bp) {
@@ -1179,44 +846,223 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
       ),
       child: Column(
         children: [
-          _buildResumoRow(
-            'Subtotal',
-            currencyFormat.format(widget.orcamento.subtotal),
-            color: Colors.grey.shade800,
-          ),
-          if (custoTotal > 0) ...[
-            const SizedBox(height: 12),
-            _buildResumoRow(
-              'Custos Adicionais',
-              currencyFormat.format(custoTotal),
-              color: Colors.grey.shade800,
+          // Cabeçalho
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF1976D2).withOpacity(0.08),
+                  const Color(0xFF1976D2).withOpacity(0.04),
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
             ),
-          ],
-          if (widget.orcamento.desconto > 0) ...[
-            const SizedBox(height: 12),
-            _buildResumoRow(
-              'Desconto',
-              '- ${currencyFormat.format(widget.orcamento.desconto)}',
-              color: const Color(0xFF10B981),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1976D2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.receipt_long,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Resumo Financeiro',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1976D2),
+                  ),
+                ),
+              ],
             ),
-          ],
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(thickness: 1.5),
           ),
-          _buildResumoRow(
-            'VALOR TOTAL',
-            currencyFormat.format(widget.orcamento.valorTotal),
-            isBold: true,
-            fontSize: 24,
-            color: Color(0xFF1976D2),
+
+          // Conteúdo
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Subtotal
+                _buildFinanceiroRowCard(
+                  'Subtotal',
+                  widget.orcamento.subtotal,
+                  Icons.calculate_outlined,
+                  Colors.grey.shade700,
+                ),
+
+                // Custos Adicionais (se houver)
+                if (custoTotal > 0) ...[
+                  const SizedBox(height: 10),
+                  _buildFinanceiroRowCard(
+                    'Custos Adicionais',
+                    custoTotal,
+                    Icons.build_outlined,
+                    Colors.grey.shade700,
+                  ),
+                ],
+
+                // Desconto (se houver)
+                if (widget.orcamento.desconto > 0) ...[
+                  const SizedBox(height: 10),
+                  _buildFinanceiroRowCard(
+                    'Desconto',
+                    widget.orcamento.desconto,
+                    Icons.local_offer_outlined,
+                    Colors.red.shade600,
+                    isNegative: true,
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+                Divider(color: Colors.grey.shade300, thickness: 1),
+                const SizedBox(height: 12),
+
+                // Total destacado
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF1976D2).withOpacity(0.12),
+                        const Color(0xFF1976D2).withOpacity(0.06),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFF1976D2).withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1976D2),
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF1976D2,
+                                    ).withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.attach_money,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Flexible(
+                              child: Text(
+                                'VALOR TOTAL',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1976D2),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Flexible(
+                        child: Text(
+                          currencyFormat.format(widget.orcamento.valorTotal),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF1976D2),
+                            letterSpacing: -0.5,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFinanceiroRowCard(
+    String label,
+    double valor,
+    IconData icon,
+    Color cor, {
+    bool isNegative = false,
+  }) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: cor),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: cor,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            '${isNegative ? '-' : ''}${currencyFormat.format(valor)}',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: isNegative ? Colors.red.shade600 : Colors.grey.shade900,
+            ),
           ),
         ],
       ),
