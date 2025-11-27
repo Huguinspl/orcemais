@@ -20,22 +20,25 @@ service cloud.firestore {
     
     // Regras para dados de negócio (documento principal)
     match /business/{userId} {
-      allow read, write: if isOwner(userId);
-    }
-    
-    // Regras para subcoleções de business
-    match /business/{userId}/{subcollection}/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    
-    // Regras específicas para orçamentos - permite leitura pública e atualização de status
-    match /business/{userId}/orcamentos/{orcamentoId} {
-      // Permite leitura pública (para links compartilhados)
+      // Permite leitura pública (necessário para links compartilhados)
       allow read: if true;
-      // Permite ao dono fazer qualquer operação
       allow write: if isOwner(userId);
-      // Permite atualização apenas do campo 'status' por qualquer pessoa (clientes aprovando)
-      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      
+      // Regras específicas para orçamentos - permite atualização de status
+      match /orcamentos/{orcamentoId} {
+        // Permite leitura pública (para links compartilhados)
+        allow read: if true;
+        // Permite ao dono fazer qualquer operação
+        allow create, delete: if isOwner(userId);
+        // Permite atualização completa pelo dono ou apenas status por qualquer pessoa
+        allow update: if isOwner(userId) || 
+                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      }
+      
+      // Outras subcoleções de business (recibos, clientes, etc)
+      match /{subcollection}/{docId} {
+        allow read, write: if isOwner(userId);
+      }
     }
     
     // Regras para transações financeiras (receitas e despesas)

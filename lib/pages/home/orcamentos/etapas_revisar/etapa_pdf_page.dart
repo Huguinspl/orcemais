@@ -6,6 +6,33 @@ import '../../../../models/cliente.dart';
 import '../../../../providers/business_provider.dart';
 import '../../../../utils/color_utils.dart';
 
+/// Utilitário para formatação de documentos e telefones
+class _Formatters {
+  /// Formata CPF (XXX.XXX.XXX-XX) ou CNPJ (XX.XXX.XXX/XXXX-XX)
+  static String formatCpfCnpj(String document) {
+    if (document.isEmpty) return '';
+    String numbers = document.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 11) {
+      return '${numbers.substring(0, 3)}.${numbers.substring(3, 6)}.${numbers.substring(6, 9)}-${numbers.substring(9)}';
+    } else if (numbers.length == 14) {
+      return '${numbers.substring(0, 2)}.${numbers.substring(2, 5)}.${numbers.substring(5, 8)}/${numbers.substring(8, 12)}-${numbers.substring(12)}';
+    }
+    return document;
+  }
+
+  /// Formata telefone celular (XX) XXXXX-XXXX ou fixo (XX) XXXX-XXXX
+  static String formatPhone(String phone) {
+    if (phone.isEmpty) return '';
+    String numbers = phone.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 11) {
+      return '(${numbers.substring(0, 2)}) ${numbers.substring(2, 7)}-${numbers.substring(7)}';
+    } else if (numbers.length == 10) {
+      return '(${numbers.substring(0, 2)}) ${numbers.substring(2, 6)}-${numbers.substring(6)}';
+    }
+    return phone;
+  }
+}
+
 class EtapaPdfPage extends StatefulWidget {
   final Cliente cliente;
   final List<Map<String, dynamic>> itens;
@@ -560,7 +587,13 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                   if (provider.cnpj.isNotEmpty)
                     _buildInfoLinha(
                       Icons.badge_outlined,
-                      provider.cnpj,
+                      _Formatters.formatCpfCnpj(provider.cnpj),
+                      color: textColor,
+                    ),
+                  if (provider.ramo.isNotEmpty)
+                    _buildInfoLinha(
+                      Icons.business_outlined,
+                      provider.ramo,
                       color: textColor,
                     ),
                 ],
@@ -596,9 +629,79 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-        if (widget.cliente.celular.isNotEmpty) Text(widget.cliente.celular),
-        if (widget.cliente.email.isNotEmpty) Text(widget.cliente.email),
+        if (widget.cliente.celular.isNotEmpty)
+          _buildClientInfoRow(
+            Icons.phone_android_outlined,
+            _Formatters.formatPhone(widget.cliente.celular),
+          ),
+        if (widget.cliente.telefone.isNotEmpty)
+          _buildClientInfoRow(
+            Icons.phone_outlined,
+            _Formatters.formatPhone(widget.cliente.telefone),
+          ),
+        if (widget.cliente.email.isNotEmpty)
+          _buildClientInfoRow(
+            Icons.email_outlined,
+            widget.cliente.email,
+          ),
+        if (widget.cliente.cpfCnpj.isNotEmpty)
+          _buildClientInfoRow(
+            Icons.badge_outlined,
+            _Formatters.formatCpfCnpj(widget.cliente.cpfCnpj),
+          ),
+        if (widget.cliente.observacoes.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Observações:',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.cliente.observacoes,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
+    );
+  }
+
+  Widget _buildClientInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Colors.grey.shade700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: Colors.grey.shade800),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

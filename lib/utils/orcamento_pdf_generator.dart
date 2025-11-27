@@ -10,6 +10,33 @@ import '../models/orcamento.dart'; // Importe o modelo de Orçamento
 import '../providers/business_provider.dart';
 import 'pdf_color_utils.dart';
 
+/// Utilitário para formatação de documentos e telefones no PDF
+class _PdfFormatters {
+  /// Formata CPF (XXX.XXX.XXX-XX) ou CNPJ (XX.XXX.XXX/XXXX-XX)
+  static String formatCpfCnpj(String document) {
+    if (document.isEmpty) return '';
+    String numbers = document.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 11) {
+      return '${numbers.substring(0, 3)}.${numbers.substring(3, 6)}.${numbers.substring(6, 9)}-${numbers.substring(9)}';
+    } else if (numbers.length == 14) {
+      return '${numbers.substring(0, 2)}.${numbers.substring(2, 5)}.${numbers.substring(5, 8)}/${numbers.substring(8, 12)}-${numbers.substring(12)}';
+    }
+    return document;
+  }
+
+  /// Formata telefone celular (XX) XXXXX-XXXX ou fixo (XX) XXXX-XXXX
+  static String formatPhone(String phone) {
+    if (phone.isEmpty) return '';
+    String numbers = phone.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 11) {
+      return '(${numbers.substring(0, 2)}) ${numbers.substring(2, 7)}-${numbers.substring(7)}';
+    } else if (numbers.length == 10) {
+      return '(${numbers.substring(0, 2)}) ${numbers.substring(2, 6)}-${numbers.substring(6)}';
+    }
+    return phone;
+  }
+}
+
 class OrcamentoPdfGenerator {
   // ✅ CORREÇÃO 1: O método agora recebe o objeto Orcamento completo
   static Future<Uint8List> generate(
@@ -358,7 +385,7 @@ class OrcamentoPdfGenerator {
                     pw.SizedBox(height: 8),
                     if (provider.telefone.isNotEmpty)
                       pw.Text(
-                        provider.telefone,
+                        _PdfFormatters.formatPhone(provider.telefone),
                         style: pw.TextStyle(
                           font: regularFont,
                           color: textColor,
@@ -367,6 +394,30 @@ class OrcamentoPdfGenerator {
                     if (provider.emailEmpresa.isNotEmpty)
                       pw.Text(
                         provider.emailEmpresa,
+                        style: pw.TextStyle(
+                          font: regularFont,
+                          color: textColor,
+                        ),
+                      ),
+                    if (provider.endereco.isNotEmpty)
+                      pw.Text(
+                        provider.endereco,
+                        style: pw.TextStyle(
+                          font: regularFont,
+                          color: textColor,
+                        ),
+                      ),
+                    if (provider.cnpj.isNotEmpty)
+                      pw.Text(
+                        _PdfFormatters.formatCpfCnpj(provider.cnpj),
+                        style: pw.TextStyle(
+                          font: regularFont,
+                          color: textColor,
+                        ),
+                      ),
+                    if (provider.ramo.isNotEmpty)
+                      pw.Text(
+                        provider.ramo,
                         style: pw.TextStyle(
                           font: regularFont,
                           color: textColor,
@@ -425,9 +476,91 @@ class OrcamentoPdfGenerator {
           style: pw.TextStyle(font: boldFont, fontSize: 14),
         ),
         if (cliente.celular.isNotEmpty)
-          pw.Text(cliente.celular, style: pw.TextStyle(font: regularFont)),
+          pw.Row(
+            children: [
+              pw.Text(
+                'Celular: ',
+                style: pw.TextStyle(font: boldFont, fontSize: 10),
+              ),
+              pw.Text(
+                _PdfFormatters.formatPhone(cliente.celular),
+                style: pw.TextStyle(font: regularFont, fontSize: 10),
+              ),
+            ],
+          ),
+        if (cliente.telefone.isNotEmpty)
+          pw.Row(
+            children: [
+              pw.Text(
+                'Telefone: ',
+                style: pw.TextStyle(font: boldFont, fontSize: 10),
+              ),
+              pw.Text(
+                _PdfFormatters.formatPhone(cliente.telefone),
+                style: pw.TextStyle(font: regularFont, fontSize: 10),
+              ),
+            ],
+          ),
         if (cliente.email.isNotEmpty)
-          pw.Text(cliente.email, style: pw.TextStyle(font: regularFont)),
+          pw.Row(
+            children: [
+              pw.Text(
+                'E-mail: ',
+                style: pw.TextStyle(font: boldFont, fontSize: 10),
+              ),
+              pw.Text(
+                cliente.email,
+                style: pw.TextStyle(font: regularFont, fontSize: 10),
+              ),
+            ],
+          ),
+        if (cliente.cpfCnpj.isNotEmpty)
+          pw.Row(
+            children: [
+              pw.Text(
+                'CPF/CNPJ: ',
+                style: pw.TextStyle(font: boldFont, fontSize: 10),
+              ),
+              pw.Text(
+                _PdfFormatters.formatCpfCnpj(cliente.cpfCnpj),
+                style: pw.TextStyle(font: regularFont, fontSize: 10),
+              ),
+            ],
+          ),
+        if (cliente.observacoes.isNotEmpty) ...[
+          pw.SizedBox(height: 8),
+          pw.Container(
+            width: double.infinity,
+            padding: const pw.EdgeInsets.all(10),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.grey100,
+              borderRadius: pw.BorderRadius.circular(8),
+              border: pw.Border.all(color: PdfColors.grey300),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Observações:',
+                  style: pw.TextStyle(
+                    font: boldFont,
+                    fontSize: 10,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  cliente.observacoes,
+                  style: pw.TextStyle(
+                    font: regularFont,
+                    fontSize: 10,
+                    color: PdfColors.grey800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
