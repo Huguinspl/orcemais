@@ -124,9 +124,16 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                 ),
               ),
             ],
+            // Card de Dados do Cliente
+            _buildClientCard(context),
+            
+            // Card de Itens do Orçamento  
+            _buildItensCard(context),
+            
+            // Container com seções restantes
             Container(
               constraints: const BoxConstraints(maxWidth: 900),
-              margin: const EdgeInsets.all(24),
+              margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -149,18 +156,6 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildSection(
-                    icon: Icons.person_outline,
-                    title: 'Dados do Cliente',
-                    child: _buildClientInfoWeb(context),
-                  ),
-                  const Divider(height: 1),
-                  _buildSection(
-                    icon: Icons.list_alt,
-                    title: 'Itens do Orçamento',
-                    child: _buildItemsListWeb(context),
-                  ),
-                  const Divider(height: 1),
                   if (widget.orcamento.metodoPagamento != null &&
                       widget.orcamento.metodoPagamento!.isNotEmpty) ...[
                     _buildSection(
@@ -427,6 +422,166 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     );
   }
 
+  Widget _buildClientCard(BuildContext context) {
+    final cliente = widget.orcamento.cliente;
+    
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 900),
+        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1976D2).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.person_outline,
+                      color: Color(0xFF1976D2),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Dados do Cliente',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1976D2),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    _buildClientInfoRow('Nome', cliente.nome),
+                    if (cliente.celular.isNotEmpty)
+                      _buildClientInfoRow('Celular', cliente.celular),
+                    if (cliente.email.isNotEmpty)
+                      _buildClientInfoRow('Email', cliente.email),
+                    if (cliente.cpfCnpj.isNotEmpty)
+                      _buildClientInfoRow('CPF/CNPJ', cliente.cpfCnpj),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClientInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItensCard(BuildContext context) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 900),
+        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1976D2).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.list_alt,
+                      color: Color(0xFF1976D2),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Itens do Orçamento',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1976D2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...widget.orcamento.itens.map((item) => _buildItemCardIndividual(item)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildClientInfoWeb(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -555,6 +710,314 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
             );
           }).toList(),
     );
+  }
+
+  Widget _buildItemCardIndividual(Map<String, dynamic> item) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    );
+
+    final tipo = item['tipo'] ?? 'produto';
+    final nome = item['nome'] ?? '';
+    final descricao = item['descricao'] ?? '';
+    final quantidade = (item['quantidade'] ?? 1).toDouble();
+    final preco = (item['preco'] ?? 0.0).toDouble();
+    final subtotal = quantidade * preco;
+    final unidade = item['unidade'] ?? 'un';
+
+    // Ícones por tipo
+    IconData iconData;
+    Color iconColor;
+    Color backgroundColor;
+
+    switch (tipo.toLowerCase()) {
+      case 'servico':
+      case 'serviço':
+        iconData = Icons.build_outlined;
+        iconColor = const Color(0xFF3B82F6);
+        backgroundColor = const Color(0xFF3B82F6).withOpacity(0.1);
+        break;
+      case 'peca':
+      case 'peça':
+      case 'material':
+        iconData = Icons.inventory_2_outlined;
+        iconColor = const Color(0xFF10B981);
+        backgroundColor = const Color(0xFF10B981).withOpacity(0.1);
+        break;
+      case 'mao_de_obra':
+      case 'mão de obra':
+        iconData = Icons.engineering_outlined;
+        iconColor = const Color(0xFFF59E0B);
+        backgroundColor = const Color(0xFFF59E0B).withOpacity(0.1);
+        break;
+      default:
+        iconData = Icons.shopping_bag_outlined;
+        iconColor = const Color(0xFF1976D2);
+        backgroundColor = const Color(0xFF1976D2).withOpacity(0.1);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cabeçalho com ícone e nome
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(iconData, color: iconColor, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nome,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      if (tipo.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: backgroundColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            _formatarTipo(tipo),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: iconColor,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Descrição (se existir)
+            if (descricao.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.notes_outlined,
+                      size: 16,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        descricao,
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 16),
+
+            // Informações de quantidade e preço
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.numbers,
+                            size: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Quantidade:',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${quantidade.toStringAsFixed(quantidade.truncateToDouble() == quantidade ? 0 : 2)} $unidade',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.attach_money,
+                            size: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Preço Unitário:',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        currencyFormat.format(preco),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+            const Divider(height: 1, thickness: 1),
+            const SizedBox(height: 12),
+
+            // Subtotal destacado
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF1976D2).withOpacity(0.08),
+                    const Color(0xFF1976D2).withOpacity(0.04),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFF1976D2).withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1976D2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(
+                          Icons.calculate,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Subtotal:',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    currencyFormat.format(subtotal),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1976D2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatarTipo(String tipo) {
+    switch (tipo.toLowerCase()) {
+      case 'servico':
+      case 'serviço':
+        return 'Serviço';
+      case 'peca':
+      case 'peça':
+        return 'Peça';
+      case 'material':
+        return 'Material';
+      case 'mao_de_obra':
+      case 'mão de obra':
+        return 'Mão de Obra';
+      default:
+        return tipo;
+    }
   }
 
   Widget _buildPagamentoWeb(BuildContext context, BusinessProvider bp) {
