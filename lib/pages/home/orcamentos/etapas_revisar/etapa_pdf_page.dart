@@ -565,6 +565,17 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                       color: textColor,
                     ),
                   ),
+                  if (provider.ramo.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        provider.ramo,
+                        style: TextStyle(
+                          color: textColor?.withOpacity(0.9),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   if (provider.telefone.isNotEmpty)
                     _buildInfoLinha(
@@ -588,12 +599,6 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                     _buildInfoLinha(
                       Icons.badge_outlined,
                       _Formatters.formatCpfCnpj(provider.cnpj),
-                      color: textColor,
-                    ),
-                  if (provider.ramo.isNotEmpty)
-                    _buildInfoLinha(
-                      Icons.business_outlined,
-                      provider.ramo,
                       color: textColor,
                     ),
                 ],
@@ -640,10 +645,7 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
             _Formatters.formatPhone(widget.cliente.telefone),
           ),
         if (widget.cliente.email.isNotEmpty)
-          _buildClientInfoRow(
-            Icons.email_outlined,
-            widget.cliente.email,
-          ),
+          _buildClientInfoRow(Icons.email_outlined, widget.cliente.email),
         if (widget.cliente.cpfCnpj.isNotEmpty)
           _buildClientInfoRow(
             Icons.badge_outlined,
@@ -674,10 +676,7 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                   const SizedBox(height: 4),
                   Text(
                     widget.cliente.observacoes,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade800,
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
                   ),
                 ],
               ),
@@ -695,10 +694,7 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
           Icon(icon, size: 14, color: Colors.grey.shade700),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              text,
-              style: TextStyle(color: Colors.grey.shade800),
-            ),
+            child: Text(text, style: TextStyle(color: Colors.grey.shade800)),
           ),
         ],
       ),

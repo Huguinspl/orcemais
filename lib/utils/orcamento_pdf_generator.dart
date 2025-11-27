@@ -382,6 +382,18 @@ class OrcamentoPdfGenerator {
                         color: textColor,
                       ),
                     ),
+                    if (provider.ramo.isNotEmpty)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(top: 2),
+                        child: pw.Text(
+                          provider.ramo,
+                          style: pw.TextStyle(
+                            font: regularFont,
+                            fontSize: 11,
+                            color: textColor,
+                          ),
+                        ),
+                      ),
                     pw.SizedBox(height: 8),
                     if (provider.telefone.isNotEmpty)
                       pw.Text(
@@ -410,14 +422,6 @@ class OrcamentoPdfGenerator {
                     if (provider.cnpj.isNotEmpty)
                       pw.Text(
                         _PdfFormatters.formatCpfCnpj(provider.cnpj),
-                        style: pw.TextStyle(
-                          font: regularFont,
-                          color: textColor,
-                        ),
-                      ),
-                    if (provider.ramo.isNotEmpty)
-                      pw.Text(
-                        provider.ramo,
                         style: pw.TextStyle(
                           font: regularFont,
                           color: textColor,
