@@ -16,11 +16,12 @@ class RecibosPage extends StatefulWidget {
 }
 
 class _RecibosPageState extends State<RecibosPage> {
-  String filtroStatus = 'Aberto';
+  String filtroStatus = 'Todos';
   final TextEditingController _searchController = TextEditingController();
   String _termoBusca = '';
 
-  final List<String> _status = ['Todos', 'Aberto', 'Emitido', 'Cancelado'];
+  // Status: Todos, Aberto (não enviado), Enviado (tem link)
+  final List<String> _status = ['Todos', 'Aberto', 'Enviado'];
 
   @override
   void initState() {
@@ -320,13 +321,18 @@ class _RecibosPageState extends State<RecibosPage> {
               builder: (context, provider, child) {
                 final Map<String, int> contagemStatus = {};
                 contagemStatus['Todos'] = provider.recibos.length;
-                for (var status in _status) {
-                  if (status == 'Todos') continue;
-                  contagemStatus[status] =
-                      provider.recibos
-                          .where((rec) => rec.status == status)
-                          .length;
-                }
+                // Aberto = recibos sem link (não enviados)
+                contagemStatus['Aberto'] =
+                    provider.recibos
+                        .where((rec) => rec.link == null || rec.link!.isEmpty)
+                        .length;
+                // Enviado = recibos com link
+                contagemStatus['Enviado'] =
+                    provider.recibos
+                        .where(
+                          (rec) => rec.link != null && rec.link!.isNotEmpty,
+                        )
+                        .length;
                 return _buildStatusFilterBar(contagemStatus);
               },
             ),
@@ -338,8 +344,20 @@ class _RecibosPageState extends State<RecibosPage> {
                   }
                   final lista =
                       prov.recibos.where((r) {
-                        final filtroStatusMatch =
-                            filtroStatus == 'Todos' || r.status == filtroStatus;
+                        // Filtro por status baseado no campo link
+                        bool filtroStatusMatch;
+                        if (filtroStatus == 'Todos') {
+                          filtroStatusMatch = true;
+                        } else if (filtroStatus == 'Aberto') {
+                          // Aberto = sem link (não enviado)
+                          filtroStatusMatch = r.link == null || r.link!.isEmpty;
+                        } else if (filtroStatus == 'Enviado') {
+                          // Enviado = com link
+                          filtroStatusMatch =
+                              r.link != null && r.link!.isNotEmpty;
+                        } else {
+                          filtroStatusMatch = true;
+                        }
                         final filtroBusca = r.cliente.nome
                             .toLowerCase()
                             .contains(_termoBusca.toLowerCase());
@@ -479,15 +497,11 @@ class _RecibosPageState extends State<RecibosPage> {
               break;
             case 'aberto':
               icone = Icons.pending_outlined;
-              cor = Colors.teal;
+              cor = Colors.orange;
               break;
-            case 'emitido':
-              icone = Icons.check_circle_outline;
+            case 'enviado':
+              icone = Icons.send;
               cor = Colors.green;
-              break;
-            case 'cancelado':
-              icone = Icons.cancel_outlined;
-              cor = Colors.red;
               break;
             default:
               icone = Icons.info_outline;

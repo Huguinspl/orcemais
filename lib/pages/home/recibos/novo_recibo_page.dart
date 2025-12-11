@@ -15,10 +15,8 @@ import '../../home/tabs/clientes_page.dart';
 import 'novo_valor_recebido_page.dart';
 import 'novo_recibo/etapas_bar.dart';
 import 'novo_recibo/rodape_recibo.dart';
-import 'novo_recibo/etapa_orcamento.dart';
-import 'novo_recibo/etapa_cliente.dart';
-import 'novo_recibo/etapa_itens.dart';
-import 'novo_recibo/etapa_valores.dart';
+import 'novo_recibo/etapa_cliente_orcamento.dart';
+import 'novo_recibo/etapa_itens_valores.dart';
 
 class NovoReciboPage extends StatefulWidget {
   final Recibo? recibo; // se fornecido, modo edição
@@ -29,7 +27,7 @@ class NovoReciboPage extends StatefulWidget {
 }
 
 class _NovoReciboPageState extends State<NovoReciboPage> {
-  int etapaAtual = 0; // 0: Orçamento, 1: Cliente, 2: Itens, 3: Valores
+  int etapaAtual = 0; // 0: Cliente/Orçamento, 1: Itens e Valores
   Orcamento? _orcamentoSelecionado;
   Cliente? _clienteSelecionado;
   final List<Map<String, dynamic>> _itens = [];
@@ -39,10 +37,8 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
   bool get _isEdicao => widget.recibo != null;
 
   final List<Map<String, dynamic>> etapas = [
-    {'icon': Icons.receipt_long, 'label': 'Orçamento'},
     {'icon': Icons.person, 'label': 'Cliente'},
-    {'icon': Icons.shopping_cart, 'label': 'Itens'},
-    {'icon': Icons.attach_money, 'label': 'Valores'},
+    {'icon': Icons.list_alt, 'label': 'Itens e Valores'},
   ];
 
   @override
@@ -92,11 +88,9 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
   // Método para verificar se cada etapa está completa
   List<bool> get _etapasCompletas {
     return [
-      true, // Etapa 0 (Orçamento) é sempre completa pois é opcional
       _clienteSelecionado !=
-          null, // Etapa 1 (Cliente) só completa se tiver cliente
-      _itens.isNotEmpty, // Etapa 2 (Itens) só completa se tiver itens
-      true, // Etapa 3 (Valores) é sempre completa pois é opcional
+          null, // Etapa 0 (Cliente/Orçamento) só completa se tiver cliente
+      _itens.isNotEmpty, // Etapa 1 (Itens e Valores) só completa se tiver itens
     ];
   }
 
@@ -443,8 +437,8 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
   }
 
   void _proximaEtapa() {
-    // Validação de cliente na etapa 1
-    if (etapaAtual == 1 && _clienteSelecionado == null) {
+    // Validação de cliente na etapa 0
+    if (etapaAtual == 0 && _clienteSelecionado == null) {
       ScaffoldMessenger.of(context)
         ..removeCurrentSnackBar()
         ..showSnackBar(
@@ -471,8 +465,8 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
       return;
     }
 
-    // Validação de itens na etapa 2
-    if (etapaAtual == 2 && _itens.isEmpty) {
+    // Validação de itens na etapa 1
+    if (etapaAtual == 1 && _itens.isEmpty) {
       ScaffoldMessenger.of(context)
         ..removeCurrentSnackBar()
         ..showSnackBar(
@@ -656,25 +650,21 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
   Widget _buildConteudoEtapa() {
     switch (etapaAtual) {
       case 0:
-        return EtapaOrcamentoWidget(
+        // Etapa 1: Cliente OU Orçamento
+        return EtapaClienteOrcamentoWidget(
+          clienteSelecionado: _clienteSelecionado,
           orcamentoSelecionado: _orcamentoSelecionado,
+          onSelecionarCliente: _selecionarCliente,
           onSelecionarOrcamento: _selecionarOrcamento,
         );
       case 1:
-        return EtapaClienteWidget(
-          clienteSelecionado: _clienteSelecionado,
-          onSelecionarCliente: _selecionarCliente,
-        );
-      case 2:
-        return EtapaItensWidget(
+        // Etapa 2: Itens e Valores
+        return EtapaItensValoresWidget(
           itens: _itens,
+          valores: _valores,
           onAdicionarServico: _adicionarServico,
           onAdicionarPeca: _adicionarPeca,
           onRemoverItem: _removerItem,
-        );
-      case 3:
-        return EtapaValoresWidget(
-          valores: _valores,
           onAdicionarValor: _adicionarValorRecebido,
           onRemoverValor: _removerValor,
         );

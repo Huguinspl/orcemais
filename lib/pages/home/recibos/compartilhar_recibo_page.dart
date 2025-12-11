@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../models/recibo.dart';
 import '../../../providers/business_provider.dart';
+import '../../../providers/orcamentos_provider.dart';
 import '../../../providers/recibos_provider.dart';
 import '../../../utils/recibo_pdf_generator.dart';
 
@@ -51,6 +52,18 @@ class CompartilharReciboPage extends StatelessWidget {
           recibo.id,
           'Enviado',
         );
+
+        // Se o recibo foi importado de um orçamento, atualiza o status do orçamento para "Concluído"
+        if (recibo.orcamentoId != null && recibo.orcamentoId!.isNotEmpty) {
+          await context.read<OrcamentosProvider>().atualizarStatus(
+            recibo.orcamentoId!,
+            'Concluído',
+          );
+          debugPrint(
+            '✅ Orçamento ${recibo.orcamentoId} marcado como Concluído',
+          );
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Recibo enviado e status atualizado!'),

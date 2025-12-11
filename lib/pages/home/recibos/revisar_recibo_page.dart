@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../models/recibo.dart';
 import '../../../providers/business_provider.dart';
+import '../../../providers/orcamentos_provider.dart';
 import '../../../providers/recibos_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../utils/color_utils.dart';
@@ -122,6 +123,19 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
         // Salva o link no Firestore
         await recibosProvider.atualizarLink(widget.recibo.id, linkFinal);
         debugPrint('✅ Novo link gerado e salvo: $linkFinal');
+
+        // Se o recibo foi importado de um orçamento, atualiza o status do orçamento para "Concluído"
+        if (widget.recibo.orcamentoId != null &&
+            widget.recibo.orcamentoId!.isNotEmpty) {
+          final orcamentosProvider = context.read<OrcamentosProvider>();
+          await orcamentosProvider.atualizarStatus(
+            widget.recibo.orcamentoId!,
+            'Concluído',
+          );
+          debugPrint(
+            '✅ Orçamento ${widget.recibo.orcamentoId} marcado como Concluído',
+          );
+        }
       }
 
       // Fecha o loading
