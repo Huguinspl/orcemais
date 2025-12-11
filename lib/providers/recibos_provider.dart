@@ -13,6 +13,15 @@ class RecibosProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  // Controle de paginação - carrega apenas os 15 mais recentes inicialmente
+  static const int _limitePorPagina = 15;
+  bool _temMaisAntigos = false;
+  bool get temMaisAntigos => _temMaisAntigos;
+  
+  // Flag para indicar se está buscando mais antigos
+  bool _buscandoMais = false;
+  bool get buscandoMais => _buscandoMais;
+
   String get _uid {
     final u = _auth.currentUser;
     if (u == null) throw Exception('Usuário não autenticado.');
@@ -27,12 +36,88 @@ class RecibosProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final snap = await _recibosRef.orderBy('numero', descending: true).get();
-      _recibos = snap.docs.map((d) => Recibo.fromFirestore(d)).toList();
+      // Carrega apenas os 15 mais recentes + 1 para verificar se há mais
+      final snap = await _recibosRef
+          .orderBy('numero', descending: true)
+          .limit(_limitePorPagina + 1)
+          .get();
+      
+      final docs = snap.docs;
+      
+      // Verifica se há mais recibos além dos 15
+      if (docs.length > _limitePorPagina) {
+        _temMaisAntigos = true;
+        _recibos = docs
+            .take(_limitePorPagina)
+            .map((d) => Recibo.fromFirestore(d))
+            .toList();
+      } else {
+        _temMaisAntigos = false;
+        _recibos = docs.map((d) => Recibo.fromFirestore(d)).toList();
+      }
     } catch (e) {
       debugPrint('Erro carregar recibos: $e');
     }
     _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Busca recibos por termo (cliente nome ou número)
+  Future<List<Recibo>> buscarRecibos(String termo) async {
+    if (termo.isEmpty) return [];
+    
+    _buscandoMais = true;
+    notifyListeners();
+    
+    try {
+      // Busca todos os recibos para filtrar localmente
+      final snap = await _recibosRef
+          .orderBy('numero', descending: true)
+          .get();
+      
+      final todosRecibos = snap.docs
+          .map((d) => Recibo.fromFirestore(d))
+          .toList();
+      
+      // Filtra por nome do cliente ou número do recibo
+      final termoLower = termo.toLowerCase();
+      final resultados = todosRecibos.where((r) {
+        final nomeMatch = r.cliente.nome.toLowerCase().contains(termoLower);
+        final numeroMatch = r.numero.toString().contains(termo);
+        return nomeMatch || numeroMatch;
+      }).toList();
+      
+      _buscandoMais = false;
+      notifyListeners();
+      
+      return resultados;
+    } catch (e) {
+      debugPrint('Erro ao buscar recibos: $e');
+      _buscandoMais = false;
+      notifyListeners();
+      return [];
+    }
+  }
+
+  /// Carrega todos os recibos (antigos)
+  Future<void> carregarTodosRecibos() async {
+    _buscandoMais = true;
+    notifyListeners();
+    
+    try {
+      final snap = await _recibosRef
+          .orderBy('numero', descending: true)
+          .get();
+      
+      _recibos = snap.docs
+          .map((d) => Recibo.fromFirestore(d))
+          .toList();
+      _temMaisAntigos = false;
+    } catch (e) {
+      debugPrint('Erro ao carregar todos recibos: $e');
+    }
+    
+    _buscandoMais = false;
     notifyListeners();
   }
 

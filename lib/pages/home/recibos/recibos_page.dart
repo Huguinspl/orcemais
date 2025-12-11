@@ -20,6 +20,10 @@ class _RecibosPageState extends State<RecibosPage> {
   final TextEditingController _searchController = TextEditingController();
   String _termoBusca = '';
 
+  // Controle para busca de recibos antigos
+  bool _mostrandoResultadosBusca = false;
+  List<Recibo> _resultadosBusca = [];
+
   // Status: Todos, Aberto (não enviado), Enviado (tem link)
   final List<String> _status = ['Todos', 'Aberto', 'Enviado'];
 
@@ -31,6 +35,11 @@ class _RecibosPageState extends State<RecibosPage> {
     _searchController.addListener(() {
       setState(() {
         _termoBusca = _searchController.text;
+        // Se limpar a busca, volta a mostrar a lista normal
+        if (_termoBusca.isEmpty) {
+          _mostrandoResultadosBusca = false;
+          _resultadosBusca = [];
+        }
       });
     });
   }
@@ -43,6 +52,29 @@ class _RecibosPageState extends State<RecibosPage> {
 
   Future<void> _abrirNovo() async {
     await Navigator.pushNamed(context, AppRoutes.novoRecibo);
+  }
+
+  // Buscar recibos antigos
+  Future<void> _buscarRecibosAntigos() async {
+    if (_termoBusca.isEmpty) return;
+    
+    final provider = context.read<RecibosProvider>();
+    final resultados = await provider.buscarRecibos(_termoBusca);
+    
+    setState(() {
+      _mostrandoResultadosBusca = true;
+      _resultadosBusca = resultados;
+    });
+  }
+
+  // Carregar todos os recibos
+  Future<void> _carregarTodos() async {
+    final provider = context.read<RecibosProvider>();
+    await provider.carregarTodosRecibos();
+    setState(() {
+      _mostrandoResultadosBusca = false;
+      _resultadosBusca = [];
+    });
   }
 
   Future<void> _excluir(Recibo r) async {
@@ -342,8 +374,14 @@ class _RecibosPageState extends State<RecibosPage> {
                   if (prov.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
+
+                  // Se está mostrando resultados de busca de antigos
+                  final listaBase = _mostrandoResultadosBusca 
+                      ? _resultadosBusca 
+                      : prov.recibos;
+
                   final lista =
-                      prov.recibos.where((r) {
+                      listaBase.where((r) {
                         // Filtro por status baseado no campo link
                         bool filtroStatusMatch;
                         if (filtroStatus == 'Todos') {
@@ -358,9 +396,11 @@ class _RecibosPageState extends State<RecibosPage> {
                         } else {
                           filtroStatusMatch = true;
                         }
-                        final filtroBusca = r.cliente.nome
-                            .toLowerCase()
-                            .contains(_termoBusca.toLowerCase());
+                        // Se está mostrando resultados de busca, não filtra por termo novamente
+                        final filtroBusca = _mostrandoResultadosBusca || 
+                            r.cliente.nome
+                                .toLowerCase()
+                                .contains(_termoBusca.toLowerCase());
                         return filtroStatusMatch && filtroBusca;
                       }).toList();
 
@@ -398,21 +438,92 @@ class _RecibosPageState extends State<RecibosPage> {
                               color: Colors.grey.shade500,
                             ),
                           ),
+                          // Botão para buscar em todos os recibos
+                          if (prov.temMaisAntigos && !_mostrandoResultadosBusca)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: TextButton.icon(
+                                onPressed: _carregarTodos,
+                                icon: const Icon(Icons.history),
+                                label: const Text('Buscar em recibos antigos'),
+                              ),
+                            ),
                         ],
                       ),
                     );
                   }
 
-                  return RefreshIndicator(
-                    onRefresh: prov.carregarRecibos,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-                      itemCount: lista.length,
-                      itemBuilder: (_, i) {
-                        final r = lista[i];
-                        return _buildReciboCard(r, df, nf);
-                      },
-                    ),
+                  return Column(
+                    children: [
+                      // Indicador de resultados de busca
+                      if (_mostrandoResultadosBusca)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 16, color: Colors.teal.shade600),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Mostrando ${lista.length} resultado(s) da busca',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.teal.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _mostrandoResultadosBusca = false;
+                                    _resultadosBusca = [];
+                                  });
+                                },
+                                child: const Text('Limpar'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: prov.carregarRecibos,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                            itemCount: lista.length + (prov.temMaisAntigos && !_mostrandoResultadosBusca ? 1 : 0),
+                            itemBuilder: (_, i) {
+                              // Último item é o botão de carregar mais
+                              if (i == lista.length && prov.temMaisAntigos && !_mostrandoResultadosBusca) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                                  child: OutlinedButton.icon(
+                                    onPressed: prov.buscandoMais ? null : _carregarTodos,
+                                    icon: prov.buscandoMais
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          )
+                                        : const Icon(Icons.history),
+                                    label: Text(prov.buscandoMais 
+                                        ? 'Carregando...' 
+                                        : 'Carregar recibos antigos'),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              final r = lista[i];
+                              return _buildReciboCard(r, df, nf);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -446,30 +557,72 @@ class _RecibosPageState extends State<RecibosPage> {
             ),
           ],
         ),
-        child: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: '?? Buscar por cliente...',
-            hintStyle: TextStyle(color: Colors.grey.shade500),
-            prefixIcon: Icon(Icons.search, color: Colors.teal.shade600),
-            suffixIcon:
-                _termoBusca.isNotEmpty
-                    ? IconButton(
-                      icon: Icon(Icons.clear, color: Colors.grey.shade600),
-                      onPressed: () => _searchController.clear(),
-                      tooltip: 'Limpar busca',
-                    )
-                    : null,
-            filled: false,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: '🔍 Buscar por cliente ou número...',
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  prefixIcon: Icon(Icons.search, color: Colors.teal.shade600),
+                  suffixIcon:
+                      _termoBusca.isNotEmpty
+                          ? IconButton(
+                            icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _mostrandoResultadosBusca = false;
+                                _resultadosBusca = [];
+                              });
+                            },
+                            tooltip: 'Limpar busca',
+                          )
+                          : null,
+                  filled: false,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+                onSubmitted: (_) => _buscarRecibosAntigos(),
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
+            if (_termoBusca.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Consumer<RecibosProvider>(
+                  builder: (context, provider, _) {
+                    return ElevatedButton(
+                      onPressed: provider.buscandoMais ? null : _buscarRecibosAntigos,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: provider.buscandoMais
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text('Buscar'),
+                    );
+                  },
+                ),
+              ),
+          ],
         ),
       ),
     );

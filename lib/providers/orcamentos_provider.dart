@@ -13,6 +13,15 @@ class OrcamentosProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  // Controle de paginação - carrega apenas os 15 mais recentes inicialmente
+  static const int _limitePorPagina = 15;
+  bool _temMaisAntigos = false;
+  bool get temMaisAntigos => _temMaisAntigos;
+  
+  // Flag para indicar se está buscando mais antigos
+  bool _buscandoMais = false;
+  bool get buscandoMais => _buscandoMais;
+
   String get _uid {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Usuário não autenticado.');
@@ -149,15 +158,88 @@ class OrcamentosProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      // Ordena por dataCriacao do mais recente para o mais antigo
-      final snapshot =
-          await _orcamentosRef.orderBy('dataCriacao', descending: true).get();
-      _orcamentos =
-          snapshot.docs.map((doc) => Orcamento.fromFirestore(doc)).toList();
+      // Carrega apenas os 15 mais recentes + 1 para verificar se há mais
+      final snapshot = await _orcamentosRef
+          .orderBy('dataCriacao', descending: true)
+          .limit(_limitePorPagina + 1)
+          .get();
+      
+      final docs = snapshot.docs;
+      
+      // Verifica se há mais orçamentos além dos 15
+      if (docs.length > _limitePorPagina) {
+        _temMaisAntigos = true;
+        _orcamentos = docs
+            .take(_limitePorPagina)
+            .map((doc) => Orcamento.fromFirestore(doc))
+            .toList();
+      } else {
+        _temMaisAntigos = false;
+        _orcamentos = docs.map((doc) => Orcamento.fromFirestore(doc)).toList();
+      }
     } catch (e) {
       debugPrint("Erro ao carregar orçamentos: $e");
     }
     _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Busca orçamentos por termo (cliente nome ou número)
+  Future<List<Orcamento>> buscarOrcamentos(String termo) async {
+    if (termo.isEmpty) return [];
+    
+    _buscandoMais = true;
+    notifyListeners();
+    
+    try {
+      // Busca todos os orçamentos para filtrar localmente
+      final snapshot = await _orcamentosRef
+          .orderBy('dataCriacao', descending: true)
+          .get();
+      
+      final todosOrcamentos = snapshot.docs
+          .map((doc) => Orcamento.fromFirestore(doc))
+          .toList();
+      
+      // Filtra por nome do cliente ou número do orçamento
+      final termoLower = termo.toLowerCase();
+      final resultados = todosOrcamentos.where((o) {
+        final nomeMatch = o.cliente.nome.toLowerCase().contains(termoLower);
+        final numeroMatch = o.numero.toString().contains(termo);
+        return nomeMatch || numeroMatch;
+      }).toList();
+      
+      _buscandoMais = false;
+      notifyListeners();
+      
+      return resultados;
+    } catch (e) {
+      debugPrint("Erro ao buscar orçamentos: $e");
+      _buscandoMais = false;
+      notifyListeners();
+      return [];
+    }
+  }
+
+  /// Carrega mais orçamentos antigos (todos)
+  Future<void> carregarTodosOrcamentos() async {
+    _buscandoMais = true;
+    notifyListeners();
+    
+    try {
+      final snapshot = await _orcamentosRef
+          .orderBy('dataCriacao', descending: true)
+          .get();
+      
+      _orcamentos = snapshot.docs
+          .map((doc) => Orcamento.fromFirestore(doc))
+          .toList();
+      _temMaisAntigos = false;
+    } catch (e) {
+      debugPrint("Erro ao carregar todos orçamentos: $e");
+    }
+    
+    _buscandoMais = false;
     notifyListeners();
   }
 }

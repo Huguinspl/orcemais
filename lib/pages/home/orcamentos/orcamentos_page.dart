@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../models/orcamento.dart';
 import '../../../providers/orcamentos_provider.dart';
 import 'novo_orcamento_page.dart';
-import 'revisar_orcamento_page.dart'; // Importe a página de revisão
+import 'revisar_orcamento_page.dart';
+import 'etapas_revisar/compartilhar_orcamento.dart';
 
 class OrcamentosPage extends StatefulWidget {
   const OrcamentosPage({super.key});
@@ -17,6 +18,10 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSelecionado = 'Aberto';
   String _termoBusca = '';
+  
+  // Controle para busca de orçamentos antigos
+  bool _mostrandoResultadosBusca = false;
+  List<Orcamento> _resultadosBusca = [];
 
   final List<String> _status = [
     'Todos',
@@ -40,6 +45,11 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
     _searchController.addListener(() {
       setState(() {
         _termoBusca = _searchController.text;
+        // Se limpar a busca, volta a mostrar a lista normal
+        if (_termoBusca.isEmpty) {
+          _mostrandoResultadosBusca = false;
+          _resultadosBusca = [];
+        }
       });
     });
   }
@@ -59,7 +69,7 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
     );
   }
 
-  // ✅ NOVA FUNÇÃO: Ação para visualizar/revisar o orçamento
+  // Ação para visualizar/revisar o orçamento
   void _revisarOrcamento(Orcamento orcamento) {
     Navigator.push(
       context,
@@ -67,6 +77,39 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
         builder: (_) => RevisarOrcamentoPage(orcamento: orcamento),
       ),
     );
+  }
+
+  // Ação para compartilhar o orçamento
+  void _compartilharOrcamento(Orcamento orcamento) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CompartilharOrcamentoPage(orcamento: orcamento),
+      ),
+    );
+  }
+
+  // Buscar orçamentos antigos
+  Future<void> _buscarOrcamentosAntigos() async {
+    if (_termoBusca.isEmpty) return;
+    
+    final provider = context.read<OrcamentosProvider>();
+    final resultados = await provider.buscarOrcamentos(_termoBusca);
+    
+    setState(() {
+      _mostrandoResultadosBusca = true;
+      _resultadosBusca = resultados;
+    });
+  }
+
+  // Carregar todos os orçamentos
+  Future<void> _carregarTodos() async {
+    final provider = context.read<OrcamentosProvider>();
+    await provider.carregarTodosOrcamentos();
+    setState(() {
+      _mostrandoResultadosBusca = false;
+      _resultadosBusca = [];
+    });
   }
 
   Future<void> _confirmarExclusao(Orcamento orcamento) async {
@@ -433,15 +476,22 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
+                  // Se está mostrando resultados de busca de antigos
+                  final listaBase = _mostrandoResultadosBusca 
+                      ? _resultadosBusca 
+                      : provider.orcamentos;
+
                   final listaFiltrada =
-                      provider.orcamentos.where((orc) {
+                      listaBase.where((orc) {
                         final filtroStatus =
                             _filtroSelecionado == 'Todos' ||
                             orc.status.toLowerCase() ==
                                 _filtroSelecionado.toLowerCase();
-                        final filtroBusca = orc.cliente.nome
-                            .toLowerCase()
-                            .contains(_termoBusca.toLowerCase());
+                        // Se está mostrando resultados de busca, não filtra por termo novamente
+                        final filtroBusca = _mostrandoResultadosBusca || 
+                            orc.cliente.nome
+                                .toLowerCase()
+                                .contains(_termoBusca.toLowerCase());
                         return filtroStatus && filtroBusca;
                       }).toList();
 
@@ -479,17 +529,88 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                               color: Colors.grey.shade500,
                             ),
                           ),
+                          // Botão para buscar em todos os orçamentos
+                          if (provider.temMaisAntigos && !_mostrandoResultadosBusca)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: TextButton.icon(
+                                onPressed: _carregarTodos,
+                                icon: const Icon(Icons.history),
+                                label: const Text('Buscar em orçamentos antigos'),
+                              ),
+                            ),
                         ],
                       ),
                     );
                   }
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-                    itemCount: listaFiltrada.length,
-                    itemBuilder: (context, index) {
-                      return _buildOrcamentoCard(listaFiltrada[index]);
-                    },
+                  return Column(
+                    children: [
+                      // Indicador de resultados de busca
+                      if (_mostrandoResultadosBusca)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 16, color: Colors.blue.shade600),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Mostrando ${listaFiltrada.length} resultado(s) da busca',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.blue.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _mostrandoResultadosBusca = false;
+                                    _resultadosBusca = [];
+                                  });
+                                },
+                                child: const Text('Limpar'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                          itemCount: listaFiltrada.length + (provider.temMaisAntigos && !_mostrandoResultadosBusca ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            // Último item é o botão de carregar mais
+                            if (index == listaFiltrada.length && provider.temMaisAntigos && !_mostrandoResultadosBusca) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                                child: OutlinedButton.icon(
+                                  onPressed: provider.buscandoMais ? null : _carregarTodos,
+                                  icon: provider.buscandoMais
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        )
+                                      : const Icon(Icons.history),
+                                  label: Text(provider.buscandoMais 
+                                      ? 'Carregando...' 
+                                      : 'Carregar orçamentos antigos'),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            return _buildOrcamentoCard(listaFiltrada[index]);
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -746,6 +867,8 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                       onSelected: (value) {
                         if (value == 'revisar') {
                           _revisarOrcamento(orcamento);
+                        } else if (value == 'compartilhar') {
+                          _compartilharOrcamento(orcamento);
                         } else if (value == 'editar') {
                           _abrirFormulario(orcamento: orcamento);
                         } else if (value == 'excluir') {
@@ -764,6 +887,19 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                                   ),
                                   const SizedBox(width: 12),
                                   const Text('Visualizar'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'compartilhar',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.share_outlined,
+                                    color: Colors.purple.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Compartilhar'),
                                 ],
                               ),
                             ),
@@ -821,30 +957,72 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
             ),
           ],
         ),
-        child: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: '🔍 Buscar por cliente...',
-            hintStyle: TextStyle(color: Colors.grey.shade500),
-            prefixIcon: Icon(Icons.search, color: Colors.blue.shade600),
-            suffixIcon:
-                _termoBusca.isNotEmpty
-                    ? IconButton(
-                      icon: Icon(Icons.clear, color: Colors.grey.shade600),
-                      onPressed: () => _searchController.clear(),
-                      tooltip: 'Limpar busca',
-                    )
-                    : null,
-            filled: false,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: '🔍 Buscar por cliente ou número...',
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  prefixIcon: Icon(Icons.search, color: Colors.blue.shade600),
+                  suffixIcon:
+                      _termoBusca.isNotEmpty
+                          ? IconButton(
+                            icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _mostrandoResultadosBusca = false;
+                                _resultadosBusca = [];
+                              });
+                            },
+                            tooltip: 'Limpar busca',
+                          )
+                          : null,
+                  filled: false,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+                onSubmitted: (_) => _buscarOrcamentosAntigos(),
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
+            if (_termoBusca.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Consumer<OrcamentosProvider>(
+                  builder: (context, provider, _) {
+                    return ElevatedButton(
+                      onPressed: provider.buscandoMais ? null : _buscarOrcamentosAntigos,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: provider.buscandoMais
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text('Buscar'),
+                    );
+                  },
+                ),
+              ),
+          ],
         ),
       ),
     );
