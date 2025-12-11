@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class EtapasBar extends StatelessWidget {
   final List<Map<String, dynamic>> etapas;
@@ -20,13 +20,13 @@ class EtapasBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.orange.shade50, Colors.white],
+          colors: [Colors.teal.shade50, Colors.white],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.shade100.withOpacity(0.5),
+            color: Colors.teal.shade100.withOpacity(0.5),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -61,8 +61,8 @@ class EtapasBar extends StatelessWidget {
                                           Colors.green.shade600,
                                         ]
                                         : [
-                                          Colors.orange.shade400,
-                                          Colors.orange.shade600,
+                                          Colors.teal.shade400,
+                                          Colors.teal.shade600,
                                         ],
                               )
                               : null,
@@ -75,7 +75,7 @@ class EtapasBar extends StatelessWidget {
                                   color:
                                       isConcluida
                                           ? Colors.green.shade200
-                                          : Colors.orange.shade200,
+                                          : Colors.teal.shade200,
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -100,7 +100,7 @@ class EtapasBar extends StatelessWidget {
                       fontWeight: isAtual ? FontWeight.bold : FontWeight.w500,
                       color:
                           isAtual
-                              ? Colors.orange.shade700
+                              ? Colors.teal.shade700
                               : isConcluida
                               ? Colors.green.shade700
                               : Colors.grey.shade600,

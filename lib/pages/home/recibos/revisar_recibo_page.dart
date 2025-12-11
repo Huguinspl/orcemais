@@ -1,4 +1,4 @@
-﻿import 'dart:typed_data';
+import 'dart:typed_data';
 import 'package:deep_link/models/link_model.dart';
 import 'package:deep_link/services/link_service.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +8,61 @@ import '../../../models/recibo.dart';
 import '../../../providers/business_provider.dart';
 import '../../../providers/recibos_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../utils/color_utils.dart';
 import 'compartilhar_recibo_page.dart';
 import 'etapa_link_web_recibo_page.dart';
+
+/// Utilitário para formatação de documentos e telefones
+class _Formatters {
+  /// Formata CPF (XXX.XXX.XXX-XX) ou CNPJ (XX.XXX.XXX/XXXX-XX)
+  static String formatCpfCnpj(String document) {
+    if (document.isEmpty) return '';
+    String numbers = document.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 11) {
+      return '${numbers.substring(0, 3)}.${numbers.substring(3, 6)}.${numbers.substring(6, 9)}-${numbers.substring(9)}';
+    } else if (numbers.length == 14) {
+      return '${numbers.substring(0, 2)}.${numbers.substring(2, 5)}.${numbers.substring(5, 8)}/${numbers.substring(8, 12)}-${numbers.substring(12)}';
+    }
+    return document;
+  }
+
+  /// Formata telefone celular (XX) XXXXX-XXXX ou fixo (XX) XXXX-XXXX
+  static String formatPhone(String phone) {
+    if (phone.isEmpty) return '';
+    String numbers = phone.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 11) {
+      return '(${numbers.substring(0, 2)}) ${numbers.substring(2, 7)}-${numbers.substring(7)}';
+    } else if (numbers.length == 10) {
+      return '(${numbers.substring(0, 2)}) ${numbers.substring(2, 6)}-${numbers.substring(6)}';
+    }
+    return phone;
+  }
+}
+
+/// Cores resolvidas para o tema do PDF
+class _ResolvedColors {
+  final Color primary;
+  final Color onPrimary;
+  final Color secondaryContainer;
+  final Color onSecondaryContainer;
+  final Color tertiaryContainer;
+  final Color onTertiaryContainer;
+  final Color outlineVariant;
+  final Color valoresBackground;
+  final Color valoresText;
+
+  _ResolvedColors({
+    required this.primary,
+    required this.onPrimary,
+    required this.secondaryContainer,
+    required this.onSecondaryContainer,
+    required this.tertiaryContainer,
+    required this.onTertiaryContainer,
+    required this.outlineVariant,
+    required this.valoresBackground,
+    required this.valoresText,
+  });
+}
 
 class RevisarReciboPage extends StatefulWidget {
   final Recibo recibo;
@@ -35,29 +88,41 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
       final userProvider = context.read<UserProvider>();
       final recibosProvider = context.read<RecibosProvider>();
 
-      // Prepara parâmetros personalizados
-      final parametrosPersonalizados = <String, dynamic>{
-        'userId': userProvider.uid,
-        'documentoId': widget.recibo.id,
-        'tipoDocumento': 'recibo',
-      };
+      String? linkFinal;
 
-      // Gera o link
-      final link = await DeepLink.createLink(
-        LinkModel(
-          dominio: 'link.orcemais.com',
-          titulo:
-              'Recibo ${widget.recibo.numero} - ${businessProvider.nomeEmpresa}',
-          slug: widget.recibo.id,
-          onlyWeb: true,
-          urlImage: businessProvider.logoUrl,
-          urlDesktop: 'https://gestorfy-cliente.web.app',
-          parametrosPersonalizados: parametrosPersonalizados,
-        ),
-      );
+      // Verifica se o recibo já tem um link salvo
+      if (widget.recibo.link != null && widget.recibo.link!.isNotEmpty) {
+        // Link já existe, usa o link existente
+        linkFinal = widget.recibo.link;
+        debugPrint('🔗 Link já existe, usando link existente: $linkFinal');
+      } else {
+        // Prepara parâmetros personalizados
+        final parametrosPersonalizados = <String, dynamic>{
+          'userId': userProvider.uid,
+          'documentoId': widget.recibo.id,
+          'tipoDocumento': 'recibo',
+        };
 
-      // Salva o link no Firestore
-      await recibosProvider.atualizarLink(widget.recibo.id, link.link);
+        // Gera o link
+        final link = await DeepLink.createLink(
+          LinkModel(
+            dominio: 'link.orcemais.com',
+            titulo:
+                'Recibo ${widget.recibo.numero} - ${businessProvider.nomeEmpresa}',
+            slug: widget.recibo.id,
+            onlyWeb: true,
+            urlImage: businessProvider.logoUrl,
+            urlDesktop: 'https://gestorfy-cliente.web.app',
+            parametrosPersonalizados: parametrosPersonalizados,
+          ),
+        );
+
+        linkFinal = link.link;
+
+        // Salva o link no Firestore
+        await recibosProvider.atualizarLink(widget.recibo.id, linkFinal);
+        debugPrint('✅ Novo link gerado e salvo: $linkFinal');
+      }
 
       // Fecha o loading
       if (mounted) Navigator.pop(context);
@@ -109,7 +174,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.orange.shade600, Colors.orange.shade400],
+              colors: [Colors.teal.shade600, Colors.teal.shade400],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -146,7 +211,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.shade100,
+            color: Colors.teal.shade100,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -161,9 +226,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
               icon: Icon(
                 Icons.picture_as_pdf_outlined,
                 color:
-                    _abaSelecionada == 0
-                        ? Colors.white
-                        : Colors.orange.shade600,
+                    _abaSelecionada == 0 ? Colors.white : Colors.teal.shade600,
               ),
               label: Text(
                 'PDF',
@@ -171,7 +234,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                   color:
                       _abaSelecionada == 0
                           ? Colors.white
-                          : Colors.orange.shade600,
+                          : Colors.teal.shade600,
                 ),
               ),
             ),
@@ -180,9 +243,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
               icon: Icon(
                 Icons.link,
                 color:
-                    _abaSelecionada == 1
-                        ? Colors.white
-                        : Colors.orange.shade600,
+                    _abaSelecionada == 1 ? Colors.white : Colors.teal.shade600,
               ),
               label: Text(
                 'Link Web',
@@ -190,7 +251,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                   color:
                       _abaSelecionada == 1
                           ? Colors.white
-                          : Colors.orange.shade600,
+                          : Colors.teal.shade600,
                 ),
               ),
             ),
@@ -200,7 +261,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
               if (states.contains(WidgetState.selected)) {
-                return Colors.orange.shade600;
+                return Colors.teal.shade600;
               }
               return Colors.transparent;
             }),
@@ -214,29 +275,36 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
   Widget _buildPdfVisualizado(NumberFormat currency) {
     final recibo = widget.recibo;
     final businessProvider = context.watch<BusinessProvider>();
-
-    // Carregar cores personalizadas do PDF ou usar padrão laranja
+    final csBase = Theme.of(context).colorScheme;
     final theme = businessProvider.pdfTheme;
-    final primaryColor =
-        theme != null && theme['primary'] != null
-            ? Color(theme['primary'] as int)
-            : Colors.orange.shade600;
-    final secondaryContainerColor =
-        theme != null && theme['secondaryContainer'] != null
-            ? Color(theme['secondaryContainer'] as int)
-            : Colors.orange.shade50;
-    final tertiaryContainerColor =
-        theme != null && theme['tertiaryContainer'] != null
-            ? Color(theme['tertiaryContainer'] as int)
-            : Colors.orange.shade100;
-    final onSecondaryContainerColor =
-        theme != null && theme['onSecondaryContainer'] != null
-            ? Color(theme['onSecondaryContainer'] as int)
-            : Colors.orange.shade900;
-    final onTertiaryContainerColor =
-        theme != null && theme['onTertiaryContainer'] != null
-            ? Color(theme['onTertiaryContainer'] as int)
-            : Colors.orange.shade900;
+
+    // Cores com override do tema salvo (igual ao orçamento)
+    final cs = _ResolvedColors(
+      primary: ColorUtils.fromArgbInt(theme?['primary']) ?? csBase.primary,
+      onPrimary:
+          ColorUtils.fromArgbInt(theme?['onPrimary']) ?? csBase.onPrimary,
+      secondaryContainer:
+          ColorUtils.fromArgbInt(theme?['secondaryContainer']) ??
+          csBase.secondaryContainer,
+      onSecondaryContainer:
+          ColorUtils.fromArgbInt(theme?['onSecondaryContainer']) ??
+          csBase.onSecondaryContainer,
+      tertiaryContainer:
+          ColorUtils.fromArgbInt(theme?['tertiaryContainer']) ??
+          csBase.tertiaryContainer,
+      onTertiaryContainer:
+          ColorUtils.fromArgbInt(theme?['onTertiaryContainer']) ??
+          csBase.onTertiaryContainer,
+      outlineVariant:
+          ColorUtils.fromArgbInt(theme?['outlineVariant']) ??
+          csBase.outlineVariant,
+      valoresBackground:
+          ColorUtils.fromArgbInt(theme?['valoresBackground']) ??
+          const Color(0xFFE0F2F1),
+      valoresText:
+          ColorUtils.fromArgbInt(theme?['valoresText']) ??
+          const Color(0xFF004D40),
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -261,10 +329,21 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: primaryColor,
+                color: cs.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: _buildHeaderRecibo(businessProvider),
+              child:
+                  (businessProvider.nomeEmpresa.isEmpty)
+                      ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      )
+                      : _buildHeaderRecibo(
+                        businessProvider,
+                        textColor: cs.onPrimary,
+                      ),
             ),
             if ((businessProvider.descricao ?? '').isNotEmpty) ...[
               const SizedBox(height: 16),
@@ -275,9 +354,9 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
             ],
             const Divider(height: 40, thickness: 1),
             _sectionLabelRecibo(
-              'Dados do Cliente',
-              bg: secondaryContainerColor,
-              fg: onSecondaryContainerColor,
+              'Recebido de',
+              bg: cs.secondaryContainer,
+              fg: cs.onSecondaryContainer,
             ),
             const SizedBox(height: 12),
             _buildClientInfoRecibo(),
@@ -287,16 +366,16 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
             if (recibo.itens.isNotEmpty) ...[
               _sectionLabelRecibo(
                 'Itens / Serviços',
-                bg: tertiaryContainerColor,
-                fg: onTertiaryContainerColor,
+                bg: cs.tertiaryContainer,
+                fg: cs.onTertiaryContainer,
               ),
               const SizedBox(height: 16),
               _buildItensListRecibo(currency),
             ] else ...[
               _sectionLabelRecibo(
                 'Valores Recebidos',
-                bg: tertiaryContainerColor,
-                fg: onTertiaryContainerColor,
+                bg: cs.tertiaryContainer,
+                fg: cs.onTertiaryContainer,
               ),
               const SizedBox(height: 16),
               _buildValoresRecebidosRecibo(currency),
@@ -306,16 +385,102 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
             // Caixa de totais com destaque personalizado
             Container(
               decoration: BoxDecoration(
-                color: secondaryContainerColor,
+                color: cs.valoresBackground,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primaryColor.withOpacity(0.3)),
+                border: Border.all(color: cs.outlineVariant),
               ),
               padding: const EdgeInsets.all(16),
               child: _buildTotalsRecibo(currency),
             ),
+
+            const SizedBox(height: 24),
+            const SizedBox(height: 24),
+            _buildAssinaturaSectionRecibo(businessProvider),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAssinaturaSectionRecibo(BusinessProvider provider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabelRecibo(
+          'Assinatura',
+          bg: Colors.grey.shade200,
+          fg: Colors.grey.shade800,
+        ),
+        const SizedBox(height: 16),
+        FutureBuilder<Uint8List?>(
+          future: provider.getAssinaturaBytes(),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final assinaturaBytes = snap.data;
+            final hasAssinatura =
+                assinaturaBytes != null && assinaturaBytes.isNotEmpty;
+
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                children: [
+                  if (hasAssinatura) ...[
+                    Image.memory(
+                      assinaturaBytes,
+                      height: 80,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 8),
+                  ] else ...[
+                    Container(
+                      height: 60,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: Colors.grey.shade400),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  Text(
+                    provider.nomeEmpresa,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (provider.cnpj.isNotEmpty)
+                    Text(
+                      _Formatters.formatCpfCnpj(provider.cnpj),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -323,7 +488,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
     return EtapaLinkWebReciboPage(recibo: widget.recibo);
   }
 
-  Widget _buildHeaderRecibo(BusinessProvider provider) {
+  Widget _buildHeaderRecibo(BusinessProvider provider, {Color? textColor}) {
     return FutureBuilder<Uint8List?>(
       future: provider.getLogoBytes(),
       builder: (context, snap) {
@@ -353,22 +518,46 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                     provider.nomeEmpresa.isNotEmpty
                         ? provider.nomeEmpresa
                         : 'Minha Empresa',
-                    style: const TextStyle(
-                      fontSize: 20,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                   ),
+                  if (provider.ramo.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        provider.ramo,
+                        style: TextStyle(
+                          color: textColor?.withOpacity(0.9),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   if (provider.telefone.isNotEmpty)
                     _buildInfoLinhaRecibo(
                       Icons.phone_outlined,
-                      provider.telefone,
+                      _Formatters.formatPhone(provider.telefone),
+                      color: textColor,
                     ),
                   if (provider.emailEmpresa.isNotEmpty)
                     _buildInfoLinhaRecibo(
                       Icons.email_outlined,
                       provider.emailEmpresa,
+                      color: textColor,
+                    ),
+                  if (provider.endereco.isNotEmpty)
+                    _buildInfoLinhaRecibo(
+                      Icons.location_on_outlined,
+                      provider.endereco,
+                      color: textColor,
+                    ),
+                  if (provider.cnpj.isNotEmpty)
+                    _buildInfoLinhaRecibo(
+                      Icons.badge_outlined,
+                      _Formatters.formatCpfCnpj(provider.cnpj),
+                      color: textColor,
                     ),
                 ],
               ),
@@ -379,16 +568,14 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
     );
   }
 
-  Widget _buildInfoLinhaRecibo(IconData icon, String text) {
+  Widget _buildInfoLinhaRecibo(IconData icon, String text, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.only(top: 4.0),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: Colors.white),
+          Icon(icon, size: 14, color: color ?? Colors.grey.shade700),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: const TextStyle(color: Colors.white)),
-          ),
+          Expanded(child: Text(text, style: TextStyle(color: color))),
         ],
       ),
     );
@@ -399,23 +586,41 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Cliente:',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-        ),
+        Text('Cliente:', style: Theme.of(context).textTheme.bodySmall),
         Text(
           recibo.cliente.nome,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-        if (recibo.cliente.celular.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(recibo.cliente.celular),
-        ],
-        if (recibo.cliente.email.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(recibo.cliente.email),
-        ],
+        if (recibo.cliente.celular.isNotEmpty)
+          _buildClientInfoRow(
+            Icons.phone_android_outlined,
+            _Formatters.formatPhone(recibo.cliente.celular),
+          ),
+        if (recibo.cliente.email.isNotEmpty)
+          _buildClientInfoRow(Icons.email_outlined, recibo.cliente.email),
+        if (recibo.cliente.cpfCnpj.isNotEmpty)
+          _buildClientInfoRow(
+            Icons.badge_outlined,
+            _Formatters.formatCpfCnpj(recibo.cliente.cpfCnpj),
+          ),
       ],
+    );
+  }
+
+  Widget _buildClientInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Colors.grey.shade700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text, style: TextStyle(color: Colors.grey.shade800)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -550,7 +755,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
     final primaryColor =
         theme != null && theme['primary'] != null
             ? Color(theme['primary'] as int)
-            : Colors.orange.shade600;
+            : Colors.teal.shade600;
 
     return Column(
       children: List.generate(recibo.valoresRecebidos.length, (index) {
@@ -622,7 +827,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
               ),
             const Divider(height: 20),
             _totalRowRecibo(
-              'Valor Total',
+              'Valor Pago',
               currency.format(recibo.valorTotal),
               isTotal: true,
             ),
@@ -701,15 +906,15 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.orange.shade600, Colors.orange.shade400],
+                colors: [Colors.teal.shade600, Colors.teal.shade400],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.orange.shade700, width: 1),
+              border: Border.all(color: Colors.teal.shade700, width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.orange.shade200,
+                  color: Colors.teal.shade200,
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -765,7 +970,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: Colors.orange.shade600, width: 2),
+                      side: BorderSide(color: Colors.teal.shade600, width: 2),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -775,7 +980,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.orange.shade600,
+                        color: Colors.teal.shade600,
                       ),
                     ),
                   ),
@@ -851,7 +1056,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.orange.shade600, Colors.orange.shade400],
+                      colors: [Colors.teal.shade600, Colors.teal.shade400],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -959,10 +1164,10 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.orange.shade50,
+            color: Colors.teal.shade50,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 20, color: Colors.orange.shade600),
+          child: Icon(icon, size: 20, color: Colors.teal.shade600),
         ),
         const SizedBox(width: 12),
         Expanded(

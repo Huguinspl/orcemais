@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -120,7 +120,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
               ),
             ],
           ),
-          backgroundColor: Colors.orange.shade600,
+          backgroundColor: Colors.teal.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -160,8 +160,8 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Colors.orange.shade600,
-                              Colors.orange.shade400,
+                              Colors.teal.shade600,
+                              Colors.teal.shade400,
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -244,8 +244,8 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
                                             colors: [
-                                              Colors.orange.shade400,
-                                              Colors.orange.shade600,
+                                              Colors.teal.shade400,
+                                              Colors.teal.shade600,
                                             ],
                                           ),
                                           borderRadius: BorderRadius.circular(
@@ -253,7 +253,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.orange.shade200,
+                                              color: Colors.teal.shade200,
                                               blurRadius: 8,
                                               offset: const Offset(0, 4),
                                             ),
@@ -325,15 +325,14 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                                                 Icon(
                                                   Icons.attach_money,
                                                   size: 14,
-                                                  color: Colors.orange.shade600,
+                                                  color: Colors.teal.shade600,
                                                 ),
                                                 Text(
                                                   nf.format(o.valorTotal),
                                                   style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
-                                                    color:
-                                                        Colors.orange.shade700,
+                                                    color: Colors.teal.shade700,
                                                   ),
                                                 ),
                                               ],
@@ -384,7 +383,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
               ),
             ],
           ),
-          backgroundColor: Colors.orange.shade600,
+          backgroundColor: Colors.teal.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -461,7 +460,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                 ),
               ],
             ),
-            backgroundColor: Colors.orange.shade600,
+            backgroundColor: Colors.teal.shade600,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -487,7 +486,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
                 ),
               ],
             ),
-            backgroundColor: Colors.orange.shade600,
+            backgroundColor: Colors.teal.shade600,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -517,7 +516,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
               const Expanded(child: Text('Selecione um cliente.')),
             ],
           ),
-          backgroundColor: Colors.orange.shade600,
+          backgroundColor: Colors.teal.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -537,7 +536,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
               const Expanded(child: Text('Adicione pelo menos um item.')),
             ],
           ),
-          backgroundColor: Colors.orange.shade600,
+          backgroundColor: Colors.teal.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -622,7 +621,7 @@ class _NovoReciboPageState extends State<NovoReciboPage> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.orange.shade600, Colors.orange.shade400],
+              colors: [Colors.teal.shade600, Colors.teal.shade400],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

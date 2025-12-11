@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../models/recibo.dart';
@@ -129,7 +129,7 @@ class _RecibosPageState extends State<RecibosPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '⚠️ Esta ação não pode ser desfeita',
+                  '?? Esta ação não pode ser desfeita',
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.red.shade700,
@@ -244,9 +244,9 @@ class _RecibosPageState extends State<RecibosPage> {
         centerTitle: true,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
+              colors: [Colors.teal.shade600, Colors.teal.shade400],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -254,11 +254,11 @@ class _RecibosPageState extends State<RecibosPage> {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF3E0), Colors.white, Colors.white],
+            colors: [Colors.teal.shade50, Colors.white, Colors.white],
           ),
         ),
         child: Column(
@@ -273,13 +273,13 @@ class _RecibosPageState extends State<RecibosPage> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
+                      gradient: LinearGradient(
+                        colors: [Colors.teal.shade400, Colors.teal.shade600],
                       ),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.orange.withOpacity(0.3),
+                          color: Colors.teal.withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -407,7 +407,7 @@ class _RecibosPageState extends State<RecibosPage> {
         tooltip: 'Novo recibo',
         icon: const Icon(Icons.add),
         label: const Text('Novo Recibo'),
-        backgroundColor: const Color(0xFFF57C00),
+        backgroundColor: Colors.teal.shade600,
         foregroundColor: Colors.white,
       ),
     );
@@ -431,9 +431,9 @@ class _RecibosPageState extends State<RecibosPage> {
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: '🔍 Buscar por cliente...',
+            hintText: '?? Buscar por cliente...',
             hintStyle: TextStyle(color: Colors.grey.shade500),
-            prefixIcon: const Icon(Icons.search, color: Color(0xFFF57C00)),
+            prefixIcon: Icon(Icons.search, color: Colors.teal.shade600),
             suffixIcon:
                 _termoBusca.isNotEmpty
                     ? IconButton(
@@ -479,7 +479,7 @@ class _RecibosPageState extends State<RecibosPage> {
               break;
             case 'aberto':
               icone = Icons.pending_outlined;
-              cor = Colors.orange;
+              cor = Colors.teal;
               break;
             case 'emitido':
               icone = Icons.check_circle_outline;
@@ -583,7 +583,7 @@ class _RecibosPageState extends State<RecibosPage> {
     IconData statusIcon;
     switch (recibo.status.toLowerCase()) {
       case 'aberto':
-        statusColor = Colors.orange;
+        statusColor = Colors.teal;
         statusIcon = Icons.pending_outlined;
         break;
       case 'emitido':
@@ -630,13 +630,13 @@ class _RecibosPageState extends State<RecibosPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
+                        gradient: LinearGradient(
+                          colors: [Colors.teal.shade400, Colors.teal.shade600],
                         ),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.orange.withOpacity(0.3),
+                            color: Colors.teal.withOpacity(0.3),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -836,7 +836,7 @@ class _RecibosPageState extends State<RecibosPage> {
                                 children: [
                                   Icon(
                                     Icons.edit_outlined,
-                                    color: Colors.orange.shade600,
+                                    color: Colors.teal.shade600,
                                   ),
                                   const SizedBox(width: 12),
                                   const Text('Editar'),

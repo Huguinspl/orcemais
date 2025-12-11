@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class EtapaItensWidget extends StatelessWidget {
@@ -27,7 +27,7 @@ class EtapaItensWidget extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.orange.shade50, Colors.white, Colors.white],
+          colors: [Colors.teal.shade50, Colors.white, Colors.white],
         ),
       ),
       child: SingleChildScrollView(
@@ -44,7 +44,7 @@ class EtapaItensWidget extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.orange.shade600, Colors.orange.shade400],
+                    colors: [Colors.teal.shade600, Colors.teal.shade400],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -108,7 +108,7 @@ class EtapaItensWidget extends StatelessWidget {
               label: 'Adicionar Peça/Material',
               valor: 'Adicionar um item do seu catálogo',
               icon: Icons.inventory_2_outlined,
-              corIcone: Colors.orange,
+              corIcone: Colors.teal,
               onTap: onAdicionarPeca,
             ),
             const SizedBox(height: 32),
@@ -118,7 +118,7 @@ class EtapaItensWidget extends StatelessWidget {
               children: [
                 Icon(
                   Icons.shopping_cart_outlined,
-                  color: Colors.orange.shade700,
+                  color: Colors.teal.shade700,
                   size: 24,
                 ),
                 const SizedBox(width: 8),
@@ -139,7 +139,7 @@ class EtapaItensWidget extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.orange.shade400, Colors.orange.shade600],
+                        colors: [Colors.teal.shade400, Colors.teal.shade600],
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -223,7 +223,7 @@ class EtapaItensWidget extends StatelessWidget {
                             colors: [
                               isServico
                                   ? Colors.green.shade50
-                                  : Colors.orange.shade50,
+                                  : Colors.teal.shade50,
                               Colors.white,
                             ],
                             begin: Alignment.topLeft,
@@ -244,8 +244,8 @@ class EtapaItensWidget extends StatelessWidget {
                                             Colors.green.shade600,
                                           ]
                                           : [
-                                            Colors.orange.shade400,
-                                            Colors.orange.shade600,
+                                            Colors.teal.shade400,
+                                            Colors.teal.shade600,
                                           ],
                                 ),
                                 borderRadius: BorderRadius.circular(12),
@@ -253,7 +253,7 @@ class EtapaItensWidget extends StatelessWidget {
                                   BoxShadow(
                                     color: (isServico
                                             ? Colors.green
-                                            : Colors.orange)
+                                            : Colors.teal)
                                         .withOpacity(0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
@@ -307,7 +307,7 @@ class EtapaItensWidget extends StatelessWidget {
                                           color:
                                               isServico
                                                   ? Colors.green.shade700
-                                                  : Colors.orange.shade700,
+                                                  : Colors.teal.shade700,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15,
                                         ),

@@ -9,6 +9,33 @@ import '../models/valor_recebido.dart';
 import '../providers/business_provider.dart';
 import 'pdf_color_utils.dart';
 
+/// Utilitário para formatação de documentos e telefones
+class _Formatters {
+  /// Formata CPF (XXX.XXX.XXX-XX) ou CNPJ (XX.XXX.XXX/XXXX-XX)
+  static String formatCpfCnpj(String document) {
+    if (document.isEmpty) return '';
+    String numbers = document.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 11) {
+      return '${numbers.substring(0, 3)}.${numbers.substring(3, 6)}.${numbers.substring(6, 9)}-${numbers.substring(9)}';
+    } else if (numbers.length == 14) {
+      return '${numbers.substring(0, 2)}.${numbers.substring(2, 5)}.${numbers.substring(5, 8)}/${numbers.substring(8, 12)}-${numbers.substring(12)}';
+    }
+    return document;
+  }
+
+  /// Formata telefone celular (XX) XXXXX-XXXX ou fixo (XX) XXXX-XXXX
+  static String formatPhone(String phone) {
+    if (phone.isEmpty) return '';
+    String numbers = phone.replaceAll(RegExp(r'\D'), '');
+    if (numbers.length == 11) {
+      return '(${numbers.substring(0, 2)}) ${numbers.substring(2, 7)}-${numbers.substring(7)}';
+    } else if (numbers.length == 10) {
+      return '(${numbers.substring(0, 2)}) ${numbers.substring(2, 6)}-${numbers.substring(6)}';
+    }
+    return phone;
+  }
+}
+
 class ReciboPdfGenerator {
   static Future<Uint8List> generate(
     Recibo recibo,
@@ -28,33 +55,45 @@ class ReciboPdfGenerator {
 
     // Carrega tema personalizado ou usa cores padrão
     final theme = businessProvider.pdfTheme;
+
+    // Cores principais do tema
     final primary = PdfColorUtils.fromArgbInt(
-      theme?['primary'],
+      theme?['primary'] as int?,
       PdfColor.fromHex('#FF6B00'), // Laranja padrão para recibos
     );
     final onPrimary = PdfColorUtils.fromArgbInt(
-      theme?['onPrimary'],
+      theme?['onPrimary'] as int?,
       PdfColors.white,
     );
     final secondaryContainer = PdfColorUtils.fromArgbInt(
-      theme?['secondaryContainer'],
+      theme?['secondaryContainer'] as int?,
       PdfColor.fromHex('#FFE0B2'),
     );
     final onSecondaryContainer = PdfColorUtils.fromArgbInt(
-      theme?['onSecondaryContainer'],
+      theme?['onSecondaryContainer'] as int?,
       PdfColor.fromHex('#2E1500'),
     );
     final tertiaryContainer = PdfColorUtils.fromArgbInt(
-      theme?['tertiaryContainer'],
+      theme?['tertiaryContainer'] as int?,
       PdfColor.fromHex('#FFD8CC'),
     );
     final onTertiaryContainer = PdfColorUtils.fromArgbInt(
-      theme?['onTertiaryContainer'],
+      theme?['onTertiaryContainer'] as int?,
       PdfColor.fromHex('#311300'),
     );
     final outlineVariant = PdfColorUtils.fromArgbInt(
-      theme?['outlineVariant'],
+      theme?['outlineVariant'] as int?,
       PdfColors.grey300,
+    );
+
+    // Cores personalizadas para seção de valores/totais
+    final valoresBackground = PdfColorUtils.fromArgbInt(
+      theme?['valoresBackground'] as int?,
+      PdfColor.fromHex('#E0F2F1'),
+    );
+    final valoresText = PdfColorUtils.fromArgbInt(
+      theme?['valoresText'] as int?,
+      PdfColor.fromHex('#004D40'),
     );
 
     pdf.addPage(
@@ -89,7 +128,7 @@ class ReciboPdfGenerator {
               ],
               pw.SizedBox(height: 24),
               _sectionLabel(
-                'Dados do Cliente',
+                'Recebido de',
                 bg: secondaryContainer,
                 fg: onSecondaryContainer,
                 font: boldFont,
@@ -133,12 +172,18 @@ class ReciboPdfGenerator {
               ],
               pw.Container(
                 decoration: pw.BoxDecoration(
-                  color: secondaryContainer,
+                  color: valoresBackground,
                   borderRadius: pw.BorderRadius.circular(12),
                   border: pw.Border.all(color: outlineVariant, width: 0.5),
                 ),
                 padding: const pw.EdgeInsets.all(16),
-                child: _buildTotals(recibo, currency, boldFont, font),
+                child: _buildTotals(
+                  recibo,
+                  currency,
+                  boldFont,
+                  font,
+                  textColor: valoresText,
+                ),
               ),
               if (assinaturaBytes != null && assinaturaBytes.isNotEmpty) ...[
                 pw.SizedBox(height: 24),
@@ -213,15 +258,37 @@ class ReciboPdfGenerator {
                         color: textColor,
                       ),
                     ),
+                    if (b.ramo.isNotEmpty)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(top: 2),
+                        child: pw.Text(
+                          b.ramo,
+                          style: pw.TextStyle(
+                            font: regular,
+                            fontSize: 11,
+                            color: textColor,
+                          ),
+                        ),
+                      ),
                     pw.SizedBox(height: 8),
                     if (b.telefone.isNotEmpty)
                       pw.Text(
-                        b.telefone,
+                        _Formatters.formatPhone(b.telefone),
                         style: pw.TextStyle(font: regular, color: textColor),
                       ),
                     if (b.emailEmpresa.isNotEmpty)
                       pw.Text(
                         b.emailEmpresa,
+                        style: pw.TextStyle(font: regular, color: textColor),
+                      ),
+                    if (b.endereco.isNotEmpty)
+                      pw.Text(
+                        b.endereco,
+                        style: pw.TextStyle(font: regular, color: textColor),
+                      ),
+                    if (b.cnpj.isNotEmpty)
+                      pw.Text(
+                        _Formatters.formatCpfCnpj(b.cnpj),
                         style: pw.TextStyle(font: regular, color: textColor),
                       ),
                   ],
@@ -265,12 +332,29 @@ class ReciboPdfGenerator {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('Cliente:', style: pw.TextStyle(font: regular, fontSize: 10)),
+        pw.Text('Nome:', style: pw.TextStyle(font: regular, fontSize: 10)),
         pw.Text(c.nome, style: pw.TextStyle(font: bold, fontSize: 14)),
         if (c.celular.isNotEmpty)
-          pw.Text(c.celular, style: pw.TextStyle(font: regular)),
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 4),
+            child: pw.Text(
+              _Formatters.formatPhone(c.celular),
+              style: pw.TextStyle(font: regular),
+            ),
+          ),
         if (c.email.isNotEmpty)
-          pw.Text(c.email, style: pw.TextStyle(font: regular)),
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 4),
+            child: pw.Text(c.email, style: pw.TextStyle(font: regular)),
+          ),
+        if (c.cpfCnpj.isNotEmpty)
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 4),
+            child: pw.Text(
+              _Formatters.formatCpfCnpj(c.cpfCnpj),
+              style: pw.TextStyle(font: regular),
+            ),
+          ),
       ],
     );
   }
@@ -550,8 +634,9 @@ class ReciboPdfGenerator {
     Recibo r,
     NumberFormat currency,
     pw.Font bold,
-    pw.Font regular,
-  ) {
+    pw.Font regular, {
+    PdfColor? textColor,
+  }) {
     return pw.Align(
       alignment: pw.Alignment.centerRight,
       child: pw.SizedBox(
@@ -565,11 +650,11 @@ class ReciboPdfGenerator {
                 children: [
                   pw.Text(
                     'Subtotal Itens:',
-                    style: pw.TextStyle(font: regular),
+                    style: pw.TextStyle(font: regular, color: textColor),
                   ),
                   pw.Text(
                     currency.format(r.subtotalItens),
-                    style: pw.TextStyle(font: regular),
+                    style: pw.TextStyle(font: regular, color: textColor),
                   ),
                 ],
               )
@@ -579,25 +664,33 @@ class ReciboPdfGenerator {
                 children: [
                   pw.Text(
                     'Total Recebido:',
-                    style: pw.TextStyle(font: regular),
+                    style: pw.TextStyle(font: regular, color: textColor),
                   ),
                   pw.Text(
                     currency.format(r.totalValoresRecebidos),
-                    style: pw.TextStyle(font: regular),
+                    style: pw.TextStyle(font: regular, color: textColor),
                   ),
                 ],
               ),
-            pw.Divider(height: 10),
+            pw.Divider(height: 10, color: textColor ?? PdfColors.grey400),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'Valor Total:',
-                  style: pw.TextStyle(font: bold, fontSize: 14),
+                  'Valor Pago:',
+                  style: pw.TextStyle(
+                    font: bold,
+                    fontSize: 14,
+                    color: textColor,
+                  ),
                 ),
                 pw.Text(
                   currency.format(r.valorTotal),
-                  style: pw.TextStyle(font: bold, fontSize: 14),
+                  style: pw.TextStyle(
+                    font: bold,
+                    fontSize: 14,
+                    color: textColor,
+                  ),
                 ),
               ],
             ),

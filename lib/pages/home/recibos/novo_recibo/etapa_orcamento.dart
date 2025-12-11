@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/orcamento.dart';
 
@@ -21,7 +21,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.orange.shade50, Colors.white, Colors.white],
+          colors: [Colors.teal.shade50, Colors.white, Colors.white],
         ),
       ),
       child: SingleChildScrollView(
@@ -38,7 +38,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.orange.shade600, Colors.orange.shade400],
+                    colors: [Colors.teal.shade600, Colors.teal.shade400],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -138,7 +138,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.orange.shade50, Colors.white],
+              colors: [Colors.teal.shade50, Colors.white],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -150,7 +150,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.orange.shade100, Colors.orange.shade50],
+                    colors: [Colors.teal.shade100, Colors.teal.shade50],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -159,7 +159,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                 child: Icon(
                   Icons.search,
                   size: 48,
-                  color: Colors.orange.shade600,
+                  color: Colors.teal.shade600,
                 ),
               ),
               const SizedBox(height: 16),
@@ -183,7 +183,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.orange.shade300.withOpacity(0.4),
+                      color: Colors.teal.shade300.withOpacity(0.4),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -201,7 +201,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade600,
+                    backgroundColor: Colors.teal.shade600,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 28,
@@ -237,7 +237,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.orange.shade600, Colors.orange.shade400],
+                colors: [Colors.teal.shade600, Colors.teal.shade400],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -277,7 +277,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.white, Colors.orange.shade50],
+                colors: [Colors.white, Colors.teal.shade50],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -298,14 +298,14 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.orange.shade400, Colors.orange.shade600],
+                          colors: [Colors.teal.shade400, Colors.teal.shade600],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.orange.withOpacity(0.3),
+                            color: Colors.teal.withOpacity(0.3),
                             blurRadius: 6,
                             offset: const Offset(0, 3),
                           ),
@@ -355,7 +355,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Divider(height: 1, color: Colors.orange.shade200),
+                Divider(height: 1, color: Colors.teal.shade200),
                 const SizedBox(height: 20),
                 _buildInfoRow(Icons.person, 'Cliente', orcamento.cliente.nome),
                 const SizedBox(height: 14),
@@ -373,7 +373,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                   '${orcamento.itens.length} ${orcamento.itens.length == 1 ? 'item' : 'itens'}',
                 ),
                 const SizedBox(height: 20),
-                Divider(height: 1, color: Colors.orange.shade200),
+                Divider(height: 1, color: Colors.teal.shade200),
                 const SizedBox(height: 20),
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -432,8 +432,8 @@ class EtapaOrcamentoWidget extends StatelessWidget {
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.orange.shade700,
-                      side: BorderSide(color: Colors.orange.shade600, width: 2),
+                      foregroundColor: Colors.teal.shade700,
+                      side: BorderSide(color: Colors.teal.shade600, width: 2),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -453,7 +453,7 @@ class EtapaOrcamentoWidget extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.orange.shade600),
+        Icon(icon, size: 20, color: Colors.teal.shade600),
         const SizedBox(width: 12),
         Expanded(
           child: Column(

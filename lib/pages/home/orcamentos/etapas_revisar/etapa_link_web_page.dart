@@ -645,7 +645,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total do Item',
+                  'Total dos Item',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

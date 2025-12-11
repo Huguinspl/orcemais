@@ -1,4 +1,4 @@
-﻿import 'package:deep_link/models/link_model.dart';
+import 'package:deep_link/models/link_model.dart';
 import 'package:deep_link/services/link_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,23 +22,23 @@ class CompartilharReciboPage extends StatelessWidget {
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
     try {
-      debugPrint('🔵 Iniciando geração do PDF do recibo...');
+      debugPrint('📄 Iniciando geração do PDF do recibo...');
       final business = context.read<BusinessProvider>();
 
-      debugPrint('🔵 Carregando dados do negócio...');
+      debugPrint('🔄 Carregando dados do negócio...');
       await business.carregarDoFirestore();
       debugPrint('✅ Dados do negócio carregados');
 
-      debugPrint('🔵 Gerando PDF do recibo...');
+      debugPrint('🔄 Gerando PDF do recibo...');
       final bytes = await ReciboPdfGenerator.generate(recibo, business);
       debugPrint('✅ PDF gerado com sucesso: ${bytes.length} bytes');
 
       if (context.mounted) {
         Navigator.pop(context);
-        debugPrint('🔵 Dialog fechado');
+        debugPrint('🔄 Dialog fechado');
       }
 
-      debugPrint('🔵 Abrindo compartilhamento...');
+      debugPrint('🔄 Abrindo compartilhamento...');
       await Printing.sharePdf(
         bytes: bytes,
         filename: 'recibo_${recibo.numero.toString().padLeft(4, '0')}.pdf',
@@ -46,7 +46,7 @@ class CompartilharReciboPage extends StatelessWidget {
       debugPrint('✅ Compartilhamento concluído');
 
       if (context.mounted) {
-        debugPrint('🔵 Atualizando status para Enviado...');
+        debugPrint('🔄 Atualizando status para Enviado...');
         await context.read<RecibosProvider>().atualizarStatus(
           recibo.id,
           'Enviado',
@@ -96,7 +96,7 @@ class CompartilharReciboPage extends StatelessWidget {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.orange.shade600, Colors.orange.shade400],
+              colors: [Colors.teal.shade600, Colors.teal.shade400],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -112,7 +112,7 @@ class CompartilharReciboPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.orange.shade50, Colors.white, Colors.white],
+            colors: [Colors.teal.shade50, Colors.white, Colors.white],
           ),
         ),
         child: SafeArea(
@@ -187,7 +187,7 @@ class CompartilharReciboPage extends StatelessWidget {
                   icon: Icons.receipt_long_outlined,
                   label: 'Ver Detalhes do Recibo',
                   subtitle: 'Visualizar informações completas',
-                  color: Colors.orange,
+                  color: Colors.teal,
                   onTap: () => Navigator.of(context).pop(),
                 ),
                 const SizedBox(height: 32),
@@ -198,12 +198,12 @@ class CompartilharReciboPage extends StatelessWidget {
                       child: OutlinedButton.icon(
                         icon: Icon(
                           Icons.copy_all_outlined,
-                          color: Colors.orange.shade600,
+                          color: Colors.teal.shade600,
                         ),
                         label: Text(
                           'Copiar Link',
                           style: TextStyle(
-                            color: Colors.orange.shade600,
+                            color: Colors.teal.shade600,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -211,7 +211,7 @@ class CompartilharReciboPage extends StatelessWidget {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           side: BorderSide(
-                            color: Colors.orange.shade600,
+                            color: Colors.teal.shade600,
                             width: 2,
                           ),
                           shape: RoundedRectangleBorder(
@@ -226,14 +226,14 @@ class CompartilharReciboPage extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Colors.orange.shade600,
-                              Colors.orange.shade400,
+                              Colors.teal.shade600,
+                              Colors.teal.shade400,
                             ],
                           ),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.orange.shade300.withOpacity(0.5),
+                              color: Colors.teal.shade300.withOpacity(0.5),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -289,7 +289,7 @@ class CompartilharReciboPage extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Link não disponível. Tente gerar novamente.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.teal,
           duration: Duration(seconds: 3),
         ),
       );
@@ -310,7 +310,7 @@ ${recibo.link}
 ${businessProvider.telefone.isNotEmpty ? '📞 Contato: ${businessProvider.telefone}' : ''}
 ${businessProvider.emailEmpresa.isNotEmpty ? '📧 Email: ${businessProvider.emailEmpresa}' : ''}
 
-Obrigado pela preferência! 😊
+Obrigado pela preferência! 🙏
 ''';
 
       await Share.share(
@@ -351,7 +351,7 @@ Obrigado pela preferência! 😊
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Link não disponível. Tente gerar novamente.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.teal,
           duration: Duration(seconds: 3),
         ),
       );
@@ -373,7 +373,7 @@ Obrigado pela preferência! 😊
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Link não disponível. Tente gerar novamente.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.teal,
           duration: Duration(seconds: 3),
         ),
       );

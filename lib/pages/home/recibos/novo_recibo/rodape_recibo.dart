@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class RodapeRecibo extends StatelessWidget {
@@ -47,9 +47,9 @@ class RodapeRecibo extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
+              color: Colors.teal.shade50,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.shade200, width: 1),
+              border: Border.all(color: Colors.teal.shade200, width: 1),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -69,12 +69,12 @@ class RodapeRecibo extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.orange.shade400, Colors.orange.shade600],
+                      colors: [Colors.teal.shade400, Colors.teal.shade600],
                     ),
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.orange.shade200,
+                        color: Colors.teal.shade200,
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -103,20 +103,20 @@ class RodapeRecibo extends StatelessWidget {
                   onPressed: isSaving ? null : onRevisarESalvar,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: Colors.orange.shade600, width: 1.5),
+                    side: BorderSide(color: Colors.teal.shade600, width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   icon: Icon(
                     Icons.visibility_outlined,
-                    color: Colors.orange.shade600,
+                    color: Colors.teal.shade600,
                   ),
                   label: Text(
                     'Revisar',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.orange.shade600,
+                      color: Colors.teal.shade600,
                     ),
                   ),
                 ),
@@ -134,7 +134,7 @@ class RodapeRecibo extends StatelessWidget {
                     backgroundColor:
                         isUltimaEtapa
                             ? Colors.green.shade600
-                            : Colors.orange.shade600,
+                            : Colors.teal.shade600,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

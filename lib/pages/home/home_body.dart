@@ -78,10 +78,7 @@ class HomeBody extends StatelessWidget {
                       icon: Icons.receipt_long_outlined,
                       label: 'Novo\nRecibo',
                       gradient: LinearGradient(
-                        colors: [
-                          Colors.orange.shade400,
-                          Colors.orange.shade600,
-                        ],
+                        colors: [Colors.teal.shade400, Colors.teal.shade600],
                       ),
                       onTap:
                           () => Navigator.pushNamed(
@@ -109,6 +106,13 @@ class HomeBody extends StatelessWidget {
                             Navigator.pushNamed(context, AppRoutes.orcamentos),
                   ),
                   FeatureCard(
+                    icon: Icons.receipt_outlined,
+                    title: 'Recibos',
+                    color: Colors.teal,
+                    onTap:
+                        () => Navigator.pushNamed(context, AppRoutes.recibos),
+                  ),
+                  FeatureCard(
                     icon: Icons.calendar_today,
                     title: 'Agendamentos',
                     color: Colors.green,
@@ -117,13 +121,6 @@ class HomeBody extends StatelessWidget {
                           context,
                           AppRoutes.agendamentos,
                         ),
-                  ),
-                  FeatureCard(
-                    icon: Icons.receipt_outlined,
-                    title: 'Recibos',
-                    color: Colors.orange,
-                    onTap:
-                        () => Navigator.pushNamed(context, AppRoutes.recibos),
                   ),
                   FeatureCard(
                     icon: Icons.attach_money,

@@ -447,7 +447,7 @@ class _VisualizarOrcamentoPageState extends State<VisualizarOrcamentoPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Total do Item', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+                            Text('Total dos Itens', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
                             Text(currencyFormat.format(totalItem), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor)),
                           ],
                         ),

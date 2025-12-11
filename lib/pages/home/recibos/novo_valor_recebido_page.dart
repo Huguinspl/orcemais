@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -234,7 +234,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Colors.white, Colors.orange.shade50],
+                            colors: [Colors.white, Colors.teal.shade50],
                           ),
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -252,7 +252,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.orange.withOpacity(0.3),
+                                  color: Colors.teal.withOpacity(0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -281,7 +281,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                                 color:
                                     _data == null
                                         ? Colors.grey.shade600
-                                        : Colors.orange.shade700,
+                                        : Colors.teal.shade700,
                                 fontWeight:
                                     _data == null
                                         ? FontWeight.normal
@@ -293,13 +293,13 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                           trailing: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.orange.shade100,
+                              color: Colors.teal.shade100,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.arrow_forward_ios,
                               size: 16,
-                              color: Colors.orange.shade700,
+                              color: Colors.teal.shade700,
                             ),
                           ),
                           onTap: _pickData,
@@ -320,7 +320,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Colors.white, Colors.orange.shade50],
+                            colors: [Colors.white, Colors.teal.shade50],
                           ),
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -357,7 +357,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: Colors.orange.shade100,
+                                color: Colors.teal.shade100,
                                 width: 1,
                               ),
                             ),
@@ -419,7 +419,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Colors.white, Colors.orange.shade50],
+                            colors: [Colors.white, Colors.teal.shade50],
                           ),
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -455,7 +455,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: Colors.orange.shade100,
+                                color: Colors.teal.shade100,
                                 width: 1,
                               ),
                             ),
@@ -482,23 +482,23 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                           items: const [
                             DropdownMenuItem(
                               value: 'Dinheiro',
-                              child: Text('💵 Dinheiro'),
+                              child: Text('?? Dinheiro'),
                             ),
                             DropdownMenuItem(
                               value: 'Pix',
-                              child: Text('🔑 Pix'),
+                              child: Text('?? Pix'),
                             ),
                             DropdownMenuItem(
                               value: 'Debito',
-                              child: Text('💳 Débito'),
+                              child: Text('?? Débito'),
                             ),
                             DropdownMenuItem(
                               value: 'Credito',
-                              child: Text('💳 Crédito'),
+                              child: Text('?? Crédito'),
                             ),
                             DropdownMenuItem(
                               value: 'Boleto',
-                              child: Text('📄 Boleto'),
+                              child: Text('?? Boleto'),
                             ),
                           ],
                           onChanged:
@@ -520,7 +520,7 @@ class _NovoValorRecebidoPageState extends State<NovoValorRecebidoPage>
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.orange.withOpacity(0.4),
+                            color: Colors.teal.withOpacity(0.4),
                             blurRadius: 12,
                             offset: const Offset(0, 6),
                           ),

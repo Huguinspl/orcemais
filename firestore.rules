@@ -35,7 +35,17 @@ service cloud.firestore {
                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
       }
       
-      // Outras subcoleções de business (recibos, clientes, etc)
+      // Regras específicas para recibos - permite leitura pública
+      match /recibos/{reciboId} {
+        // Permite leitura pública (para links compartilhados)
+        allow read: if true;
+        // Permite ao dono fazer qualquer operação
+        allow create, delete: if isOwner(userId);
+        // Permite atualização pelo dono
+        allow update: if isOwner(userId);
+      }
+      
+      // Outras subcoleções de business (clientes, etc)
       match /{subcollection}/{docId} {
         allow read, write: if isOwner(userId);
       }
