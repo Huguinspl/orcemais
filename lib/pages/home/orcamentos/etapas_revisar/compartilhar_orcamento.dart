@@ -201,6 +201,7 @@ Obrigado pela preferência! 😊
       debugPrint('🌐 Iniciando geração do Link Web...');
       final businessProvider = context.read<BusinessProvider>();
       final userProvider = context.read<UserProvider>();
+      final orcamentosProvider = context.read<OrcamentosProvider>();
 
       debugPrint('🌐 UserId: ${userProvider.uid}');
       debugPrint('🌐 OrcamentoId: ${orcamento.id}');
@@ -229,11 +230,29 @@ Obrigado pela preferência! 😊
       debugPrint('✅ Link criado: ${link.link}');
 
       // ✅ Salvar o link no orçamento
-      await context.read<OrcamentosProvider>().atualizarLinkWeb(
-        orcamento.id,
-        link.link,
-      );
+      await orcamentosProvider.atualizarLinkWeb(orcamento.id, link.link);
       debugPrint('✅ Link salvo no orçamento');
+
+      // ✅ NOVO: Salvar snapshot completo para carregamento rápido no link web
+      debugPrint('🌐 Salvando snapshot de compartilhamento...');
+      await orcamentosProvider.salvarSnapshotCompartilhamento(
+        orcamento: orcamento,
+        businessInfo: {
+          'nomeEmpresa': businessProvider.nomeEmpresa,
+          'telefone': businessProvider.telefone,
+          'ramo': businessProvider.ramo,
+          'endereco': businessProvider.endereco,
+          'cnpj': businessProvider.cnpj,
+          'emailEmpresa': businessProvider.emailEmpresa,
+          'logoUrl': businessProvider.logoUrl,
+          'pixTipo': businessProvider.pixTipo,
+          'pixChave': businessProvider.pixChave,
+          'descricao': businessProvider.descricao,
+          'assinaturaUrl': businessProvider.assinaturaUrl,
+        },
+        linkWeb: link.link,
+      );
+      debugPrint('✅ Snapshot salvo para carregamento rápido');
 
       // Atualizar o estado local
       setState(() => _linkGerado = link.link);

@@ -13,6 +13,14 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
+    // ✅ Coleção pública para documentos compartilhados (orçamentos/recibos)
+    // Leitura pública para carregamento rápido no link web
+    match /shared_documents/{documentId} {
+      allow read: if true;
+      allow write: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
     // Regras para usuários (dados pessoais)
     match /users/{userId} {
       allow read, write: if isOwner(userId);

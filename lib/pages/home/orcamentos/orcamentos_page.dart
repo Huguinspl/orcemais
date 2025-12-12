@@ -18,7 +18,7 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroSelecionado = 'Aberto';
   String _termoBusca = '';
-  
+
   // Controle para busca de orçamentos antigos
   bool _mostrandoResultadosBusca = false;
   List<Orcamento> _resultadosBusca = [];
@@ -92,10 +92,10 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
   // Buscar orçamentos antigos
   Future<void> _buscarOrcamentosAntigos() async {
     if (_termoBusca.isEmpty) return;
-    
+
     final provider = context.read<OrcamentosProvider>();
     final resultados = await provider.buscarOrcamentos(_termoBusca);
-    
+
     setState(() {
       _mostrandoResultadosBusca = true;
       _resultadosBusca = resultados;
@@ -454,7 +454,8 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
             Consumer<OrcamentosProvider>(
               builder: (context, provider, child) {
                 final Map<String, int> contagemStatus = {};
-                contagemStatus['Todos'] = provider.orcamentos.length;
+                // Usa o total do banco de dados ao invés do tamanho da lista carregada
+                contagemStatus['Todos'] = provider.totalOrcamentos;
                 for (var status in _status) {
                   if (status == 'Todos') continue;
                   contagemStatus[status] =
@@ -477,9 +478,10 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                   }
 
                   // Se está mostrando resultados de busca de antigos
-                  final listaBase = _mostrandoResultadosBusca 
-                      ? _resultadosBusca 
-                      : provider.orcamentos;
+                  final listaBase =
+                      _mostrandoResultadosBusca
+                          ? _resultadosBusca
+                          : provider.orcamentos;
 
                   final listaFiltrada =
                       listaBase.where((orc) {
@@ -488,10 +490,11 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                             orc.status.toLowerCase() ==
                                 _filtroSelecionado.toLowerCase();
                         // Se está mostrando resultados de busca, não filtra por termo novamente
-                        final filtroBusca = _mostrandoResultadosBusca || 
-                            orc.cliente.nome
-                                .toLowerCase()
-                                .contains(_termoBusca.toLowerCase());
+                        final filtroBusca =
+                            _mostrandoResultadosBusca ||
+                            orc.cliente.nome.toLowerCase().contains(
+                              _termoBusca.toLowerCase(),
+                            );
                         return filtroStatus && filtroBusca;
                       }).toList();
 
@@ -530,13 +533,16 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                             ),
                           ),
                           // Botão para buscar em todos os orçamentos
-                          if (provider.temMaisAntigos && !_mostrandoResultadosBusca)
+                          if (provider.temMaisAntigos &&
+                              !_mostrandoResultadosBusca)
                             Padding(
                               padding: const EdgeInsets.only(top: 16),
                               child: TextButton.icon(
                                 onPressed: _carregarTodos,
                                 icon: const Icon(Icons.history),
-                                label: const Text('Buscar em orçamentos antigos'),
+                                label: const Text(
+                                  'Buscar em orçamentos antigos',
+                                ),
                               ),
                             ),
                         ],
@@ -549,10 +555,17 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                       // Indicador de resultados de busca
                       if (_mostrandoResultadosBusca)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
                           child: Row(
                             children: [
-                              Icon(Icons.info_outline, size: 16, color: Colors.blue.shade600),
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.blue.shade600,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'Mostrando ${listaFiltrada.length} resultado(s) da busca',
@@ -579,26 +592,46 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                       Expanded(
                         child: ListView.builder(
                           padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-                          itemCount: listaFiltrada.length + (provider.temMaisAntigos && !_mostrandoResultadosBusca ? 1 : 0),
+                          itemCount:
+                              listaFiltrada.length +
+                              (provider.temMaisAntigos &&
+                                      !_mostrandoResultadosBusca
+                                  ? 1
+                                  : 0),
                           itemBuilder: (context, index) {
                             // Último item é o botão de carregar mais
-                            if (index == listaFiltrada.length && provider.temMaisAntigos && !_mostrandoResultadosBusca) {
+                            if (index == listaFiltrada.length &&
+                                provider.temMaisAntigos &&
+                                !_mostrandoResultadosBusca) {
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 20,
+                                ),
                                 child: OutlinedButton.icon(
-                                  onPressed: provider.buscandoMais ? null : _carregarTodos,
-                                  icon: provider.buscandoMais
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        )
-                                      : const Icon(Icons.history),
-                                  label: Text(provider.buscandoMais 
-                                      ? 'Carregando...' 
-                                      : 'Carregar orçamentos antigos'),
+                                  onPressed:
+                                      provider.buscandoMais
+                                          ? null
+                                          : _carregarTodos,
+                                  icon:
+                                      provider.buscandoMais
+                                          ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                          : const Icon(Icons.history),
+                                  label: Text(
+                                    provider.buscandoMais
+                                        ? 'Carregando...'
+                                        : 'Carregar orçamentos antigos',
+                                  ),
                                   style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -969,7 +1002,10 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                   suffixIcon:
                       _termoBusca.isNotEmpty
                           ? IconButton(
-                            icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                            icon: Icon(
+                              Icons.clear,
+                              color: Colors.grey.shade600,
+                            ),
                             onPressed: () {
                               _searchController.clear();
                               setState(() {
@@ -999,25 +1035,34 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                 child: Consumer<OrcamentosProvider>(
                   builder: (context, provider, _) {
                     return ElevatedButton(
-                      onPressed: provider.buscandoMais ? null : _buscarOrcamentosAntigos,
+                      onPressed:
+                          provider.buscandoMais
+                              ? null
+                              : _buscarOrcamentosAntigos,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade600,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: provider.buscandoMais
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text('Buscar'),
+                      child:
+                          provider.buscandoMais
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : const Text('Buscar'),
                     );
                   },
                 ),

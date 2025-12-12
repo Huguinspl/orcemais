@@ -57,10 +57,10 @@ class _RecibosPageState extends State<RecibosPage> {
   // Buscar recibos antigos
   Future<void> _buscarRecibosAntigos() async {
     if (_termoBusca.isEmpty) return;
-    
+
     final provider = context.read<RecibosProvider>();
     final resultados = await provider.buscarRecibos(_termoBusca);
-    
+
     setState(() {
       _mostrandoResultadosBusca = true;
       _resultadosBusca = resultados;
@@ -352,7 +352,8 @@ class _RecibosPageState extends State<RecibosPage> {
             Consumer<RecibosProvider>(
               builder: (context, provider, child) {
                 final Map<String, int> contagemStatus = {};
-                contagemStatus['Todos'] = provider.recibos.length;
+                // Usa o total do banco de dados ao invés do tamanho da lista carregada
+                contagemStatus['Todos'] = provider.totalRecibos;
                 // Aberto = recibos sem link (não enviados)
                 contagemStatus['Aberto'] =
                     provider.recibos
@@ -376,9 +377,10 @@ class _RecibosPageState extends State<RecibosPage> {
                   }
 
                   // Se está mostrando resultados de busca de antigos
-                  final listaBase = _mostrandoResultadosBusca 
-                      ? _resultadosBusca 
-                      : prov.recibos;
+                  final listaBase =
+                      _mostrandoResultadosBusca
+                          ? _resultadosBusca
+                          : prov.recibos;
 
                   final lista =
                       listaBase.where((r) {
@@ -397,10 +399,11 @@ class _RecibosPageState extends State<RecibosPage> {
                           filtroStatusMatch = true;
                         }
                         // Se está mostrando resultados de busca, não filtra por termo novamente
-                        final filtroBusca = _mostrandoResultadosBusca || 
-                            r.cliente.nome
-                                .toLowerCase()
-                                .contains(_termoBusca.toLowerCase());
+                        final filtroBusca =
+                            _mostrandoResultadosBusca ||
+                            r.cliente.nome.toLowerCase().contains(
+                              _termoBusca.toLowerCase(),
+                            );
                         return filtroStatusMatch && filtroBusca;
                       }).toList();
 
@@ -458,10 +461,17 @@ class _RecibosPageState extends State<RecibosPage> {
                       // Indicador de resultados de busca
                       if (_mostrandoResultadosBusca)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
                           child: Row(
                             children: [
-                              Icon(Icons.info_outline, size: 16, color: Colors.teal.shade600),
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.teal.shade600,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'Mostrando ${lista.length} resultado(s) da busca',
@@ -490,26 +500,46 @@ class _RecibosPageState extends State<RecibosPage> {
                           onRefresh: prov.carregarRecibos,
                           child: ListView.builder(
                             padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-                            itemCount: lista.length + (prov.temMaisAntigos && !_mostrandoResultadosBusca ? 1 : 0),
+                            itemCount:
+                                lista.length +
+                                (prov.temMaisAntigos &&
+                                        !_mostrandoResultadosBusca
+                                    ? 1
+                                    : 0),
                             itemBuilder: (_, i) {
                               // Último item é o botão de carregar mais
-                              if (i == lista.length && prov.temMaisAntigos && !_mostrandoResultadosBusca) {
+                              if (i == lista.length &&
+                                  prov.temMaisAntigos &&
+                                  !_mostrandoResultadosBusca) {
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 20,
+                                  ),
                                   child: OutlinedButton.icon(
-                                    onPressed: prov.buscandoMais ? null : _carregarTodos,
-                                    icon: prov.buscandoMais
-                                        ? const SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          )
-                                        : const Icon(Icons.history),
-                                    label: Text(prov.buscandoMais 
-                                        ? 'Carregando...' 
-                                        : 'Carregar recibos antigos'),
+                                    onPressed:
+                                        prov.buscandoMais
+                                            ? null
+                                            : _carregarTodos,
+                                    icon:
+                                        prov.buscandoMais
+                                            ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                            : const Icon(Icons.history),
+                                    label: Text(
+                                      prov.buscandoMais
+                                          ? 'Carregando...'
+                                          : 'Carregar recibos antigos',
+                                    ),
                                     style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -569,7 +599,10 @@ class _RecibosPageState extends State<RecibosPage> {
                   suffixIcon:
                       _termoBusca.isNotEmpty
                           ? IconButton(
-                            icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                            icon: Icon(
+                              Icons.clear,
+                              color: Colors.grey.shade600,
+                            ),
                             onPressed: () {
                               _searchController.clear();
                               setState(() {
@@ -599,25 +632,32 @@ class _RecibosPageState extends State<RecibosPage> {
                 child: Consumer<RecibosProvider>(
                   builder: (context, provider, _) {
                     return ElevatedButton(
-                      onPressed: provider.buscandoMais ? null : _buscarRecibosAntigos,
+                      onPressed:
+                          provider.buscandoMais ? null : _buscarRecibosAntigos,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal.shade600,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: provider.buscandoMais
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text('Buscar'),
+                      child:
+                          provider.buscandoMais
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : const Text('Buscar'),
                     );
                   },
                 ),

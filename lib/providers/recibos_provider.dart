@@ -17,10 +17,14 @@ class RecibosProvider with ChangeNotifier {
   static const int _limitePorPagina = 15;
   bool _temMaisAntigos = false;
   bool get temMaisAntigos => _temMaisAntigos;
-  
+
   // Flag para indicar se está buscando mais antigos
   bool _buscandoMais = false;
   bool get buscandoMais => _buscandoMais;
+
+  // Total real de recibos no banco de dados
+  int _totalRecibos = 0;
+  int get totalRecibos => _totalRecibos;
 
   String get _uid {
     final u = _auth.currentUser;
@@ -36,21 +40,27 @@ class RecibosProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      // Busca o total de recibos no banco de dados
+      final totalSnapshot = await _recibosRef.count().get();
+      _totalRecibos = totalSnapshot.count ?? 0;
+
       // Carrega apenas os 15 mais recentes + 1 para verificar se há mais
-      final snap = await _recibosRef
-          .orderBy('numero', descending: true)
-          .limit(_limitePorPagina + 1)
-          .get();
-      
+      final snap =
+          await _recibosRef
+              .orderBy('numero', descending: true)
+              .limit(_limitePorPagina + 1)
+              .get();
+
       final docs = snap.docs;
-      
+
       // Verifica se há mais recibos além dos 15
       if (docs.length > _limitePorPagina) {
         _temMaisAntigos = true;
-        _recibos = docs
-            .take(_limitePorPagina)
-            .map((d) => Recibo.fromFirestore(d))
-            .toList();
+        _recibos =
+            docs
+                .take(_limitePorPagina)
+                .map((d) => Recibo.fromFirestore(d))
+                .toList();
       } else {
         _temMaisAntigos = false;
         _recibos = docs.map((d) => Recibo.fromFirestore(d)).toList();
@@ -65,31 +75,29 @@ class RecibosProvider with ChangeNotifier {
   /// Busca recibos por termo (cliente nome ou número)
   Future<List<Recibo>> buscarRecibos(String termo) async {
     if (termo.isEmpty) return [];
-    
+
     _buscandoMais = true;
     notifyListeners();
-    
+
     try {
       // Busca todos os recibos para filtrar localmente
-      final snap = await _recibosRef
-          .orderBy('numero', descending: true)
-          .get();
-      
-      final todosRecibos = snap.docs
-          .map((d) => Recibo.fromFirestore(d))
-          .toList();
-      
+      final snap = await _recibosRef.orderBy('numero', descending: true).get();
+
+      final todosRecibos =
+          snap.docs.map((d) => Recibo.fromFirestore(d)).toList();
+
       // Filtra por nome do cliente ou número do recibo
       final termoLower = termo.toLowerCase();
-      final resultados = todosRecibos.where((r) {
-        final nomeMatch = r.cliente.nome.toLowerCase().contains(termoLower);
-        final numeroMatch = r.numero.toString().contains(termo);
-        return nomeMatch || numeroMatch;
-      }).toList();
-      
+      final resultados =
+          todosRecibos.where((r) {
+            final nomeMatch = r.cliente.nome.toLowerCase().contains(termoLower);
+            final numeroMatch = r.numero.toString().contains(termo);
+            return nomeMatch || numeroMatch;
+          }).toList();
+
       _buscandoMais = false;
       notifyListeners();
-      
+
       return resultados;
     } catch (e) {
       debugPrint('Erro ao buscar recibos: $e');
@@ -103,20 +111,16 @@ class RecibosProvider with ChangeNotifier {
   Future<void> carregarTodosRecibos() async {
     _buscandoMais = true;
     notifyListeners();
-    
+
     try {
-      final snap = await _recibosRef
-          .orderBy('numero', descending: true)
-          .get();
-      
-      _recibos = snap.docs
-          .map((d) => Recibo.fromFirestore(d))
-          .toList();
+      final snap = await _recibosRef.orderBy('numero', descending: true).get();
+
+      _recibos = snap.docs.map((d) => Recibo.fromFirestore(d)).toList();
       _temMaisAntigos = false;
     } catch (e) {
       debugPrint('Erro ao carregar todos recibos: $e');
     }
-    
+
     _buscandoMais = false;
     notifyListeners();
   }
@@ -136,6 +140,7 @@ class RecibosProvider with ChangeNotifier {
       tx.set(docRef, recibo.toMap());
       tx.update(_businessDoc, {'ultimoReciboNum': novoNumero});
       _recibos.insert(0, recibo);
+      _totalRecibos++;
       notifyListeners();
       return recibo;
     });
@@ -155,6 +160,7 @@ class RecibosProvider with ChangeNotifier {
   Future<void> excluirRecibo(String id) async {
     await _recibosRef.doc(id).delete();
     _recibos.removeWhere((r) => r.id == id);
+    _totalRecibos = _totalRecibos > 0 ? _totalRecibos - 1 : 0;
     notifyListeners();
   }
 
