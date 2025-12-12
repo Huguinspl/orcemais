@@ -234,4 +234,69 @@ class RecibosProvider with ChangeNotifier {
     _recibos[idx] = atualizado;
     notifyListeners();
   }
+
+  /// Salva um snapshot completo do recibo para carregamento rápido no link web
+  /// Inclui todos os dados do recibo + dados do negócio
+  Future<void> salvarSnapshotCompartilhamento({
+    required Recibo recibo,
+    required Map<String, dynamic> businessInfo,
+    required String linkWeb,
+  }) async {
+    final sharedDocRef = _firestore
+        .collection('shared_documents')
+        .doc(recibo.id);
+
+    await sharedDocRef.set({
+      'userId': _uid,
+      'tipoDocumento': 'recibo',
+      'linkWeb': linkWeb,
+      'criadoEm': FieldValue.serverTimestamp(),
+      // Dados do recibo
+      'recibo': {
+        'id': recibo.id,
+        'numero': recibo.numero,
+        'cliente': recibo.cliente.toMap(),
+        'itens': recibo.itens,
+        'subtotal': recibo.subtotalItens,
+        'desconto': 0,
+        'valorTotal': recibo.valorTotal,
+        'status': recibo.status,
+        'dataCriacao': recibo.criadoEm,
+        'dataPagamento': null,
+        'metodoPagamento': null,
+        'observacoes': null,
+        'informacoesAdicionais': null,
+        'fotos': null,
+      },
+      // Dados do negócio (snapshot no momento do compartilhamento)
+      'businessInfo': businessInfo,
+    });
+
+    debugPrint(
+      '✅ Snapshot de compartilhamento salvo para recibo ${recibo.id}',
+    );
+  }
+
+  /// Atualiza o status do recibo no snapshot compartilhado
+  Future<void> atualizarStatusSnapshot(
+    String reciboId,
+    String novoStatus,
+  ) async {
+    try {
+      final sharedDocRef = _firestore
+          .collection('shared_documents')
+          .doc(reciboId);
+      final doc = await sharedDocRef.get();
+
+      if (doc.exists) {
+        await sharedDocRef.update({
+          'recibo.status': novoStatus,
+          'atualizadoEm': FieldValue.serverTimestamp(),
+        });
+        debugPrint('✅ Status do snapshot de recibo atualizado para: $novoStatus');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Erro ao atualizar status do snapshot de recibo: $e');
+    }
+  }
 }

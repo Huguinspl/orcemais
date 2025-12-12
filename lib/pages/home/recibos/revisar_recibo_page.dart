@@ -124,6 +124,22 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
         await recibosProvider.atualizarLink(widget.recibo.id, linkFinal);
         debugPrint('✅ Novo link gerado e salvo: $linkFinal');
 
+        // Salva snapshot completo para carregamento rápido no link web
+        final businessInfo = {
+          'nomeEmpresa': businessProvider.nomeEmpresa,
+          'logoUrl': businessProvider.logoUrl,
+          'telefone': businessProvider.telefone,
+          'emailEmpresa': businessProvider.emailEmpresa,
+          'endereco': businessProvider.endereco,
+          'cnpj': businessProvider.cnpj,
+        };
+        await recibosProvider.salvarSnapshotCompartilhamento(
+          recibo: widget.recibo,
+          businessInfo: businessInfo,
+          linkWeb: linkFinal,
+        );
+        debugPrint('✅ Snapshot do recibo salvo para carregamento rápido');
+
         // Se o recibo foi importado de um orçamento, atualiza o status do orçamento para "Concluído"
         if (widget.recibo.orcamentoId != null &&
             widget.recibo.orcamentoId!.isNotEmpty) {
