@@ -16,6 +16,7 @@ class OrcamentosPage extends StatefulWidget {
 
 class _OrcamentosPageState extends State<OrcamentosPage> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _statusScrollController = ScrollController();
   String _filtroSelecionado = 'Todos';
   String _termoBusca = '';
 
@@ -31,6 +32,45 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
     'Recusado',
     'Concluído',
   ];
+
+  // Método para alternar status via swipe
+  void _mudarStatusPorSwipe(DragEndDetails details) {
+    final velocidade = details.primaryVelocity ?? 0;
+    final indexAtual = _status.indexOf(_filtroSelecionado);
+
+    if (velocidade < -300) {
+      // Swipe para esquerda -> próximo status
+      if (indexAtual < _status.length - 1) {
+        final novoIndex = indexAtual + 1;
+        setState(() {
+          _filtroSelecionado = _status[novoIndex];
+        });
+        _rolarParaStatus(novoIndex);
+      }
+    } else if (velocidade > 300) {
+      // Swipe para direita -> status anterior
+      if (indexAtual > 0) {
+        final novoIndex = indexAtual - 1;
+        setState(() {
+          _filtroSelecionado = _status[novoIndex];
+        });
+        _rolarParaStatus(novoIndex);
+      }
+    }
+  }
+
+  // Método para rolar a barra de filtros até o status selecionado
+  void _rolarParaStatus(int index) {
+    // Largura aproximada de cada chip (incluindo padding)
+    const double larguraChip = 120.0;
+    final double posicaoAlvo = index * larguraChip;
+
+    _statusScrollController.animateTo(
+      posicaoAlvo,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   void initState() {
@@ -57,6 +97,7 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _statusScrollController.dispose();
     super.dispose();
   }
 
@@ -397,258 +438,261 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade50, Colors.white, Colors.white],
+      body: GestureDetector(
+        onHorizontalDragEnd: _mudarStatusPorSwipe,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.blue.shade50, Colors.white, Colors.white],
+            ),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            _buildSearchBar(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.description_outlined,
-                      color: Colors.blue.shade700,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Seus Orçamentos',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade800,
-                          letterSpacing: -0.5,
-                        ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              _buildSearchBar(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      Text(
-                        'Gerencie e acompanhe',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
+                      child: Icon(
+                        Icons.description_outlined,
+                        color: Colors.blue.shade700,
+                        size: 24,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Seus Orçamentos',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        Text(
+                          'Gerencie e acompanhe',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Consumer<OrcamentosProvider>(
-              builder: (context, provider, child) {
-                final Map<String, int> contagemStatus = {};
-                // Usa o total do banco de dados ao invés do tamanho da lista carregada
-                contagemStatus['Todos'] = provider.totalOrcamentos;
-                for (var status in _status) {
-                  if (status == 'Todos') continue;
-                  contagemStatus[status] =
-                      provider.orcamentos
-                          .where(
-                            (orc) =>
-                                orc.status.toLowerCase() ==
-                                status.toLowerCase(),
-                          )
-                          .length;
-                }
-                return _buildStatusFilterBar(contagemStatus);
-              },
-            ),
-            Expanded(
-              child: Consumer<OrcamentosProvider>(
+              Consumer<OrcamentosProvider>(
                 builder: (context, provider, child) {
-                  if (provider.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                  final Map<String, int> contagemStatus = {};
+                  // Usa o total do banco de dados ao invés do tamanho da lista carregada
+                  contagemStatus['Todos'] = provider.totalOrcamentos;
+                  for (var status in _status) {
+                    if (status == 'Todos') continue;
+                    contagemStatus[status] =
+                        provider.orcamentos
+                            .where(
+                              (orc) =>
+                                  orc.status.toLowerCase() ==
+                                  status.toLowerCase(),
+                            )
+                            .length;
                   }
-
-                  // Se está mostrando resultados de busca de antigos
-                  final listaBase =
-                      _mostrandoResultadosBusca
-                          ? _resultadosBusca
-                          : provider.orcamentos;
-
-                  final listaFiltrada =
-                      listaBase.where((orc) {
-                        final filtroStatus =
-                            _filtroSelecionado == 'Todos' ||
-                            orc.status.toLowerCase() ==
-                                _filtroSelecionado.toLowerCase();
-                        // Se está mostrando resultados de busca, não filtra por termo novamente
-                        final filtroBusca =
-                            _mostrandoResultadosBusca ||
-                            orc.cliente.nome.toLowerCase().contains(
-                              _termoBusca.toLowerCase(),
-                            );
-                        return filtroStatus && filtroBusca;
-                      }).toList();
-
-                  if (listaFiltrada.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.search_off,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Nenhum orçamento encontrado',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Tente ajustar os filtros ou criar um novo',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                          // Botão para buscar em todos os orçamentos
-                          if (provider.temMaisAntigos &&
-                              !_mostrandoResultadosBusca)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 16),
-                              child: TextButton.icon(
-                                onPressed: _carregarTodos,
-                                icon: const Icon(Icons.history),
-                                label: const Text(
-                                  'Buscar em orçamentos antigos',
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: [
-                      // Indicador de resultados de busca
-                      if (_mostrandoResultadosBusca)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 16,
-                                color: Colors.blue.shade600,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Mostrando ${listaFiltrada.length} resultado(s) da busca',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.blue.shade700,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const Spacer(),
-                              TextButton(
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _mostrandoResultadosBusca = false;
-                                    _resultadosBusca = [];
-                                  });
-                                },
-                                child: const Text('Limpar'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-                          itemCount:
-                              listaFiltrada.length +
-                              (provider.temMaisAntigos &&
-                                      !_mostrandoResultadosBusca
-                                  ? 1
-                                  : 0),
-                          itemBuilder: (context, index) {
-                            // Último item é o botão de carregar mais
-                            if (index == listaFiltrada.length &&
-                                provider.temMaisAntigos &&
-                                !_mostrandoResultadosBusca) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                  horizontal: 20,
-                                ),
-                                child: OutlinedButton.icon(
-                                  onPressed:
-                                      provider.buscandoMais
-                                          ? null
-                                          : _carregarTodos,
-                                  icon:
-                                      provider.buscandoMais
-                                          ? const SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                          : const Icon(Icons.history),
-                                  label: Text(
-                                    provider.buscandoMais
-                                        ? 'Carregando...'
-                                        : 'Carregar orçamentos antigos',
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                            return _buildOrcamentoCard(listaFiltrada[index]);
-                          },
-                        ),
-                      ),
-                    ],
-                  );
+                  return _buildStatusFilterBar(contagemStatus);
                 },
               ),
-            ),
-          ],
+              Expanded(
+                child: Consumer<OrcamentosProvider>(
+                  builder: (context, provider, child) {
+                    if (provider.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    // Se está mostrando resultados de busca de antigos
+                    final listaBase =
+                        _mostrandoResultadosBusca
+                            ? _resultadosBusca
+                            : provider.orcamentos;
+
+                    final listaFiltrada =
+                        listaBase.where((orc) {
+                          final filtroStatus =
+                              _filtroSelecionado == 'Todos' ||
+                              orc.status.toLowerCase() ==
+                                  _filtroSelecionado.toLowerCase();
+                          // Se está mostrando resultados de busca, não filtra por termo novamente
+                          final filtroBusca =
+                              _mostrandoResultadosBusca ||
+                              orc.cliente.nome.toLowerCase().contains(
+                                _termoBusca.toLowerCase(),
+                              );
+                          return filtroStatus && filtroBusca;
+                        }).toList();
+
+                    if (listaFiltrada.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.search_off,
+                                size: 64,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Nenhum orçamento encontrado',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tente ajustar os filtros ou criar um novo',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                            // Botão para buscar em todos os orçamentos
+                            if (provider.temMaisAntigos &&
+                                !_mostrandoResultadosBusca)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: TextButton.icon(
+                                  onPressed: _carregarTodos,
+                                  icon: const Icon(Icons.history),
+                                  label: const Text(
+                                    'Buscar em orçamentos antigos',
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      children: [
+                        // Indicador de resultados de busca
+                        if (_mostrandoResultadosBusca)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 8,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: Colors.blue.shade600,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Mostrando ${listaFiltrada.length} resultado(s) da busca',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.blue.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const Spacer(),
+                                TextButton(
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _mostrandoResultadosBusca = false;
+                                      _resultadosBusca = [];
+                                    });
+                                  },
+                                  child: const Text('Limpar'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                            itemCount:
+                                listaFiltrada.length +
+                                (provider.temMaisAntigos &&
+                                        !_mostrandoResultadosBusca
+                                    ? 1
+                                    : 0),
+                            itemBuilder: (context, index) {
+                              // Último item é o botão de carregar mais
+                              if (index == listaFiltrada.length &&
+                                  provider.temMaisAntigos &&
+                                  !_mostrandoResultadosBusca) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 20,
+                                  ),
+                                  child: OutlinedButton.icon(
+                                    onPressed:
+                                        provider.buscandoMais
+                                            ? null
+                                            : _carregarTodos,
+                                    icon:
+                                        provider.buscandoMais
+                                            ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                            : const Icon(Icons.history),
+                                    label: Text(
+                                      provider.buscandoMais
+                                          ? 'Carregando...'
+                                          : 'Carregar orçamentos antigos',
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return _buildOrcamentoCard(listaFiltrada[index]);
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -1078,6 +1122,7 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
       margin: const EdgeInsets.symmetric(vertical: 12),
       height: 50,
       child: ListView.builder(
+        controller: _statusScrollController,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: _status.length,

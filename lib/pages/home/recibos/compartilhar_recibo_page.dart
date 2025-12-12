@@ -326,7 +326,8 @@ Obrigado pela preferência! 🙏
 
       await Share.share(
         textoParaCompartilhar,
-        subject: 'Recibo ${recibo.cliente.nome} - ${businessProvider.nomeEmpresa}',
+        subject:
+            'Recibo ${recibo.cliente.nome} - ${businessProvider.nomeEmpresa}',
       );
 
       // Após o compartilhamento, atualiza o status para "Enviado"

@@ -296,83 +296,120 @@ class _ClientesPageState extends State<ClientesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.indigo.shade600, Colors.indigo.shade400],
-            ),
-          ),
-        ),
-        title: Text(
-          widget.isPickerMode ? 'Selecione um Cliente' : 'Clientes',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.indigo.shade50, Colors.white, Colors.white],
-          ),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            _buildSearchBar(),
-            if (!widget.isPickerMode) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.indigo.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.people_outlined,
-                        color: Colors.indigo.shade700,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Seus Clientes',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        Consumer<ClientsProvider>(
-                          builder: (_, prov, __) {
-                            return Text(
-                              '${prov.clientes.length} ${prov.clientes.length == 1 ? 'cliente cadastrado' : 'clientes cadastrados'}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
+      body: CustomScrollView(
+        slivers: [
+          // AppBar com gradiente indigo
+          SliverAppBar(
+            expandedHeight: 160,
+            floating: false,
+            pinned: true,
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.indigo.shade600,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Text(
+                widget.isPickerMode ? 'Selecione um Cliente' : 'Clientes',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 20,
                 ),
               ),
-            ],
-            Expanded(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.indigo.shade600, Colors.indigo.shade400],
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.people_alt,
+                    size: 70,
+                    color: Colors.white.withOpacity(0.3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Conteúdo
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.indigo.shade50, Colors.white, Colors.white],
+                ),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  _buildSearchBar(),
+                  if (!widget.isPickerMode) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.indigo.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.people_outlined,
+                              color: Colors.indigo.shade700,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Seus Clientes',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              Consumer<ClientsProvider>(
+                                builder: (_, prov, __) {
+                                  return Text(
+                                    '${prov.clientes.length} ${prov.clientes.length == 1 ? 'cliente cadastrado' : 'clientes cadastrados'}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          // Lista de clientes
+          SliverFillRemaining(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.white, Colors.white],
+                ),
+              ),
               child: Consumer<ClientsProvider>(
                 builder: (_, prov, __) {
                   final listaFiltrada =
@@ -464,8 +501,8 @@ class _ClientesPageState extends State<ClientesPage> {
                 },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       // Botões de ação lado a lado
       floatingActionButton: Padding(

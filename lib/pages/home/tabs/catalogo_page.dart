@@ -6,60 +6,99 @@ class CatalogoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.blue.shade50, Colors.white, Colors.white],
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-              Text(
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          // AppBar com gradiente verde claro
+          SliverAppBar(
+            expandedHeight: 160,
+            floating: false,
+            pinned: true,
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.green.shade400,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: const Text(
                 'Catálogo',
                 style: TextStyle(
-                  fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
-                  letterSpacing: -0.5,
+                  color: Colors.white,
+                  fontSize: 20,
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                'Selecione o que deseja gerenciar no seu catálogo',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w400,
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.green.shade400, Colors.green.shade200],
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.inventory_2,
+                    size: 70,
+                    color: Colors.white.withOpacity(0.3),
+                  ),
                 ),
               ),
-              const SizedBox(height: 32),
-              _modernCard(
-                context: context,
-                icon: Icons.miscellaneous_services,
-                iconColor: Colors.green,
-                title: 'Serviços',
-                subtitle: 'Gerencie os serviços oferecidos',
-                onTap: () => Navigator.pushNamed(context, AppRoutes.servicos),
-              ),
-              const SizedBox(height: 16),
-              _modernCard(
-                context: context,
-                icon: Icons.handyman,
-                iconColor: Colors.orange,
-                title: 'Peças e Materiais',
-                subtitle: 'Controle seu estoque e materiais',
-                onTap: () => Navigator.pushNamed(context, AppRoutes.pecasMateriais),
-              ),
-            ],
+            ),
           ),
-        ),
+
+          // Conteúdo
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.green.shade50, Colors.white, Colors.white],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      'Selecione o que deseja gerenciar no seu catálogo',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _modernCard(
+                      context: context,
+                      icon: Icons.miscellaneous_services,
+                      iconColor: Colors.green,
+                      title: 'Serviços',
+                      subtitle: 'Gerencie os serviços oferecidos',
+                      onTap:
+                          () =>
+                              Navigator.pushNamed(context, AppRoutes.servicos),
+                    ),
+                    const SizedBox(height: 16),
+                    _modernCard(
+                      context: context,
+                      icon: Icons.handyman,
+                      iconColor: Colors.orange,
+                      title: 'Peças e Materiais',
+                      subtitle: 'Controle seu estoque e materiais',
+                      onTap:
+                          () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.pecasMateriais,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -86,15 +125,9 @@ class CatalogoPage extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                iconColor.withOpacity(0.1),
-                iconColor.withOpacity(0.05),
-              ],
+              colors: [iconColor.withOpacity(0.1), iconColor.withOpacity(0.05)],
             ),
-            border: Border.all(
-              color: iconColor.withOpacity(0.3),
-              width: 1.5,
-            ),
+            border: Border.all(color: iconColor.withOpacity(0.3), width: 1.5),
           ),
           child: Row(
             children: [

@@ -30,12 +30,17 @@ class _HomePageState extends State<HomePage> {
   int _currentIdx = 0; // 0‑Início | 1‑Meu negócio | 2‑Catálogo | 3‑Clientes
   bool _showTutorial = false;
 
+  // PageController para swipe entre abas
+  late PageController _pageController;
+
   // GlobalKey para o tutorial
   final GlobalKey _bottomNavKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentIdx);
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final prov = context.read<UserProvider>();
@@ -62,6 +67,12 @@ class _HomePageState extends State<HomePage> {
         }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   /* ------------------- NOTIFICAÇÕES ------------------- */
@@ -265,64 +276,8 @@ class _HomePageState extends State<HomePage> {
 
   /* ---------------- AppBar dinâmico --------------- */
   PreferredSizeWidget? _buildHomeAppBar() {
-    // Exibir AppBar global apenas na aba 0 (Início)
-    if (_currentIdx != 0) return null;
-
-    return AppBar(
-      elevation: 0,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.blue.shade600, Colors.blue.shade400],
-          ),
-        ),
-      ),
-      title: Row(
-        children: [
-          const Icon(Icons.account_circle, color: Colors.white, size: 28),
-          const SizedBox(width: 12),
-          Consumer<UserProvider>(
-            builder:
-                (_, u, __) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      u.nome.isNotEmpty
-                          ? 'Olá, ${u.nome.split(' ').first}!'
-                          : 'Olá, Usuário!',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Bem-vindo de volta',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-          ),
-        ],
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_outlined),
-          onPressed: _solicitarPermissaoNotificacoes,
-          onLongPress: _testarNotificacao,
-          tooltip: 'Notificações (Pressione longo para teste)',
-          color: Colors.white,
-        ),
-        HomeMenu(onLogout: _logout),
-        const SizedBox(width: 8),
-      ],
-    );
+    // AppBar agora está dentro de cada página como SliverAppBar
+    return null;
   }
 
   /* ----------------------- UI --------------------- */
@@ -334,13 +289,20 @@ class _HomePageState extends State<HomePage> {
 
       body: Stack(
         children: [
-          IndexedStack(
-            index: _currentIdx,
-            children: const [
-              HomeBody(), // 0 – Início
-              MeuNegocioPage(), // 1 – Meu negócio (AppBar próprio)
-              CatalogoPage(), // 2 – Catálogo (AppBar próprio)
-              ClientesPage(), // 3 – Clientes (AppBar próprio)
+          PageView(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() => _currentIdx = index);
+            },
+            children: [
+              HomeBody(
+                onNotificationPressed: _solicitarPermissaoNotificacoes,
+                onNotificationLongPressed: _testarNotificacao,
+                onLogout: _logout,
+              ), // 0 – Início (SliverAppBar próprio)
+              const MeuNegocioPage(), // 1 – Meu negócio (AppBar próprio)
+              const CatalogoPage(), // 2 – Catálogo (AppBar próprio)
+              const ClientesPage(), // 3 – Clientes (AppBar próprio)
             ],
           ),
           if (_isLoading) const LoadingScreen(),
@@ -359,7 +321,14 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: HomeNavBar(
         key: _bottomNavKey,
         selectedIndex: _currentIdx,
-        onItemTapped: (idx) => setState(() => _currentIdx = idx),
+        onItemTapped: (idx) {
+          setState(() => _currentIdx = idx);
+          _pageController.animateToPage(
+            idx,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
       ),
     );
   }

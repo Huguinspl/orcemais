@@ -43,7 +43,7 @@ class HomeNavBar extends StatelessWidget {
                 icon: Icons.store_outlined,
                 activeIcon: Icons.store,
                 label: 'Negócio',
-                color: Colors.purple,
+                color: Colors.blue.shade400,
               ),
               _buildNavItem(
                 context: context,
@@ -51,7 +51,7 @@ class HomeNavBar extends StatelessWidget {
                 icon: Icons.shopping_bag_outlined,
                 activeIcon: Icons.shopping_bag,
                 label: 'Catálogo',
-                color: Colors.orange,
+                color: Colors.green.shade400,
               ),
               _buildNavItem(
                 context: context,
