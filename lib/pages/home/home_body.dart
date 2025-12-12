@@ -95,11 +95,38 @@ class HomeBody extends StatelessWidget {
                     colors: [Colors.blue.shade600, Colors.blue.shade400],
                   ),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.home_rounded,
-                    size: 70,
-                    color: Colors.white.withOpacity(0.3),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 56),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.home_rounded,
+                          size: 50,
+                          color: Colors.white.withOpacity(0.3),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Gestão completa do seu negócio',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Orçamentos • Recibos • Agendamentos',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
