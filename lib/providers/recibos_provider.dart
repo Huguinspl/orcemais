@@ -147,12 +147,16 @@ class RecibosProvider with ChangeNotifier {
   }
 
   Future<void> atualizarRecibo(Recibo recibo) async {
-    await _recibosRef
-        .doc(recibo.id)
-        .update(recibo.copyWith(atualizadoEm: Timestamp.now()).toMap());
+    final reciboAtualizado = recibo.copyWith(
+      criadoEm: Timestamp.now(), // Atualiza para ficar no topo
+      atualizadoEm: Timestamp.now(),
+    );
+    await _recibosRef.doc(recibo.id).update(reciboAtualizado.toMap());
     final idx = _recibos.indexWhere((r) => r.id == recibo.id);
     if (idx != -1) {
-      _recibos[idx] = recibo.copyWith(atualizadoEm: Timestamp.now());
+      // Remove da posição atual e insere no topo (último editado primeiro)
+      _recibos.removeAt(idx);
+      _recibos.insert(0, reciboAtualizado);
       notifyListeners();
     }
   }
@@ -272,9 +276,7 @@ class RecibosProvider with ChangeNotifier {
       'businessInfo': businessInfo,
     });
 
-    debugPrint(
-      '✅ Snapshot de compartilhamento salvo para recibo ${recibo.id}',
-    );
+    debugPrint('✅ Snapshot de compartilhamento salvo para recibo ${recibo.id}');
   }
 
   /// Atualiza o status do recibo no snapshot compartilhado
@@ -293,7 +295,9 @@ class RecibosProvider with ChangeNotifier {
           'recibo.status': novoStatus,
           'atualizadoEm': FieldValue.serverTimestamp(),
         });
-        debugPrint('✅ Status do snapshot de recibo atualizado para: $novoStatus');
+        debugPrint(
+          '✅ Status do snapshot de recibo atualizado para: $novoStatus',
+        );
       }
     } catch (e) {
       debugPrint('⚠️ Erro ao atualizar status do snapshot de recibo: $e');

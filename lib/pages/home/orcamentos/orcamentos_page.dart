@@ -16,7 +16,7 @@ class OrcamentosPage extends StatefulWidget {
 
 class _OrcamentosPageState extends State<OrcamentosPage> {
   final TextEditingController _searchController = TextEditingController();
-  String _filtroSelecionado = 'Aberto';
+  String _filtroSelecionado = 'Todos';
   String _termoBusca = '';
 
   // Controle para busca de orçamentos antigos
@@ -748,7 +748,7 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                           const Icon(Icons.tag, size: 16, color: Colors.white),
                           const SizedBox(width: 4),
                           Text(
-                            '#${orcamento.numero.toString().padLeft(4, '0')}',
+                            orcamento.numero.toString().padLeft(4, '0'),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,

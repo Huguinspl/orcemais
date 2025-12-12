@@ -42,7 +42,7 @@ class CompartilharReciboPage extends StatelessWidget {
       debugPrint('🔄 Abrindo compartilhamento...');
       await Printing.sharePdf(
         bytes: bytes,
-        filename: 'recibo_${recibo.numero.toString().padLeft(4, '0')}.pdf',
+        filename: 'recibo_${recibo.cliente.nome.replaceAll(' ', '_')}.pdf',
       );
       debugPrint('✅ Compartilhamento concluído');
 
@@ -93,9 +93,8 @@ class CompartilharReciboPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final business = context.read<BusinessProvider>();
     final link = recibo.link ?? 'Link não disponível';
-    final numeroFormatado = '#${recibo.numero.toString().padLeft(4, '0')}';
     final texto =
-        'Olá, ${recibo.cliente.nome}! Segue o recibo $numeroFormatado de ${business.nomeEmpresa}:\n$link';
+        'Olá, ${recibo.cliente.nome}! Segue o recibo de ${business.nomeEmpresa}:\n$link';
 
     return Scaffold(
       appBar: AppBar(
@@ -311,12 +310,11 @@ class CompartilharReciboPage extends StatelessWidget {
 
     try {
       final businessProvider = context.read<BusinessProvider>();
-      final numeroFormatado = '#${recibo.numero.toString().padLeft(4, '0')}';
 
       final String textoParaCompartilhar = '''
 Olá, ${recibo.cliente.nome}! 👋
 
-Segue o recibo ${numeroFormatado} de ${businessProvider.nomeEmpresa}.
+Segue o recibo de ${businessProvider.nomeEmpresa}.
 🔗 Visualize seu recibo:
 ${recibo.link}
 
@@ -328,7 +326,7 @@ Obrigado pela preferência! 🙏
 
       await Share.share(
         textoParaCompartilhar,
-        subject: 'Recibo $numeroFormatado - ${businessProvider.nomeEmpresa}',
+        subject: 'Recibo ${recibo.cliente.nome} - ${businessProvider.nomeEmpresa}',
       );
 
       // Após o compartilhamento, atualiza o status para "Enviado"
@@ -396,7 +394,7 @@ Obrigado pela preferência! 🙏
     try {
       await Share.share(
         recibo.link!,
-        subject: 'Link do Recibo #${recibo.numero.toString().padLeft(4, '0')}',
+        subject: 'Link do Recibo - ${recibo.cliente.nome}',
       );
     } catch (e) {
       debugPrint('Erro ao compartilhar link: $e');

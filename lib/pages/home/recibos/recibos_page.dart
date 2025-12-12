@@ -132,7 +132,7 @@ class _RecibosPageState extends State<RecibosPage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '#${r.numero.toString().padLeft(4, '0')}',
+                            r.numero.toString().padLeft(4, '0'),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -226,7 +226,7 @@ class _RecibosPageState extends State<RecibosPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Recibo #${r.numero.toString().padLeft(4, '0')} excluído com sucesso',
+                      'Recibo ${r.numero.toString().padLeft(4, '0')} excluído com sucesso',
                     ),
                   ),
                 ],
@@ -855,7 +855,7 @@ class _RecibosPageState extends State<RecibosPage> {
                           const Icon(Icons.tag, size: 16, color: Colors.white),
                           const SizedBox(width: 4),
                           Text(
-                            '#${recibo.numero.toString().padLeft(4, '0')}',
+                            recibo.numero.toString().padLeft(4, '0'),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,

@@ -121,7 +121,9 @@ class OrcamentosProvider with ChangeNotifier {
     await _orcamentosRef.doc(orcamento.id).update(orcamento.toMap());
     final index = _orcamentos.indexWhere((o) => o.id == orcamento.id);
     if (index != -1) {
-      _orcamentos[index] = orcamento;
+      // Remove da posição atual e insere no topo (último editado primeiro)
+      _orcamentos.removeAt(index);
+      _orcamentos.insert(0, orcamento);
       notifyListeners();
     }
   }

@@ -345,13 +345,16 @@ class _NovoOrcamentoPageState extends State<NovoOrcamentoPage> {
 
       final orcamentoParaSalvar = Orcamento(
         id: widget.orcamento?.id ?? '',
+        numero: widget.orcamento?.numero ?? 0, // Mantém o número ao editar
         cliente: clienteSelecionado!,
         itens: _itensDoOrcamento,
         subtotal: _subtotal,
         desconto: _desconto,
         valorTotal: _valorTotal,
         status: widget.orcamento?.status ?? 'Aberto',
-        dataCriacao: widget.orcamento?.dataCriacao ?? Timestamp.now(),
+        dataCriacao:
+            Timestamp.now(), // Atualiza a data para ficar no topo ao editar
+        atualizadoEm: Timestamp.now(), // Atualiza a data de modificação
         metodoPagamento: _metodoPagamento,
         parcelas: _parcelas,
         laudoTecnico: _laudoTecnico,

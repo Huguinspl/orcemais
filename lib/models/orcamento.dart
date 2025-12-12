@@ -20,6 +20,7 @@ class Orcamento {
   final String? informacoesAdicionais; // texto livre
   final List<String>? fotos; // URLs das fotos do orçamento
   final String? linkWeb; // Link web gerado para compartilhamento
+  final Timestamp? atualizadoEm; // Data da última atualização
 
   Orcamento({
     required this.id,
@@ -31,6 +32,7 @@ class Orcamento {
     required this.valorTotal,
     required this.status,
     required this.dataCriacao,
+    this.atualizadoEm,
     this.metodoPagamento,
     this.parcelas,
     this.laudoTecnico,
@@ -61,6 +63,7 @@ class Orcamento {
       informacoesAdicionais: data['informacoesAdicionais'],
       fotos: data['fotos'] != null ? List<String>.from(data['fotos']) : null,
       linkWeb: data['linkWeb'],
+      atualizadoEm: data['atualizadoEm'],
     );
   }
 
@@ -82,6 +85,7 @@ class Orcamento {
       'informacoesAdicionais': informacoesAdicionais,
       'fotos': fotos,
       'linkWeb': linkWeb,
+      'atualizadoEm': atualizadoEm,
     };
   }
 }
