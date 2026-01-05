@@ -9,8 +9,8 @@ plugins {
 android {
     namespace = "com.orcemais.app"
     // Utilize as versões fornecidas pelo plugin Flutter para manter alinhado ao SDK suportado
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 36
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -23,11 +23,10 @@ android {
     }
 
     defaultConfig {
-    applicationId = "com.orcemais.app"
-        // Em Kotlin DSL a sintaxe correta é 'minSdk = 24' ou usar a constante do Flutter
-        // minSdk = 24
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        applicationId = "com.orcemais.app"
+        multiDexEnabled = true
+        minSdk = 24
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

@@ -83,6 +83,14 @@ class HomeBody extends StatelessWidget {
                 tooltip: 'Notificações (Pressione longo para teste)',
                 color: Colors.white,
               ),
+              IconButton(
+                icon: const Icon(Icons.help_center_outlined),
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.chat);
+                },
+                tooltip: 'Chat',
+                color: Colors.white,
+              ),
               if (onLogout != null) HomeMenu(onLogout: onLogout!),
               const SizedBox(width: 8),
             ],

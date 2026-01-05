@@ -6,8 +6,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:get/get.dart';
 
 import 'conditional_desktop.dart' if (dart.library.html) 'stub_desktop.dart';
+import 'services/messaging_service.dart';
+import 'services/notification_handler.dart';
 
 // Providers
 import 'providers/user_provider.dart';
@@ -55,6 +58,7 @@ import 'pages/home/checklists/meus_checklists_page.dart';
 import 'pages/controle_financeiro_page.dart';
 import 'models/peca_material.dart';
 import 'services/notification_service.dart';
+import 'chat/widget/chat_local.dart';
 
 import 'firebase_options.dart';
 
@@ -68,6 +72,9 @@ Future<void> main() async {
 
   // Inicializa o serviço de notificações
   await NotificationService().initialize();
+
+  // Inicializa o serviço de mensagens FCM (notificações push)
+  await MessagingService().initialize();
 
   // App Check: Web só ativa se a site key for fornecida. Mobile/Desktop em modo debug.
   try {
@@ -146,9 +153,10 @@ class GestorfyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Gestorfy',
       debugShowCheckedModeBanner: false,
+      navigatorKey: NavigationService.navigatorKey,
 
       // Configuração de localização para português brasileiro
       locale: const Locale('pt', 'BR'),
@@ -199,6 +207,7 @@ class GestorfyApp extends StatelessWidget {
         AppRoutes.outrasFuncionalidades:
             (_) => const OutrasFuncionalidadesPage(),
         AppRoutes.checklists: (_) => const MeusChecklistsPage(),
+        AppRoutes.chat: (_) => const ChatLocal(),
       },
     );
   }

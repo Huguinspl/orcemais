@@ -32,4 +32,5 @@
   // Outras funcionalidades
   static const outrasFuncionalidades = '/outras-funcionalidades';
   static const checklists = '/checklists';
+  static const chat = '/chat';
 }

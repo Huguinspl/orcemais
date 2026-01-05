@@ -46,7 +46,7 @@ dependencies:
   universal_platform: ^1.1.0
   flutter_masked_text2: ^0.9.1
   intl: ^0.20.2
-  share_plus: ^11.0.0
+  share_plus: ^12.0.1
   pdf: ^3.11.3
   printing: ^5.14.2
   mobile_scanner: ^7.0.1
@@ -67,6 +67,11 @@ dependencies:
   fl_chart: ^0.69.0
   flutter_contacts: ^1.1.9
   webview_flutter: ^4.10.0
+  firebase_messaging: ^16.1.0
+  chat_global:
+    path: ../my_packages/chat_global  
+  widgets_global:
+    path: ../my_packages/widgets_global    
 
 
 dev_dependencies:
@@ -96,6 +101,7 @@ flutter:
     - assets/imagem_gestorfy_logo.png
     - assets/imagem_gestorfy.png
     - assets/img-rodape.jpg
+    - assets/chat/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

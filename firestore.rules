@@ -79,5 +79,17 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+
+    // O usuario administrador pode tudo
+    match /{document=**} {
+      allow read, write, delete, update:
+      	if request.auth.uid == 'tdB0QRkOfiMfRQAMykXjasZbIXq2';
+    }
+
+    // Regras de chat usuario
+    match /chat/{document=**} {
+    	allow read, update, create:
+      	if request.auth != null;
+    }
   }
 }
