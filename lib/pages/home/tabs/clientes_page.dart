@@ -298,23 +298,46 @@ class _ClientesPageState extends State<ClientesPage> {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          // AppBar com gradiente indigo
+          // AppBar com gradiente indigo (igual home_body)
           SliverAppBar(
             expandedHeight: 160,
             floating: false,
             pinned: true,
             automaticallyImplyLeading: false,
             backgroundColor: Colors.indigo.shade600,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Text(
-                widget.isPickerMode ? 'Selecione um Cliente' : 'Clientes',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 20,
+            title: Row(
+              children: [
+                const Icon(Icons.people_alt, color: Colors.white, size: 28),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.isPickerMode ? 'Selecione um Cliente' : 'Clientes',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Consumer<ClientsProvider>(
+                      builder: (_, prov, __) {
+                        return Text(
+                          '${prov.clientes.length} ${prov.clientes.length == 1 ? 'cadastrado' : 'cadastrados'}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ),
+              ],
+            ),
+            flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -323,11 +346,29 @@ class _ClientesPageState extends State<ClientesPage> {
                     colors: [Colors.indigo.shade600, Colors.indigo.shade400],
                   ),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.people_alt,
-                    size: 70,
-                    color: Colors.white.withOpacity(0.3),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 56),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_alt,
+                          size: 50,
+                          color: Colors.white.withOpacity(0.3),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Gerencie seus clientes',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -348,190 +389,243 @@ class _ClientesPageState extends State<ClientesPage> {
                 children: [
                   const SizedBox(height: 16),
                   _buildSearchBar(),
-                  if (!widget.isPickerMode) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.indigo.shade100,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              Icons.people_outlined,
-                              color: Colors.indigo.shade700,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Seus Clientes',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              Consumer<ClientsProvider>(
-                                builder: (_, prov, __) {
-                                  return Text(
-                                    '${prov.clientes.length} ${prov.clientes.length == 1 ? 'cliente cadastrado' : 'clientes cadastrados'}',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
           ),
 
           // Lista de clientes
-          SliverFillRemaining(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.white, Colors.white],
+          Consumer<ClientsProvider>(
+            builder: (_, prov, __) {
+              final listaFiltrada =
+                  prov.clientes.where((cliente) {
+                    return cliente.nome.toLowerCase().contains(
+                      _termoBusca.toLowerCase(),
+                    );
+                  }).toList();
+
+              if (prov.clientes.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.people_outline,
+                            size: 64,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Nenhum cliente cadastrado',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Comece adicionando seu primeiro cliente',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (listaFiltrada.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Nenhum cliente encontrado',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tente buscar com outro termo',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              // Usar SliverList para permitir scroll correto
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) => _item(listaFiltrada[i]),
+                    childCount: listaFiltrada.length,
+                  ),
                 ),
-              ),
-              child: Consumer<ClientsProvider>(
-                builder: (_, prov, __) {
-                  final listaFiltrada =
-                      prov.clientes.where((cliente) {
-                        return cliente.nome.toLowerCase().contains(
-                          _termoBusca.toLowerCase(),
-                        );
-                      }).toList();
-
-                  if (prov.clientes.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.people_outline,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Nenhum cliente cadastrado',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Comece adicionando seu primeiro cliente',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  if (listaFiltrada.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.search_off,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Nenhum cliente encontrado',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Tente buscar com outro termo',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return _buildClientList(listaFiltrada);
-                },
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),
-      // Botões de ação lado a lado
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(left: 30),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // Botão importar da agenda
-            FloatingActionButton.extended(
-              heroTag: 'importar',
-              onPressed: _importarDaAgenda,
-              tooltip: 'Importar da Agenda',
-              backgroundColor: Colors.indigo.shade400,
-              icon: const Icon(Icons.contacts),
-              label: const Text('Da Agenda'),
-            ),
-            const SizedBox(width: 12),
-            // Botão novo cliente
-            FloatingActionButton.extended(
-              heroTag: 'novo',
-              onPressed: () => _abrirFormulario(),
-              tooltip: 'Novo cliente',
-              icon: const Icon(Icons.add),
-              label: const Text('Novo Cliente'),
-              backgroundColor: Colors.indigo.shade600,
-            ),
-          ],
-        ),
+      // Botão único com menu de opções
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'novoCliente',
+        onPressed: () => _mostrarOpcoesNovoCliente(),
+        tooltip: 'Novo cliente',
+        icon: const Icon(Icons.person_add),
+        label: const Text('Novo Cliente'),
+        backgroundColor: Colors.indigo.shade600,
       ),
+    );
+  }
+
+  /// Mostra bottom sheet com opções: Da Agenda ou Novo
+  void _mostrarOpcoesNovoCliente() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Indicador de arraste
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Título
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.person_add,
+                        color: Colors.indigo.shade600,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Adicionar Cliente',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Opção: Da Agenda
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.indigo.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.contacts, color: Colors.indigo.shade600),
+                  ),
+                  title: const Text(
+                    'Importar da Agenda',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Selecione um contato do seu celular',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey.shade400,
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _importarDaAgenda();
+                  },
+                ),
+                const Divider(height: 1, indent: 72),
+                // Opção: Novo manualmente
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.edit, color: Colors.green.shade600),
+                  ),
+                  title: const Text(
+                    'Criar Novo',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Preencha os dados manualmente',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey.shade400,
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _abrirFormulario();
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -553,7 +647,7 @@ class _ClientesPageState extends State<ClientesPage> {
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: '🔍 Buscar por nome...',
+            hintText: 'Buscar por nome...',
             hintStyle: TextStyle(color: Colors.grey.shade500),
             prefixIcon: Icon(Icons.search, color: Colors.indigo.shade600),
             suffixIcon:

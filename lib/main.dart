@@ -171,6 +171,19 @@ class GestorfyApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         scaffoldBackgroundColor: Colors.white,
+        // Configuração global do AppBar para texto e ícone brancos
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.blue.shade600, // Cor de fundo padrão azul
+          foregroundColor: Colors.white, // Cor do texto e ícones
+          iconTheme: const IconThemeData(color: Colors.white),
+          actionsIconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          elevation: 0,
+        ),
       ),
       initialRoute: AppRoutes.splash,
       routes: {
