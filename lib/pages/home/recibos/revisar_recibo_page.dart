@@ -124,14 +124,25 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
         await recibosProvider.atualizarLink(widget.recibo.id, linkFinal);
         debugPrint('✅ Novo link gerado e salvo: $linkFinal');
 
+        // Dados com fallback para dados pessoais
+        final nomeExibicao = businessProvider.getNomeExibicao(
+          userProvider.nome,
+        );
+        final emailExibicao = businessProvider.getEmailExibicao(
+          userProvider.email,
+        );
+        final documentoExibicao = businessProvider.getDocumentoExibicao(
+          userProvider.cpf,
+        );
+
         // Salva snapshot completo para carregamento rápido no link web
         final businessInfo = {
-          'nomeEmpresa': businessProvider.nomeEmpresa,
+          'nomeEmpresa': nomeExibicao,
           'logoUrl': businessProvider.logoUrl,
           'telefone': businessProvider.telefone,
-          'emailEmpresa': businessProvider.emailEmpresa,
+          'emailEmpresa': emailExibicao,
           'endereco': businessProvider.endereco,
-          'cnpj': businessProvider.cnpj,
+          'cnpj': documentoExibicao,
         };
         await recibosProvider.salvarSnapshotCompartilhamento(
           recibo: widget.recibo,
@@ -305,13 +316,21 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
   Widget _buildPdfVisualizado(NumberFormat currency) {
     final recibo = widget.recibo;
     final businessProvider = context.watch<BusinessProvider>();
+    final userProvider = context.watch<UserProvider>();
     final theme = businessProvider.pdfTheme;
+
+    // Dados com fallback para dados pessoais
+    final nomeExibicao = businessProvider.getNomeExibicao(userProvider.nome);
+    final emailExibicao = businessProvider.getEmailExibicao(userProvider.email);
+    final documentoExibicao = businessProvider.getDocumentoExibicao(
+      userProvider.cpf,
+    );
 
     // Cores com override do tema salvo - Padrão AZUL (igual ao orçamento)
     final cs = _ResolvedColors(
-      primary: ColorUtils.fromArgbInt(theme?['primary']) ?? const Color(0xFF1565C0),
-      onPrimary:
-          ColorUtils.fromArgbInt(theme?['onPrimary']) ?? Colors.white,
+      primary:
+          ColorUtils.fromArgbInt(theme?['primary']) ?? const Color(0xFF1565C0),
+      onPrimary: ColorUtils.fromArgbInt(theme?['onPrimary']) ?? Colors.white,
       secondaryContainer:
           ColorUtils.fromArgbInt(theme?['secondaryContainer']) ??
           const Color(0xFFE3F2FD),
@@ -361,18 +380,13 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                 color: cs.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child:
-                  (businessProvider.nomeEmpresa.isEmpty)
-                      ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: CircularProgressIndicator(color: Colors.white),
-                        ),
-                      )
-                      : _buildHeaderRecibo(
-                        businessProvider,
-                        textColor: cs.onPrimary,
-                      ),
+              child: _buildHeaderRecibo(
+                businessProvider,
+                textColor: cs.onPrimary,
+                nomeExibicao: nomeExibicao,
+                emailExibicao: emailExibicao,
+                documentoExibicao: documentoExibicao,
+              ),
             ),
             if ((businessProvider.descricao ?? '').isNotEmpty) ...[
               const SizedBox(height: 16),
@@ -517,14 +531,27 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
     return EtapaLinkWebReciboPage(recibo: widget.recibo);
   }
 
-  Widget _buildHeaderRecibo(BusinessProvider provider, {Color? textColor}) {
+  Widget _buildHeaderRecibo(
+    BusinessProvider provider, {
+    Color? textColor,
+    required String nomeExibicao,
+    required String emailExibicao,
+    required String documentoExibicao,
+  }) {
     // Se não tem logo configurada, não faz o FutureBuilder
     final temLogo = provider.logoUrl != null && provider.logoUrl!.isNotEmpty;
-    
+
     if (!temLogo) {
-      return _buildHeaderReciboContent(provider, null, textColor: textColor);
+      return _buildHeaderReciboContent(
+        provider,
+        null,
+        textColor: textColor,
+        nomeExibicao: nomeExibicao,
+        emailExibicao: emailExibicao,
+        documentoExibicao: documentoExibicao,
+      );
     }
-    
+
     return FutureBuilder<Uint8List?>(
       future: provider.getLogoBytes(),
       builder: (context, snap) {
@@ -536,12 +563,26 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
           logo = Image.network(provider.logoUrl!, fit: BoxFit.contain);
         }
 
-        return _buildHeaderReciboContent(provider, logo, textColor: textColor);
+        return _buildHeaderReciboContent(
+          provider,
+          logo,
+          textColor: textColor,
+          nomeExibicao: nomeExibicao,
+          emailExibicao: emailExibicao,
+          documentoExibicao: documentoExibicao,
+        );
       },
     );
   }
 
-  Widget _buildHeaderReciboContent(BusinessProvider provider, Widget? logo, {Color? textColor}) {
+  Widget _buildHeaderReciboContent(
+    BusinessProvider provider,
+    Widget? logo, {
+    Color? textColor,
+    required String nomeExibicao,
+    required String emailExibicao,
+    required String documentoExibicao,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -557,9 +598,7 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                provider.nomeEmpresa.isNotEmpty
-                    ? provider.nomeEmpresa
-                    : 'Minha Empresa',
+                nomeExibicao,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: textColor,
@@ -583,10 +622,10 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                   _Formatters.formatPhone(provider.telefone),
                   color: textColor,
                 ),
-              if (provider.emailEmpresa.isNotEmpty)
+              if (emailExibicao.isNotEmpty)
                 _buildInfoLinhaRecibo(
                   Icons.email_outlined,
-                  provider.emailEmpresa,
+                  emailExibicao,
                   color: textColor,
                 ),
               if (provider.endereco.isNotEmpty)
@@ -595,10 +634,10 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
                   provider.endereco,
                   color: textColor,
                 ),
-              if (provider.cnpj.isNotEmpty)
+              if (documentoExibicao.isNotEmpty)
                 _buildInfoLinhaRecibo(
                   Icons.badge_outlined,
-                  _Formatters.formatCpfCnpj(provider.cnpj),
+                  _Formatters.formatCpfCnpj(documentoExibicao),
                   color: textColor,
                 ),
             ],

@@ -42,6 +42,30 @@ class BusinessProvider extends ChangeNotifier {
   // Tema do PDF (mapa de cores em int ARGB, ex: 0xFFRRGGBB)
   Map<String, dynamic>? pdfTheme;
 
+  /// Verifica se os dados do negócio estão preenchidos
+  bool get temDadosNegocio => nomeEmpresa.isNotEmpty;
+
+  /// Retorna o nome para exibição (negócio ou pessoal como fallback)
+  String getNomeExibicao(String? nomePessoal) {
+    if (nomeEmpresa.isNotEmpty) return nomeEmpresa;
+    if (nomePessoal != null && nomePessoal.isNotEmpty) return nomePessoal;
+    return 'Minha Empresa';
+  }
+
+  /// Retorna o email para exibição (negócio ou pessoal como fallback)
+  String getEmailExibicao(String? emailPessoal) {
+    if (emailEmpresa.isNotEmpty) return emailEmpresa;
+    if (emailPessoal != null && emailPessoal.isNotEmpty) return emailPessoal;
+    return '';
+  }
+
+  /// Retorna o documento para exibição (CNPJ do negócio ou CPF pessoal como fallback)
+  String getDocumentoExibicao(String? cpfPessoal) {
+    if (cnpj.isNotEmpty) return cnpj;
+    if (cpfPessoal != null && cpfPessoal.isNotEmpty) return cpfPessoal;
+    return '';
+  }
+
   String get _uid => _auth.currentUser?.uid ?? '';
 
   /* ================== LER do Firestore ================== */
@@ -292,7 +316,7 @@ class BusinessProvider extends ChangeNotifier {
     if (_logoCacheBytes != null) return _logoCacheBytes;
 
     // Se não tem logoUrl e não tem path local, retorna null rapidamente
-    if ((logoUrl == null || logoUrl!.isEmpty) && 
+    if ((logoUrl == null || logoUrl!.isEmpty) &&
         (logoLocalPath == null || logoLocalPath!.isEmpty)) {
       return null;
     }
@@ -400,7 +424,7 @@ class BusinessProvider extends ChangeNotifier {
     if (_assinaturaCacheBytes != null) return _assinaturaCacheBytes;
 
     // Se não tem assinaturaUrl e não tem path local, retorna null rapidamente
-    if ((assinaturaUrl == null || assinaturaUrl!.isEmpty) && 
+    if ((assinaturaUrl == null || assinaturaUrl!.isEmpty) &&
         (assinaturaLocalPath == null || assinaturaLocalPath!.isEmpty)) {
       return null;
     }

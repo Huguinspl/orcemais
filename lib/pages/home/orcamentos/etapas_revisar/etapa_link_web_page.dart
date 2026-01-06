@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/orcamento.dart';
 import '../../../../providers/business_provider.dart';
+import '../../../../providers/user_provider.dart';
 
 class EtapaLinkWebPage extends StatefulWidget {
   final Orcamento orcamento;
@@ -37,6 +38,15 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
   @override
   Widget build(BuildContext context) {
     final businessProvider = context.watch<BusinessProvider>();
+    final userProvider = context.watch<UserProvider>();
+
+    // Dados com fallback para dados pessoais
+    final nomeExibicao = businessProvider.getNomeExibicao(userProvider.nome);
+    final emailExibicao = businessProvider.getEmailExibicao(userProvider.email);
+    final documentoExibicao = businessProvider.getDocumentoExibicao(
+      userProvider.cpf,
+    );
+
     final primaryColor = Color(0xFF1976D2);
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -82,7 +92,13 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                     ),
                   ],
                 ),
-                child: _buildBusinessHeader(context, businessProvider),
+                child: _buildBusinessHeader(
+                  context,
+                  businessProvider,
+                  nomeExibicao: nomeExibicao,
+                  emailExibicao: emailExibicao,
+                  documentoExibicao: documentoExibicao,
+                ),
               ),
             ),
             if ((businessProvider.descricao ?? '').isNotEmpty) ...[
@@ -246,7 +262,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      businessProvider.nomeEmpresa,
+                      nomeExibicao,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -309,7 +325,13 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
     );
   }
 
-  Widget _buildBusinessHeader(BuildContext context, BusinessProvider provider) {
+  Widget _buildBusinessHeader(
+    BuildContext context,
+    BusinessProvider provider, {
+    required String nomeExibicao,
+    required String emailExibicao,
+    required String documentoExibicao,
+  }) {
     return Column(
       children: [
         // Só mostra o FutureBuilder se tiver logoUrl configurada
@@ -324,11 +346,15 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
-              
+
               final logoBytes = snap.data;
               Widget? logo;
               if (logoBytes != null && logoBytes.isNotEmpty) {
-                logo = Image.memory(logoBytes, fit: BoxFit.contain, height: 100);
+                logo = Image.memory(
+                  logoBytes,
+                  fit: BoxFit.contain,
+                  height: 100,
+                );
               } else {
                 // Fallback para carregar da URL diretamente
                 logo = Image.network(
@@ -365,7 +391,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
           ),
         const SizedBox(height: 20),
         Text(
-          provider.nomeEmpresa,
+          nomeExibicao,
           style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -399,13 +425,13 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
             children: [
               if (provider.telefone.isNotEmpty)
                 _buildInfoRowBusiness(Icons.phone, provider.telefone),
-              if (provider.cnpj.isNotEmpty)
+              if (documentoExibicao.isNotEmpty)
                 _buildInfoRowBusiness(
                   Icons.badge_outlined,
-                  _formatCnpj(provider.cnpj),
+                  _formatCnpj(documentoExibicao),
                 ),
-              if (provider.emailEmpresa.isNotEmpty)
-                _buildInfoRowBusiness(Icons.email, provider.emailEmpresa),
+              if (emailExibicao.isNotEmpty)
+                _buildInfoRowBusiness(Icons.email, emailExibicao),
               if (provider.endereco.isNotEmpty)
                 _buildInfoRowBusiness(Icons.location_on, provider.endereco),
             ],

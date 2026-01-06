@@ -47,6 +47,7 @@ class _CompartilharOrcamentoPageState extends State<CompartilharOrcamentoPage> {
     try {
       debugPrint('🔵 Iniciando geração do PDF...');
       final businessProvider = context.read<BusinessProvider>();
+      final userProvider = context.read<UserProvider>();
 
       // Garante que os dados do negócio estejam carregados
       debugPrint('🔵 Carregando dados do negócio...');
@@ -57,6 +58,10 @@ class _CompartilharOrcamentoPageState extends State<CompartilharOrcamentoPage> {
       final pdfBytes = await OrcamentoPdfGenerator.generate(
         orcamento, // Passa o objeto Orcamento inteiro
         businessProvider,
+        // Fallback para dados pessoais se negócio não preenchido
+        nomePessoal: userProvider.nome,
+        emailPessoal: userProvider.email,
+        cpfPessoal: userProvider.cpf,
       );
       debugPrint('✅ PDF gerado com sucesso: ${pdfBytes.length} bytes');
 
@@ -235,15 +240,25 @@ Obrigado pela preferência! 😊
 
       // ✅ NOVO: Salvar snapshot completo para carregamento rápido no link web
       debugPrint('🌐 Salvando snapshot de compartilhamento...');
+
+      // Dados com fallback para dados pessoais
+      final nomeExibicao = businessProvider.getNomeExibicao(userProvider.nome);
+      final emailExibicao = businessProvider.getEmailExibicao(
+        userProvider.email,
+      );
+      final documentoExibicao = businessProvider.getDocumentoExibicao(
+        userProvider.cpf,
+      );
+
       await orcamentosProvider.salvarSnapshotCompartilhamento(
         orcamento: orcamento,
         businessInfo: {
-          'nomeEmpresa': businessProvider.nomeEmpresa,
+          'nomeEmpresa': nomeExibicao,
           'telefone': businessProvider.telefone,
           'ramo': businessProvider.ramo,
           'endereco': businessProvider.endereco,
-          'cnpj': businessProvider.cnpj,
-          'emailEmpresa': businessProvider.emailEmpresa,
+          'cnpj': documentoExibicao,
+          'emailEmpresa': emailExibicao,
           'logoUrl': businessProvider.logoUrl,
           'pixTipo': businessProvider.pixTipo,
           'pixChave': businessProvider.pixChave,

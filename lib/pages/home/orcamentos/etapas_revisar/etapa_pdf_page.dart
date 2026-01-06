@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/cliente.dart';
 import '../../../../providers/business_provider.dart';
+import '../../../../providers/user_provider.dart';
 import '../../../../utils/color_utils.dart';
 
 /// Utilitário para formatação de documentos e telefones
@@ -79,12 +80,21 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
   @override
   Widget build(BuildContext context) {
     final businessProvider = context.watch<BusinessProvider>();
+    final userProvider = context.watch<UserProvider>();
+
+    // Dados com fallback para dados pessoais
+    final nomeExibicao = businessProvider.getNomeExibicao(userProvider.nome);
+    final emailExibicao = businessProvider.getEmailExibicao(userProvider.email);
+    final documentoExibicao = businessProvider.getDocumentoExibicao(
+      userProvider.cpf,
+    );
+
     final theme = businessProvider.pdfTheme;
     // Cores com override do tema salvo - Padrão AZUL
     final cs = _ResolvedColors(
-      primary: ColorUtils.fromArgbInt(theme?['primary']) ?? const Color(0xFF1565C0),
-      onPrimary:
-          ColorUtils.fromArgbInt(theme?['onPrimary']) ?? Colors.white,
+      primary:
+          ColorUtils.fromArgbInt(theme?['primary']) ?? const Color(0xFF1565C0),
+      onPrimary: ColorUtils.fromArgbInt(theme?['onPrimary']) ?? Colors.white,
       secondaryContainer:
           ColorUtils.fromArgbInt(theme?['secondaryContainer']) ??
           const Color(0xFFE3F2FD),
@@ -164,23 +174,18 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                 color: cs.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child:
-                  (businessProvider.nomeEmpresa.isEmpty)
-                      ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: CircularProgressIndicator(color: Colors.white),
-                        ),
-                      )
-                      : Column(
-                        children: [
-                          _buildHeader(
-                            context,
-                            businessProvider,
-                            textColor: cs.onPrimary,
-                          ),
-                        ],
-                      ),
+              child: Column(
+                children: [
+                  _buildHeader(
+                    context,
+                    businessProvider,
+                    textColor: cs.onPrimary,
+                    nomeExibicao: nomeExibicao,
+                    emailExibicao: emailExibicao,
+                    documentoExibicao: documentoExibicao,
+                  ),
+                ],
+              ),
             ),
             if ((businessProvider.descricao ?? '').isNotEmpty) ...[
               const SizedBox(height: 16),
@@ -527,6 +532,9 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
     BuildContext context,
     BusinessProvider provider, {
     Color? textColor,
+    required String nomeExibicao,
+    required String emailExibicao,
+    required String documentoExibicao,
   }) {
     return FutureBuilder<Uint8List?>(
       future: provider.getLogoBytes(),
@@ -556,9 +564,7 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    provider.nomeEmpresa.isNotEmpty
-                        ? provider.nomeEmpresa
-                        : 'Minha Empresa',
+                    nomeExibicao,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: textColor,
@@ -582,10 +588,10 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                       provider.telefone,
                       color: textColor,
                     ),
-                  if (provider.emailEmpresa.isNotEmpty)
+                  if (emailExibicao.isNotEmpty)
                     _buildInfoLinha(
                       Icons.email_outlined,
-                      provider.emailEmpresa,
+                      emailExibicao,
                       color: textColor,
                     ),
                   if (provider.endereco.isNotEmpty)
@@ -594,10 +600,10 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
                       provider.endereco,
                       color: textColor,
                     ),
-                  if (provider.cnpj.isNotEmpty)
+                  if (documentoExibicao.isNotEmpty)
                     _buildInfoLinha(
                       Icons.badge_outlined,
-                      _Formatters.formatCpfCnpj(provider.cnpj),
+                      _Formatters.formatCpfCnpj(documentoExibicao),
                       color: textColor,
                     ),
                 ],

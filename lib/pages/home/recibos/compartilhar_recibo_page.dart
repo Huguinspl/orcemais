@@ -25,13 +25,21 @@ class CompartilharReciboPage extends StatelessWidget {
     try {
       debugPrint('📄 Iniciando geração do PDF do recibo...');
       final business = context.read<BusinessProvider>();
+      final userProvider = context.read<UserProvider>();
 
       debugPrint('🔄 Carregando dados do negócio...');
       await business.carregarDoFirestore();
       debugPrint('✅ Dados do negócio carregados');
 
       debugPrint('🔄 Gerando PDF do recibo...');
-      final bytes = await ReciboPdfGenerator.generate(recibo, business);
+      final bytes = await ReciboPdfGenerator.generate(
+        recibo,
+        business,
+        // Fallback para dados pessoais se negócio não preenchido
+        nomePessoal: userProvider.nome,
+        emailPessoal: userProvider.email,
+        cpfPessoal: userProvider.cpf,
+      );
       debugPrint('✅ PDF gerado com sucesso: ${bytes.length} bytes');
 
       if (context.mounted) {

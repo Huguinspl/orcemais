@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../models/recibo.dart';
 import '../../../providers/business_provider.dart';
+import '../../../providers/user_provider.dart';
 
 class EtapaLinkWebReciboPage extends StatefulWidget {
   final Recibo recibo;
@@ -27,6 +28,15 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
   @override
   Widget build(BuildContext context) {
     final businessProvider = context.watch<BusinessProvider>();
+    final userProvider = context.watch<UserProvider>();
+
+    // Dados com fallback para dados pessoais
+    final nomeExibicao = businessProvider.getNomeExibicao(userProvider.nome);
+    final emailExibicao = businessProvider.getEmailExibicao(userProvider.email);
+    final documentoExibicao = businessProvider.getDocumentoExibicao(
+      userProvider.cpf,
+    );
+
     final primaryColor = Color(0xFF1976D2);
 
     return Scaffold(
@@ -73,7 +83,13 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
                     ),
                   ],
                 ),
-                child: _buildBusinessHeader(context, businessProvider),
+                child: _buildBusinessHeader(
+                  context,
+                  businessProvider,
+                  nomeExibicao: nomeExibicao,
+                  emailExibicao: emailExibicao,
+                  documentoExibicao: documentoExibicao,
+                ),
               ),
             ),
             Container(
@@ -154,7 +170,13 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
     );
   }
 
-  Widget _buildBusinessHeader(BuildContext context, BusinessProvider provider) {
+  Widget _buildBusinessHeader(
+    BuildContext context,
+    BusinessProvider provider, {
+    required String nomeExibicao,
+    required String emailExibicao,
+    required String documentoExibicao,
+  }) {
     return Column(
       children: [
         if (provider.logoUrl != null && provider.logoUrl!.isNotEmpty) ...[
@@ -176,7 +198,7 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
                   ),
                 );
               }
-              
+
               Widget? logo;
               if (snap.hasData && snap.data != null) {
                 logo = Image.memory(
@@ -216,7 +238,7 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
           const SizedBox(height: 20),
         ],
         Text(
-          provider.nomeEmpresa,
+          nomeExibicao,
           style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -250,8 +272,8 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
             children: [
               if (provider.telefone.isNotEmpty)
                 _buildInfoRow(Icons.phone, provider.telefone),
-              if (provider.emailEmpresa.isNotEmpty)
-                _buildInfoRow(Icons.email, provider.emailEmpresa),
+              if (emailExibicao.isNotEmpty)
+                _buildInfoRow(Icons.email, emailExibicao),
               if (provider.endereco.isNotEmpty)
                 _buildInfoRow(Icons.location_on, provider.endereco),
             ],

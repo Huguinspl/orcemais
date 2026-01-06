@@ -644,7 +644,7 @@ class _RecibosPageState extends State<RecibosPage> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: '🔍 Buscar por cliente ou número...',
+                  hintText: 'Buscar por cliente ou número...',
                   hintStyle: TextStyle(color: Colors.grey.shade500),
                   prefixIcon: Icon(Icons.search, color: Colors.teal.shade600),
                   suffixIcon:

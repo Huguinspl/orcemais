@@ -38,12 +38,21 @@ class _PdfFormatters {
 }
 
 class OrcamentoPdfGenerator {
-  // ✅ CORREÇÃO 1: O método agora recebe o objeto Orcamento completo
+  // O método recebe o objeto Orcamento completo e dados pessoais como fallback
   static Future<Uint8List> generate(
     Orcamento orcamento,
-    BusinessProvider businessProvider,
-  ) async {
+    BusinessProvider businessProvider, {
+    String? nomePessoal,
+    String? emailPessoal,
+    String? cpfPessoal,
+  }) async {
     final pdf = pw.Document();
+
+    // Dados com fallback para dados pessoais se negócio não preenchido
+    final nomeExibicao = businessProvider.getNomeExibicao(nomePessoal);
+    final emailExibicao = businessProvider.getEmailExibicao(emailPessoal);
+    final documentoExibicao = businessProvider.getDocumentoExibicao(cpfPessoal);
+
     // Paleta com suporte a tema salvo no provider
     final theme = businessProvider.pdfTheme;
     // Cores principais do tema - Padrão AZUL profissional
@@ -197,6 +206,9 @@ class OrcamentoPdfGenerator {
                   font,
                   logoBytes,
                   textColor: onPrimary,
+                  nomeExibicao: nomeExibicao,
+                  emailExibicao: emailExibicao,
+                  documentoExibicao: documentoExibicao,
                 ),
               ),
               if ((businessProvider.descricao ?? '').isNotEmpty) ...[
@@ -350,6 +362,9 @@ class OrcamentoPdfGenerator {
     pw.Font regularFont,
     Uint8List? logoBytes, {
     PdfColor? textColor,
+    required String nomeExibicao,
+    required String emailExibicao,
+    required String documentoExibicao,
   }) {
     pw.ImageProvider? logoImage;
     if (logoBytes != null && logoBytes.isNotEmpty) {
@@ -375,7 +390,7 @@ class OrcamentoPdfGenerator {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      provider.nomeEmpresa,
+                      nomeExibicao,
                       style: pw.TextStyle(
                         font: boldFont,
                         fontSize: 20,
@@ -403,9 +418,9 @@ class OrcamentoPdfGenerator {
                           color: textColor,
                         ),
                       ),
-                    if (provider.emailEmpresa.isNotEmpty)
+                    if (emailExibicao.isNotEmpty)
                       pw.Text(
-                        provider.emailEmpresa,
+                        emailExibicao,
                         style: pw.TextStyle(
                           font: regularFont,
                           color: textColor,
@@ -419,9 +434,9 @@ class OrcamentoPdfGenerator {
                           color: textColor,
                         ),
                       ),
-                    if (provider.cnpj.isNotEmpty)
+                    if (documentoExibicao.isNotEmpty)
                       pw.Text(
-                        _PdfFormatters.formatCpfCnpj(provider.cnpj),
+                        _PdfFormatters.formatCpfCnpj(documentoExibicao),
                         style: pw.TextStyle(
                           font: regularFont,
                           color: textColor,

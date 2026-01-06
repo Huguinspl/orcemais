@@ -73,6 +73,22 @@ service cloud.firestore {
       match /checklists/{checklistId} {
         allow read, write: if isOwner(userId);
       }
+      
+      // Subcoleção de chat - permite leitura/escrita para o dono e admin
+      match /chat/{chatId} {
+        allow read, write: if isOwner(userId) || request.auth.uid == 'tdB0QRkOfiMfRQAMykXjasZbIXq2';
+      }
+    }
+    
+    // Regras para coleção de lojas (dados do negócio/usuário)
+    match /lojas/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Regras para configurações do admin (horário atendimento, etc)
+    match /adm/{document} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == 'tdB0QRkOfiMfRQAMykXjasZbIXq2';
     }
     
     // Nega acesso a qualquer outro documento

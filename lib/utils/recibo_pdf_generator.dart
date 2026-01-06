@@ -39,13 +39,22 @@ class _Formatters {
 class ReciboPdfGenerator {
   static Future<Uint8List> generate(
     Recibo recibo,
-    BusinessProvider businessProvider,
-  ) async {
+    BusinessProvider businessProvider, {
+    String? nomePessoal,
+    String? emailPessoal,
+    String? cpfPessoal,
+  }) async {
     final pdf = pw.Document();
     // Carrega dados da empresa e logo uma vez
     try {
       await businessProvider.carregarDoFirestore();
     } catch (_) {}
+
+    // Dados com fallback para dados pessoais se negócio não preenchido
+    final nomeExibicao = businessProvider.getNomeExibicao(nomePessoal);
+    final emailExibicao = businessProvider.getEmailExibicao(emailPessoal);
+    final documentoExibicao = businessProvider.getDocumentoExibicao(cpfPessoal);
+
     final logoBytes = await businessProvider.getLogoBytes();
     final assinaturaBytes = await businessProvider.getAssinaturaBytes();
     final currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
@@ -117,6 +126,9 @@ class ReciboPdfGenerator {
                   font,
                   logoBytes,
                   textColor: onPrimary,
+                  nomeExibicao: nomeExibicao,
+                  emailExibicao: emailExibicao,
+                  documentoExibicao: documentoExibicao,
                 ),
               ),
               if ((businessProvider.descricao ?? '').isNotEmpty) ...[
@@ -226,6 +238,9 @@ class ReciboPdfGenerator {
     pw.Font regular,
     Uint8List? logoBytes, {
     PdfColor? textColor,
+    required String nomeExibicao,
+    required String emailExibicao,
+    required String documentoExibicao,
   }) {
     pw.ImageProvider? logoImage;
     if (logoBytes != null && logoBytes.isNotEmpty) {
@@ -251,7 +266,7 @@ class ReciboPdfGenerator {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      b.nomeEmpresa,
+                      nomeExibicao,
                       style: pw.TextStyle(
                         font: bold,
                         fontSize: 20,
@@ -276,9 +291,9 @@ class ReciboPdfGenerator {
                         _Formatters.formatPhone(b.telefone),
                         style: pw.TextStyle(font: regular, color: textColor),
                       ),
-                    if (b.emailEmpresa.isNotEmpty)
+                    if (emailExibicao.isNotEmpty)
                       pw.Text(
-                        b.emailEmpresa,
+                        emailExibicao,
                         style: pw.TextStyle(font: regular, color: textColor),
                       ),
                     if (b.endereco.isNotEmpty)
@@ -286,9 +301,9 @@ class ReciboPdfGenerator {
                         b.endereco,
                         style: pw.TextStyle(font: regular, color: textColor),
                       ),
-                    if (b.cnpj.isNotEmpty)
+                    if (documentoExibicao.isNotEmpty)
                       pw.Text(
-                        _Formatters.formatCpfCnpj(b.cnpj),
+                        _Formatters.formatCpfCnpj(documentoExibicao),
                         style: pw.TextStyle(font: regular, color: textColor),
                       ),
                   ],
