@@ -519,6 +519,13 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
   }
 
   Widget _buildHeaderRecibo(BusinessProvider provider, {Color? textColor}) {
+    // Se não tem logo configurada, não faz o FutureBuilder
+    final temLogo = provider.logoUrl != null && provider.logoUrl!.isNotEmpty;
+    
+    if (!temLogo) {
+      return _buildHeaderReciboContent(provider, null, textColor: textColor);
+    }
+    
     return FutureBuilder<Uint8List?>(
       future: provider.getLogoBytes(),
       builder: (context, snap) {
@@ -530,71 +537,75 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
           logo = Image.network(provider.logoUrl!, fit: BoxFit.contain);
         }
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (logo != null)
-              Container(
-                width: 60,
-                height: 60,
-                margin: const EdgeInsets.only(right: 12),
-                child: logo,
+        return _buildHeaderReciboContent(provider, logo, textColor: textColor);
+      },
+    );
+  }
+
+  Widget _buildHeaderReciboContent(BusinessProvider provider, Widget? logo, {Color? textColor}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (logo != null)
+          Container(
+            width: 60,
+            height: 60,
+            margin: const EdgeInsets.only(right: 12),
+            child: logo,
+          ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                provider.nomeEmpresa.isNotEmpty
+                    ? provider.nomeEmpresa
+                    : 'Minha Empresa',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
               ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    provider.nomeEmpresa.isNotEmpty
-                        ? provider.nomeEmpresa
-                        : 'Minha Empresa',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
+              if (provider.ramo.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    provider.ramo,
+                    style: TextStyle(
+                      color: textColor?.withOpacity(0.9),
+                      fontSize: 13,
                     ),
                   ),
-                  if (provider.ramo.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        provider.ramo,
-                        style: TextStyle(
-                          color: textColor?.withOpacity(0.9),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  if (provider.telefone.isNotEmpty)
-                    _buildInfoLinhaRecibo(
-                      Icons.phone_outlined,
-                      _Formatters.formatPhone(provider.telefone),
-                      color: textColor,
-                    ),
-                  if (provider.emailEmpresa.isNotEmpty)
-                    _buildInfoLinhaRecibo(
-                      Icons.email_outlined,
-                      provider.emailEmpresa,
-                      color: textColor,
-                    ),
-                  if (provider.endereco.isNotEmpty)
-                    _buildInfoLinhaRecibo(
-                      Icons.location_on_outlined,
-                      provider.endereco,
-                      color: textColor,
-                    ),
-                  if (provider.cnpj.isNotEmpty)
-                    _buildInfoLinhaRecibo(
-                      Icons.badge_outlined,
-                      _Formatters.formatCpfCnpj(provider.cnpj),
-                      color: textColor,
-                    ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+                ),
+              const SizedBox(height: 8),
+              if (provider.telefone.isNotEmpty)
+                _buildInfoLinhaRecibo(
+                  Icons.phone_outlined,
+                  _Formatters.formatPhone(provider.telefone),
+                  color: textColor,
+                ),
+              if (provider.emailEmpresa.isNotEmpty)
+                _buildInfoLinhaRecibo(
+                  Icons.email_outlined,
+                  provider.emailEmpresa,
+                  color: textColor,
+                ),
+              if (provider.endereco.isNotEmpty)
+                _buildInfoLinhaRecibo(
+                  Icons.location_on_outlined,
+                  provider.endereco,
+                  color: textColor,
+                ),
+              if (provider.cnpj.isNotEmpty)
+                _buildInfoLinhaRecibo(
+                  Icons.badge_outlined,
+                  _Formatters.formatCpfCnpj(provider.cnpj),
+                  color: textColor,
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

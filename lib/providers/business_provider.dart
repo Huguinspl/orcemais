@@ -288,7 +288,14 @@ class BusinessProvider extends ChangeNotifier {
   }
 
   Future<Uint8List?> getLogoBytes() async {
+    // Retorna cache se já existir
     if (_logoCacheBytes != null) return _logoCacheBytes;
+
+    // Se não tem logoUrl e não tem path local, retorna null rapidamente
+    if ((logoUrl == null || logoUrl!.isEmpty) && 
+        (logoLocalPath == null || logoLocalPath!.isEmpty)) {
+      return null;
+    }
 
     // Em Web, não usar File system
     if (!kIsWeb && logoLocalPath != null) {
@@ -389,7 +396,14 @@ class BusinessProvider extends ChangeNotifier {
   }
 
   Future<Uint8List?> getAssinaturaBytes() async {
+    // Retorna cache se já existir
     if (_assinaturaCacheBytes != null) return _assinaturaCacheBytes;
+
+    // Se não tem assinaturaUrl e não tem path local, retorna null rapidamente
+    if ((assinaturaUrl == null || assinaturaUrl!.isEmpty) && 
+        (assinaturaLocalPath == null || assinaturaLocalPath!.isEmpty)) {
+      return null;
+    }
 
     // Tentar ler do arquivo local (mobile/desktop)
     if (!kIsWeb && assinaturaLocalPath != null) {

@@ -73,10 +73,7 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
                     ),
                   ],
                 ),
-                child:
-                    businessProvider.nomeEmpresa.isEmpty
-                        ? const Center(child: CircularProgressIndicator())
-                        : _buildBusinessHeader(context, businessProvider),
+                child: _buildBusinessHeader(context, businessProvider),
               ),
             ),
             Container(
@@ -164,6 +161,22 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
           FutureBuilder<Uint8List?>(
             future: provider.getLogoBytes(),
             builder: (context, snap) {
+              // Mostra loading enquanto carrega
+              if (snap.connectionState == ConnectionState.waiting) {
+                return Container(
+                  height: 80,
+                  width: 80,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              }
+              
               Widget? logo;
               if (snap.hasData && snap.data != null) {
                 logo = Image.memory(
@@ -171,8 +184,8 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
                   height: 80,
                   fit: BoxFit.contain,
                 );
-              } else if (provider.logoUrl != null &&
-                  provider.logoUrl!.isNotEmpty) {
+              } else {
+                // Fallback para carregar da URL diretamente
                 logo = Image.network(
                   provider.logoUrl!,
                   height: 80,
@@ -186,20 +199,18 @@ class _EtapaLinkWebReciboPageState extends State<EtapaLinkWebReciboPage> {
                 );
               }
 
-              return logo != null
-                  ? Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Color(0xFF1976D2).withOpacity(0.1),
-                        width: 2,
-                      ),
-                    ),
-                    child: logo,
-                  )
-                  : const SizedBox.shrink();
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Color(0xFF1976D2).withOpacity(0.1),
+                    width: 2,
+                  ),
+                ),
+                child: logo,
+              );
             },
           ),
           const SizedBox(height: 20),

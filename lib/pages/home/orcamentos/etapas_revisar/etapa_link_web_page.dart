@@ -82,10 +82,7 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
                     ),
                   ],
                 ),
-                child:
-                    businessProvider.nomeEmpresa.isEmpty
-                        ? const Center(child: CircularProgressIndicator())
-                        : _buildBusinessHeader(context, businessProvider),
+                child: _buildBusinessHeader(context, businessProvider),
               ),
             ),
             if ((businessProvider.descricao ?? '').isNotEmpty) ...[
@@ -315,49 +312,57 @@ class _EtapaLinkWebPageState extends State<EtapaLinkWebPage> {
   Widget _buildBusinessHeader(BuildContext context, BusinessProvider provider) {
     return Column(
       children: [
-        FutureBuilder<Uint8List?>(
-          future: provider.getLogoBytes(),
-          builder: (context, snap) {
-            final logoBytes = snap.data;
-            Widget? logo;
-            if (logoBytes != null && logoBytes.isNotEmpty) {
-              logo = Image.memory(logoBytes, fit: BoxFit.contain, height: 100);
-            } else if (provider.logoUrl != null &&
-                provider.logoUrl!.isNotEmpty) {
-              logo = Image.network(
-                provider.logoUrl!,
-                fit: BoxFit.contain,
-                height: 100,
-                loadingBuilder:
-                    (context, child, loadingProgress) =>
-                        loadingProgress == null
-                            ? child
-                            : const CircularProgressIndicator(),
-                errorBuilder:
-                    (_, __, ___) => Icon(
-                      Icons.business,
-                      size: 80,
-                      color: Color(0xFF1976D2),
-                    ),
-              );
-            }
+        // Só mostra o FutureBuilder se tiver logoUrl configurada
+        if (provider.logoUrl != null && provider.logoUrl!.isNotEmpty)
+          FutureBuilder<Uint8List?>(
+            future: provider.getLogoBytes(),
+            builder: (context, snap) {
+              // Mostra loading enquanto carrega
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const SizedBox(
+                  height: 100,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              
+              final logoBytes = snap.data;
+              Widget? logo;
+              if (logoBytes != null && logoBytes.isNotEmpty) {
+                logo = Image.memory(logoBytes, fit: BoxFit.contain, height: 100);
+              } else {
+                // Fallback para carregar da URL diretamente
+                logo = Image.network(
+                  provider.logoUrl!,
+                  fit: BoxFit.contain,
+                  height: 100,
+                  loadingBuilder:
+                      (context, child, loadingProgress) =>
+                          loadingProgress == null
+                              ? child
+                              : const CircularProgressIndicator(),
+                  errorBuilder:
+                      (_, __, ___) => Icon(
+                        Icons.business,
+                        size: 80,
+                        color: Color(0xFF1976D2),
+                      ),
+                );
+              }
 
-            return logo != null
-                ? Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Color(0xFF1976D2).withOpacity(0.1),
-                      width: 2,
-                    ),
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Color(0xFF1976D2).withOpacity(0.1),
+                    width: 2,
                   ),
-                  child: logo,
-                )
-                : const SizedBox.shrink();
-          },
-        ),
+                ),
+                child: logo,
+              );
+            },
+          ),
         const SizedBox(height: 20),
         Text(
           provider.nomeEmpresa,
