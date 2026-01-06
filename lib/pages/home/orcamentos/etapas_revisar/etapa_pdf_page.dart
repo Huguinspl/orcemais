@@ -79,46 +79,45 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
   @override
   Widget build(BuildContext context) {
     final businessProvider = context.watch<BusinessProvider>();
-    final csBase = Theme.of(context).colorScheme;
     final theme = businessProvider.pdfTheme;
-    // Cores com override do tema salvo
+    // Cores com override do tema salvo - Padrão AZUL
     final cs = _ResolvedColors(
-      primary: ColorUtils.fromArgbInt(theme?['primary']) ?? csBase.primary,
+      primary: ColorUtils.fromArgbInt(theme?['primary']) ?? const Color(0xFF1565C0),
       onPrimary:
-          ColorUtils.fromArgbInt(theme?['onPrimary']) ?? csBase.onPrimary,
+          ColorUtils.fromArgbInt(theme?['onPrimary']) ?? Colors.white,
       secondaryContainer:
           ColorUtils.fromArgbInt(theme?['secondaryContainer']) ??
-          csBase.secondaryContainer,
+          const Color(0xFFE3F2FD),
       onSecondaryContainer:
           ColorUtils.fromArgbInt(theme?['onSecondaryContainer']) ??
-          csBase.onSecondaryContainer,
+          const Color(0xFF0D47A1),
       tertiaryContainer:
           ColorUtils.fromArgbInt(theme?['tertiaryContainer']) ??
-          csBase.tertiaryContainer,
+          const Color(0xFFBBDEFB),
       onTertiaryContainer:
           ColorUtils.fromArgbInt(theme?['onTertiaryContainer']) ??
-          csBase.onTertiaryContainer,
+          const Color(0xFF1565C0),
       outlineVariant:
           ColorUtils.fromArgbInt(theme?['outlineVariant']) ??
-          csBase.outlineVariant,
+          const Color(0xFF90CAF9),
       laudoBackground:
           ColorUtils.fromArgbInt(theme?['laudoBackground']) ??
-          const Color(0xFFF5F5F5),
+          const Color(0xFFE3F2FD),
       laudoText:
           ColorUtils.fromArgbInt(theme?['laudoText']) ??
-          const Color(0xFF212121),
+          const Color(0xFF0D47A1),
       garantiaBackground:
           ColorUtils.fromArgbInt(theme?['garantiaBackground']) ??
-          const Color(0xFFE8F5E9),
+          const Color(0xFFE3F2FD),
       garantiaText:
           ColorUtils.fromArgbInt(theme?['garantiaText']) ??
-          const Color(0xFF1B5E20),
+          const Color(0xFF1565C0),
       contratoBackground:
           ColorUtils.fromArgbInt(theme?['contratoBackground']) ??
-          const Color(0xFFFFF3E0),
+          const Color(0xFFBBDEFB),
       contratoText:
           ColorUtils.fromArgbInt(theme?['contratoText']) ??
-          const Color(0xFFE65100),
+          const Color(0xFF0D47A1),
       fotosBackground:
           ColorUtils.fromArgbInt(theme?['fotosBackground']) ??
           const Color(0xFFE3F2FD),
@@ -127,16 +126,16 @@ class _EtapaPdfPageState extends State<EtapaPdfPage> {
           const Color(0xFF0D47A1),
       pagamentoBackground:
           ColorUtils.fromArgbInt(theme?['pagamentoBackground']) ??
-          const Color(0xFFF3E5F5),
+          const Color(0xFFE3F2FD),
       pagamentoText:
           ColorUtils.fromArgbInt(theme?['pagamentoText']) ??
-          const Color(0xFF4A148C),
+          const Color(0xFF1565C0),
       valoresBackground:
           ColorUtils.fromArgbInt(theme?['valoresBackground']) ??
-          const Color(0xFFE0F2F1),
+          const Color(0xFFE3F2FD),
       valoresText:
           ColorUtils.fromArgbInt(theme?['valoresText']) ??
-          const Color(0xFF004D40),
+          const Color(0xFF0D47A1),
     );
 
     return SingleChildScrollView(

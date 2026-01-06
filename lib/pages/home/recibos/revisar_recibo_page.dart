@@ -305,35 +305,34 @@ class _RevisarReciboPageState extends State<RevisarReciboPage> {
   Widget _buildPdfVisualizado(NumberFormat currency) {
     final recibo = widget.recibo;
     final businessProvider = context.watch<BusinessProvider>();
-    final csBase = Theme.of(context).colorScheme;
     final theme = businessProvider.pdfTheme;
 
-    // Cores com override do tema salvo (igual ao orçamento)
+    // Cores com override do tema salvo - Padrão AZUL (igual ao orçamento)
     final cs = _ResolvedColors(
-      primary: ColorUtils.fromArgbInt(theme?['primary']) ?? csBase.primary,
+      primary: ColorUtils.fromArgbInt(theme?['primary']) ?? const Color(0xFF1565C0),
       onPrimary:
-          ColorUtils.fromArgbInt(theme?['onPrimary']) ?? csBase.onPrimary,
+          ColorUtils.fromArgbInt(theme?['onPrimary']) ?? Colors.white,
       secondaryContainer:
           ColorUtils.fromArgbInt(theme?['secondaryContainer']) ??
-          csBase.secondaryContainer,
+          const Color(0xFFE3F2FD),
       onSecondaryContainer:
           ColorUtils.fromArgbInt(theme?['onSecondaryContainer']) ??
-          csBase.onSecondaryContainer,
+          const Color(0xFF0D47A1),
       tertiaryContainer:
           ColorUtils.fromArgbInt(theme?['tertiaryContainer']) ??
-          csBase.tertiaryContainer,
+          const Color(0xFFBBDEFB),
       onTertiaryContainer:
           ColorUtils.fromArgbInt(theme?['onTertiaryContainer']) ??
-          csBase.onTertiaryContainer,
+          const Color(0xFF1565C0),
       outlineVariant:
           ColorUtils.fromArgbInt(theme?['outlineVariant']) ??
-          csBase.outlineVariant,
+          const Color(0xFF90CAF9),
       valoresBackground:
           ColorUtils.fromArgbInt(theme?['valoresBackground']) ??
-          const Color(0xFFE0F2F1),
+          const Color(0xFFE3F2FD),
       valoresText:
           ColorUtils.fromArgbInt(theme?['valoresText']) ??
-          const Color(0xFF004D40),
+          const Color(0xFF0D47A1),
     );
 
     return SingleChildScrollView(

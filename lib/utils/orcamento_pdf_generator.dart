@@ -46,10 +46,10 @@ class OrcamentoPdfGenerator {
     final pdf = pw.Document();
     // Paleta com suporte a tema salvo no provider
     final theme = businessProvider.pdfTheme;
-    // Cores principais do tema
+    // Cores principais do tema - Padrão AZUL profissional
     final primary = PdfColorUtils.fromArgbInt(
       theme?['primary'] as int?,
-      PdfColors.blue900,
+      PdfColor.fromHex('#1565C0'), // Azul padrão
     );
     final onPrimary = PdfColorUtils.fromArgbInt(
       theme?['onPrimary'] as int?,
@@ -57,73 +57,73 @@ class OrcamentoPdfGenerator {
     );
     final secondaryContainer = PdfColorUtils.fromArgbInt(
       theme?['secondaryContainer'] as int?,
-      PdfColors.grey200,
+      PdfColor.fromHex('#E3F2FD'), // Azul claro
     );
     final onSecondaryContainer = PdfColorUtils.fromArgbInt(
       theme?['onSecondaryContainer'] as int?,
-      PdfColors.black,
+      PdfColor.fromHex('#0D47A1'), // Azul escuro
     );
     final tertiaryContainer = PdfColorUtils.fromArgbInt(
       theme?['tertiaryContainer'] as int?,
-      PdfColors.grey300,
+      PdfColor.fromHex('#BBDEFB'), // Azul médio claro
     );
     final onTertiaryContainer = PdfColorUtils.fromArgbInt(
       theme?['onTertiaryContainer'] as int?,
-      PdfColors.black,
+      PdfColor.fromHex('#1565C0'), // Azul médio
     );
     final outlineVariant = PdfColorUtils.fromArgbInt(
       theme?['outlineVariant'] as int?,
-      PdfColors.grey400,
+      PdfColor.fromHex('#90CAF9'), // Azul outline
     );
 
-    // Cores personalizadas para seções específicas
+    // Cores personalizadas para seções específicas - Padrão AZUL
     final laudoBackground = PdfColorUtils.fromArgbInt(
       theme?['laudoBackground'] as int?,
-      PdfColors.grey200,
+      PdfColor.fromHex('#E3F2FD'), // Azul claro
     );
     final laudoText = PdfColorUtils.fromArgbInt(
       theme?['laudoText'] as int?,
-      PdfColors.black,
+      PdfColor.fromHex('#0D47A1'), // Azul escuro
     );
     final garantiaBackground = PdfColorUtils.fromArgbInt(
       theme?['garantiaBackground'] as int?,
-      PdfColor.fromHex('#E8F5E9'),
+      PdfColor.fromHex('#E3F2FD'), // Azul claro
     );
     final garantiaText = PdfColorUtils.fromArgbInt(
       theme?['garantiaText'] as int?,
-      PdfColor.fromHex('#1B5E20'),
+      PdfColor.fromHex('#1565C0'), // Azul
     );
     final contratoBackground = PdfColorUtils.fromArgbInt(
       theme?['contratoBackground'] as int?,
-      PdfColor.fromHex('#FFF3E0'),
+      PdfColor.fromHex('#BBDEFB'), // Azul médio claro
     );
     final contratoText = PdfColorUtils.fromArgbInt(
       theme?['contratoText'] as int?,
-      PdfColor.fromHex('#E65100'),
+      PdfColor.fromHex('#0D47A1'), // Azul escuro
     );
     final fotosBackground = PdfColorUtils.fromArgbInt(
       theme?['fotosBackground'] as int?,
-      PdfColor.fromHex('#E3F2FD'),
+      PdfColor.fromHex('#E3F2FD'), // Azul claro
     );
     final fotosText = PdfColorUtils.fromArgbInt(
       theme?['fotosText'] as int?,
-      PdfColor.fromHex('#0D47A1'),
+      PdfColor.fromHex('#0D47A1'), // Azul escuro
     );
     final pagamentoBackground = PdfColorUtils.fromArgbInt(
       theme?['pagamentoBackground'] as int?,
-      PdfColor.fromHex('#F3E5F5'),
+      PdfColor.fromHex('#E3F2FD'), // Azul claro
     );
     final pagamentoText = PdfColorUtils.fromArgbInt(
       theme?['pagamentoText'] as int?,
-      PdfColor.fromHex('#4A148C'),
+      PdfColor.fromHex('#1565C0'), // Azul
     );
     final valoresBackground = PdfColorUtils.fromArgbInt(
       theme?['valoresBackground'] as int?,
-      PdfColor.fromHex('#E0F2F1'),
+      PdfColor.fromHex('#E3F2FD'), // Azul claro
     );
     final valoresText = PdfColorUtils.fromArgbInt(
       theme?['valoresText'] as int?,
-      PdfColor.fromHex('#004D40'),
+      PdfColor.fromHex('#0D47A1'), // Azul escuro
     );
 
     // Garante que dados da empresa estejam carregados

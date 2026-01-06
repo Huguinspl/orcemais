@@ -56,10 +56,10 @@ class ReciboPdfGenerator {
     // Carrega tema personalizado ou usa cores padrão
     final theme = businessProvider.pdfTheme;
 
-    // Cores principais do tema
+    // Cores principais do tema - Padrão AZUL profissional (igual orçamento)
     final primary = PdfColorUtils.fromArgbInt(
       theme?['primary'] as int?,
-      PdfColor.fromHex('#FF6B00'), // Laranja padrão para recibos
+      PdfColor.fromHex('#1565C0'), // Azul padrão
     );
     final onPrimary = PdfColorUtils.fromArgbInt(
       theme?['onPrimary'] as int?,
@@ -67,33 +67,33 @@ class ReciboPdfGenerator {
     );
     final secondaryContainer = PdfColorUtils.fromArgbInt(
       theme?['secondaryContainer'] as int?,
-      PdfColor.fromHex('#FFE0B2'),
+      PdfColor.fromHex('#E3F2FD'), // Azul claro
     );
     final onSecondaryContainer = PdfColorUtils.fromArgbInt(
       theme?['onSecondaryContainer'] as int?,
-      PdfColor.fromHex('#2E1500'),
+      PdfColor.fromHex('#0D47A1'), // Azul escuro
     );
     final tertiaryContainer = PdfColorUtils.fromArgbInt(
       theme?['tertiaryContainer'] as int?,
-      PdfColor.fromHex('#FFD8CC'),
+      PdfColor.fromHex('#BBDEFB'), // Azul médio claro
     );
     final onTertiaryContainer = PdfColorUtils.fromArgbInt(
       theme?['onTertiaryContainer'] as int?,
-      PdfColor.fromHex('#311300'),
+      PdfColor.fromHex('#1565C0'), // Azul médio
     );
     final outlineVariant = PdfColorUtils.fromArgbInt(
       theme?['outlineVariant'] as int?,
-      PdfColors.grey300,
+      PdfColor.fromHex('#90CAF9'), // Azul outline
     );
 
-    // Cores personalizadas para seção de valores/totais
+    // Cores personalizadas para seção de valores/totais - Padrão AZUL
     final valoresBackground = PdfColorUtils.fromArgbInt(
       theme?['valoresBackground'] as int?,
-      PdfColor.fromHex('#E0F2F1'),
+      PdfColor.fromHex('#E3F2FD'), // Azul claro
     );
     final valoresText = PdfColorUtils.fromArgbInt(
       theme?['valoresText'] as int?,
-      PdfColor.fromHex('#004D40'),
+      PdfColor.fromHex('#0D47A1'), // Azul escuro
     );
 
     pdf.addPage(
