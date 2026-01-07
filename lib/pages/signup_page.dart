@@ -99,6 +99,17 @@ class _SignupPageState extends State<SignupPage>
         password: senha,
       );
 
+      /* 1.5) Envia email de boas-vindas/verificação */
+      if (cred.user != null && !cred.user!.emailVerified) {
+        try {
+          await cred.user!.sendEmailVerification();
+          print('✅ Email de boas-vindas enviado para: $email');
+        } catch (e) {
+          print('⚠️ Erro ao enviar email de boas-vindas: $e');
+          // Não bloqueia o cadastro se falhar o envio do email
+        }
+      }
+
       /* 2) Documento em Firestore (usa UID recém-criado) */
       final uid = cred.user?.uid;
       if (uid == null) {

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orcemais</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #006d5b 0%, #4db6ac 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #006d5b, #4db6ac);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 109, 91, 0.3);
+        }
+
+        .logo svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        h1 {
+            color: #006d5b;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: none;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: block;
+            width: 100%;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 16px 50px 16px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #e0f2f1;
+            box-sizing: border-box;
+            display: block;
+        }
+
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            background: #e0f2f1;
+            padding: 16px 50px 16px 16px;
+        }
+
+        input[type="password"]::placeholder,
+        input[type="text"]::placeholder {
+            color: #999;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            pointer-events: auto;
+            z-index: 1;
+            user-select: none;
+        }
+
+        .toggle-password:hover {
+            opacity: 0.7;
+        }
+
+        .toggle-password:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .requirements {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+        .requirements h3 {
+            color: #0369a1;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .requirements ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .requirements li {
+            padding: 4px 0;
+            color: #666;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .requirements li:before {
+            content: "○";
+            position: absolute;
+            left: 5px;
+            color: #bbb;
+        }
+
+        .requirements li.valid:before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .requirements li.invalid:before {
+            content: "✗";
+            color: #ef4444;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .success-message {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #006d5b, #4db6ac);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 109, 91, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 109, 91, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #006d5b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                </svg>
+            </div>
+            <h1>Recuperação de Senha</h1>
+            <p class="subtitle">Crie uma nova senha segura para sua conta Orcemais.</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage">
+            <strong>✓ Senha alterada com sucesso!</strong><br>
+            Redirecionando para o login...
+        </div>
+
+        <form id="resetForm">
+            <div class="form-group">
+                <label for="newPassword">Nova Senha</label>
+                <div class="input-wrapper">
+                    <span class="toggle-password" onclick="togglePassword('newPassword', event)">
+                        <span id="iconNewPassword">🙈</span>
+                    </span>
+                    <input 
+                        type="password" 
+                        id="newPassword" 
+                        placeholder="Nova Senha"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar Nova Senha</label>
+                <div class="input-wrapper">
+                    <span class="toggle-password" onclick="togglePassword('confirmPassword', event)">
+                        <span id="iconConfirmPassword">🙈</span>
+                    </span>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        placeholder="Confirmar Nova Senha"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="requirements">
+                <h3>Requisitos da senha:</h3>
+                <ul id="passwordRequirements">
+                    <li id="req-length">Mínimo de 6 caracteres</li>
+                    <li id="req-match">As senhas devem ser iguais</li>
+                    <li id="req-strength">Recomendado: letras, números e símbolos</li>
+                </ul>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                Alterar Senha
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">Alterando senha...</p>
+        </div>
+
+        <div class="footer">
+            Orcemais © 2026 - Gestão de Orçamentos<br>
+            Dúvidas? Entre em contato com o suporte
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6XnB5jv9loZf6mTTYghFPIcIDNnW7g3o",
+            authDomain: "gestorfy-app.firebaseapp.com",
+            projectId: "gestorfy-app",
+            storageBucket: "gestorfy-app.firebasestorage.app",
+            messagingSenderId: "388082198829",
+            appId: "1:388082198829:web:080b0e26e2b1a3fd76cba4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Pega o código da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const oobCode = urlParams.get('oobCode');
+
+        // Verifica o tipo de ação
+        if (!oobCode) {
+            showError('Link inválido ou expirado.');
+            document.getElementById('resetForm').style.display = 'none';
+        } else if (mode === 'verifyEmail') {
+            // Verificação de email
+            handleEmailVerification();
+        } else if (mode === 'resetPassword') {
+            // Recuperação de senha (formulário já está visível)
+        } else {
+            showError('Ação não reconhecida.');
+            document.getElementById('resetForm').style.display = 'none';
+        }
+
+        // Função para verificar email
+        async function handleEmailVerification() {
+            // Esconde formulário de senha
+            document.getElementById('resetForm').style.display = 'none';
+            
+            // Atualiza título e subtítulo
+            document.querySelector('h1').textContent = 'Verificando seu Email';
+            document.querySelector('.subtitle').textContent = 'Aguarde enquanto confirmamos seu endereço de email...';
+            
+            // Mostra loading
+            document.getElementById('loading').classList.add('show');
+            
+            try {
+                // Aplica o código de verificação
+                await auth.applyActionCode(oobCode);
+                
+                // Sucesso!
+                document.getElementById('loading').classList.remove('show');
+                
+                // Atualiza mensagem de sucesso
+                const successDiv = document.getElementById('successMessage');
+                successDiv.innerHTML = `
+                    <div class="icon success">✓</div>
+                    <h2>Email Verificado com Sucesso! 🎉</h2>
+                    <p>Seu email foi confirmado. Agora você pode fazer login no aplicativo e aproveitar todos os recursos do Orcemais!</p>
+                `;
+                successDiv.classList.add('show');
+                
+                // Redireciona após 4 segundos
+                setTimeout(() => {
+                    // Tenta abrir o app (deep link)
+                    window.location.href = 'gestorfy://login';
+                    
+                    // Fallback: volta para página principal
+                    setTimeout(() => {
+                        window.location.href = 'https://gestorfy-app.web.app';
+                    }, 1000);
+                }, 4000);
+                
+            } catch (error) {
+                document.getElementById('loading').classList.remove('show');
+                
+                let errorMessage = 'Erro ao verificar email. ';
+                switch (error.code) {
+                    case 'auth/expired-action-code':
+                        errorMessage += 'Link expirado. Solicite um novo email de verificação.';
+                        break;
+                    case 'auth/invalid-action-code':
+                        errorMessage += 'Link inválido ou já utilizado.';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                showError(errorMessage);
+            }
+        }
+
+        // Validação em tempo real
+        const newPasswordInput = document.getElementById('newPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+
+        newPasswordInput.addEventListener('input', validatePassword);
+        confirmPasswordInput.addEventListener('input', validatePassword);
+
+        function validatePassword() {
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Validação de tamanho
+            const lengthReq = document.getElementById('req-length');
+            if (newPassword.length >= 6) {
+                lengthReq.classList.remove('invalid');
+                lengthReq.classList.add('valid');
+            } else {
+                lengthReq.classList.remove('valid');
+                lengthReq.classList.add('invalid');
+            }
+
+            // Validação de match
+            const matchReq = document.getElementById('req-match');
+            if (confirmPassword.length > 0) {
+                if (newPassword === confirmPassword) {
+                    matchReq.classList.remove('invalid');
+                    matchReq.classList.add('valid');
+                } else {
+                    matchReq.classList.remove('valid');
+                    matchReq.classList.add('invalid');
+                }
+            } else {
+                matchReq.classList.remove('valid', 'invalid');
+            }
+
+            // Validação de força (opcional)
+            const strengthReq = document.getElementById('req-strength');
+            const hasLetter = /[a-zA-Z]/.test(newPassword);
+            const hasNumber = /[0-9]/.test(newPassword);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+            
+            if ((hasLetter && hasNumber) || (hasLetter && hasSpecial) || (hasNumber && hasSpecial)) {
+                strengthReq.classList.add('valid');
+                strengthReq.classList.remove('invalid');
+            } else if (newPassword.length > 0) {
+                strengthReq.classList.remove('valid', 'invalid');
+            }
+        }
+
+        // Toggle mostrar/ocultar senha
+        function togglePassword(inputId, event) {
+            if (event) event.stopPropagation();
+            
+            const input = document.getElementById(inputId);
+            const iconSpan = input.parentElement.querySelector('.toggle-password span');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconSpan.textContent = '👁️';
+            } else {
+                input.type = 'password';
+                iconSpan.textContent = '🙈';
+            }
+        }
+
+        // Adiciona event listeners após carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toggle-password').forEach(function(el) {
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                });
+            });
+        });
+
+        // Submit do formulário
+        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Validações
+            if (newPassword.length < 6) {
+                showError('A senha deve ter no mínimo 6 caracteres');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showError('As senhas não coincidem');
+                return;
+            }
+
+            // Mostra loading
+            document.getElementById('resetForm').style.display = 'none';
+            document.getElementById('loading').classList.add('show');
+
+            try {
+                // Confirma o código e altera a senha
+                await auth.verifyPasswordResetCode(oobCode);
+                await auth.confirmPasswordReset(oobCode, newPassword);
+
+                // Sucesso!
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('successMessage').classList.add('show');
+
+                // Redireciona após 3 segundos
+                setTimeout(() => {
+                    // Tenta abrir o app (deep link)
+                    window.location.href = 'gestorfy://login';
+                    
+                    // Fallback: volta para página de login web
+                    setTimeout(() => {
+                        window.location.href = 'https://gestorfy-app.web.app';
+                    }, 1000);
+                }, 3000);
+
+            } catch (error) {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('resetForm').style.display = 'block';
+
+                let errorMessage = 'Erro ao alterar senha. ';
+                switch (error.code) {
+                    case 'auth/expired-action-code':
+                        errorMessage += 'Link expirado. Solicite um novo email de recuperação.';
+                        break;
+                    case 'auth/invalid-action-code':
+                        errorMessage += 'Link inválido ou já utilizado.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage += 'Senha muito fraca. Use uma senha mais forte.';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                showError(errorMessage);
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            
+            setTimeout(() => {
+                errorDiv.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
