@@ -100,6 +100,19 @@ service cloud.firestore {
       allow write: if request.auth.uid == 'tdB0QRkOfiMfRQAMykXjasZbIXq2';
     }
     
+    // Regras para administradores do chat
+    match /administradores/{adminId} {
+      allow read, write: if isOwner(adminId);
+      
+      match /perfil/{perfilDoc} {
+        allow read, write: if isOwner(adminId);
+      }
+      
+      match /{subcollection}/{docId} {
+        allow read, write: if isOwner(adminId);
+      }
+    }
+    
     // Nega acesso a qualquer outro documento
     match /{document=**} {
       allow read, write: if false;

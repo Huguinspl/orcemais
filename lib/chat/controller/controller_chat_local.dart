@@ -28,8 +28,22 @@ class ControllerChatLocal extends GetxController {
             .get();
     if (doc.exists) {
       final dados = doc.data()!;
-      nome = dados['nomeDono'] ?? "Não informado";
+      nome = dados['nomeDono'] ?? "";
     }
+  }
+
+  /// Atualiza o nome no admChatModel no Firestore
+  Future<void> _atualizarNomeNoFirestore(String novoNome) async {
+    try {
+      final controllerChat = Get.find<ControllerChat>();
+      if (controllerChat.admChatModel != null) {
+        controllerChat.admChatModel!.nome = novoNome;
+        await FirebaseFirestore.instance
+            .collection('chat')
+            .doc(controllerChat.admChatModel!.id)
+            .update({'nome': novoNome});
+      }
+    } catch (_) {}
   }
 
   Future<void> adicionarNome() async {
@@ -67,6 +81,9 @@ class ControllerChatLocal extends GetxController {
               }
 
               nome = editingController.text;
+              
+              // Atualiza o nome no Firestore para o admin ver
+              await _atualizarNomeNoFirestore(nome);
 
               Get.back();
               try {

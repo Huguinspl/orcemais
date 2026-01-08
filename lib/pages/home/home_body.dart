@@ -260,7 +260,7 @@ class HomeBody extends StatelessWidget {
                         ),
                         FeatureCard(
                           icon: Icons.attach_money,
-                          title: 'Controle de Despesas',
+                          title: 'Controle de Financeiro',
                           color: Colors.redAccent,
                           onTap:
                               () => Navigator.pushNamed(
