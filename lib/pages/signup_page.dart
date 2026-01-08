@@ -100,12 +100,17 @@ class _SignupPageState extends State<SignupPage>
       );
 
       /* 1.5) Envia email de boas-vindas/verificação */
+      bool emailEnviado = false;
+      String? erroEmail;
+
       if (cred.user != null && !cred.user!.emailVerified) {
         try {
           await cred.user!.sendEmailVerification();
           print('✅ Email de boas-vindas enviado para: $email');
+          emailEnviado = true;
         } catch (e) {
           print('⚠️ Erro ao enviar email de boas-vindas: $e');
+          erroEmail = e.toString();
           // Não bloqueia o cadastro se falhar o envio do email
         }
       }
@@ -131,7 +136,37 @@ class _SignupPageState extends State<SignupPage>
 
       if (!mounted) return;
 
-      /* 5) Navega para o Tutorial limpando a pilha  */
+      /* 5) Mostrar confirmação do email de verificação */
+      if (emailEnviado) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.mark_email_read, color: Colors.green),
+                SizedBox(width: 8),
+                Expanded(child: Text('Verifique seu Email')),
+              ],
+            ),
+            content: Text(
+              'Um email de verificação foi enviado para:\n\n$email\n\n'
+              'Por favor, verifique sua caixa de entrada e também a pasta de spam/lixo eletrônico.',
+              style: const TextStyle(fontSize: 14),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('OK, ENTENDI'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      if (!mounted) return;
+
+      /* 6) Navega para o Tutorial limpando a pilha  */
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.tutorial,

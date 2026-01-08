@@ -179,336 +179,354 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF006d5b).withOpacity(0.1),
-                  Colors.white,
-                  Colors.white,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Stack(
+        children: [
+          Scaffold(
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF006d5b).withOpacity(0.1),
+                    Colors.white,
+                    Colors.white,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Header com logo e gradiente
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF006d5b), Color(0xFF4db6ac)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+              child: SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Header com logo e gradiente
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF006d5b),
+                                    Color(0xFF4db6ac),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF006d5b,
+                                    ).withOpacity(0.3),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
                               ),
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFF006d5b,
-                                  ).withOpacity(0.3),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                // Logo em círculo
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Image.asset(
-                                    'assets/gestorfy_logo_principal.png',
-                                    width: 80,
-                                    height: 80,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                const Text(
-                                  'Bem-vindo de volta!',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Entre com sua conta',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 32),
-
-                          // Card de formulário
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.teal.shade100,
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: Form(
-                              key: _formKey,
                               child: Column(
                                 children: [
-                                  // Campo de e-mail
-                                  TextFormField(
-                                    controller: _emailController,
-                                    decoration: InputDecoration(
-                                      labelText: 'E-mail',
-                                      prefixIcon: Icon(
-                                        Icons.email_outlined,
-                                        color: Colors.teal.shade600,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.teal.shade200,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.teal.shade200,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.teal.shade600,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.teal.shade50,
-                                    ),
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Digite seu e-mail';
-                                      }
-                                      if (!value.contains('@')) {
-                                        return 'E-mail inválido';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  const SizedBox(height: 16),
-
-                                  // Campo de senha
-                                  TextFormField(
-                                    controller: _senhaController,
-                                    obscureText: _obscureText,
-                                    decoration: InputDecoration(
-                                      labelText: 'Senha',
-                                      prefixIcon: Icon(
-                                        Icons.lock_outline,
-                                        color: Colors.teal.shade600,
-                                      ),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(
-                                          _obscureText
-                                              ? Icons.visibility_off
-                                              : Icons.visibility,
-                                          color: Colors.teal.shade600,
-                                        ),
-                                        onPressed:
-                                            () => setState(
-                                              () =>
-                                                  _obscureText = !_obscureText,
-                                            ),
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.teal.shade200,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.teal.shade200,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: Colors.teal.shade600,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.teal.shade50,
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Digite sua senha';
-                                      }
-                                      if (value.length < 6) {
-                                        return 'Senha deve ter no mínimo 6 caracteres';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  const SizedBox(height: 12),
-
-                                  // Link de recuperar senha
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TextButton(
-                                      onPressed:
-                                          () => Navigator.pushNamed(
-                                            context,
-                                            AppRoutes.recuperarSenha,
-                                          ),
-                                      child: Text(
-                                        'Esqueceu a senha?',
-                                        style: TextStyle(
-                                          color: Colors.teal.shade700,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 8),
-
-                                  // Botão de entrar
+                                  // Logo em círculo
                                   Container(
+                                    padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(
-                                            0xFF006d5b,
-                                          ).withOpacity(0.4),
-                                          blurRadius: 15,
-                                          offset: const Offset(0, 8),
-                                        ),
-                                      ],
+                                      color: Colors.white.withOpacity(0.2),
+                                      shape: BoxShape.circle,
                                     ),
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      height: 56,
-                                      child: ElevatedButton(
-                                        onPressed: _fazerLogin,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.transparent,
-                                          shadowColor: Colors.transparent,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          padding: EdgeInsets.zero,
-                                        ),
-                                        child: Ink(
-                                          decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
-                                              colors: [
-                                                Color(0xFF006d5b),
-                                                Color(0xFF4db6ac),
-                                              ],
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          child: Container(
-                                            alignment: Alignment.center,
-                                            child: const Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.login,
-                                                  color: Colors.white,
-                                                ),
-                                                SizedBox(width: 8),
-                                                Text(
-                                                  'Entrar',
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                                    child: Image.asset(
+                                      'assets/gestorfy_logo_principal.png',
+                                      width: 80,
+                                      height: 80,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  const Text(
+                                    'Bem-vindo de volta!',
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Entre com sua conta',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white.withOpacity(0.9),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 24),
+                            const SizedBox(height: 32),
 
-                          // Link para criar conta
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Ainda não tem conta?',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey.shade700,
+                            // Card de formulário
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.teal.shade100,
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  children: [
+                                    // Campo de e-mail
+                                    TextFormField(
+                                      controller: _emailController,
+                                      decoration: InputDecoration(
+                                        labelText: 'E-mail',
+                                        prefixIcon: Icon(
+                                          Icons.email_outlined,
+                                          color: Colors.teal.shade600,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.teal.shade200,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.teal.shade200,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.teal.shade600,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.teal.shade50,
+                                      ),
+                                      keyboardType: TextInputType.emailAddress,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Digite seu e-mail';
+                                        }
+                                        if (!value.contains('@')) {
+                                          return 'E-mail inválido';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+
+                                    const SizedBox(height: 16),
+
+                                    // Campo de senha
+                                    TextFormField(
+                                      controller: _senhaController,
+                                      obscureText: _obscureText,
+                                      decoration: InputDecoration(
+                                        labelText: 'Senha',
+                                        prefixIcon: Icon(
+                                          Icons.lock_outline,
+                                          color: Colors.teal.shade600,
+                                        ),
+                                        suffixIcon: IconButton(
+                                          icon: Icon(
+                                            _obscureText
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
+                                            color: Colors.teal.shade600,
+                                          ),
+                                          onPressed:
+                                              () => setState(
+                                                () =>
+                                                    _obscureText =
+                                                        !_obscureText,
+                                              ),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.teal.shade200,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.teal.shade200,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.teal.shade600,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.teal.shade50,
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Digite sua senha';
+                                        }
+                                        if (value.length < 6) {
+                                          return 'Senha deve ter no mínimo 6 caracteres';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+
+                                    const SizedBox(height: 12),
+
+                                    // Link de recuperar senha
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        onPressed:
+                                            () => Navigator.pushNamed(
+                                              context,
+                                              AppRoutes.recuperarSenha,
+                                            ),
+                                        child: Text(
+                                          'Esqueceu a senha?',
+                                          style: TextStyle(
+                                            color: Colors.teal.shade700,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 8),
+
+                                    // Botão de entrar
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(
+                                              0xFF006d5b,
+                                            ).withOpacity(0.4),
+                                            blurRadius: 15,
+                                            offset: const Offset(0, 8),
+                                          ),
+                                        ],
+                                      ),
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        height: 56,
+                                        child: ElevatedButton(
+                                          onPressed: _fazerLogin,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
+                                            shadowColor: Colors.transparent,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                          child: Ink(
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [
+                                                  Color(0xFF006d5b),
+                                                  Color(0xFF4db6ac),
+                                                ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Container(
+                                              alignment: Alignment.center,
+                                              child: const Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    Icons.login,
+                                                    color: Colors.white,
+                                                  ),
+                                                  SizedBox(width: 8),
+                                                  Text(
+                                                    'Entrar',
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.pushNamed(
-                                      context,
-                                      AppRoutes.cadastro,
-                                    ),
-                                child: Text(
-                                  'Criar conta',
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            // Link para criar conta
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Ainda não tem conta?',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.teal.shade700,
+                                    color: Colors.grey.shade700,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.pushNamed(
+                                        context,
+                                        AppRoutes.cadastro,
+                                      ),
+                                  child: Text(
+                                    'Criar conta',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.teal.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -516,55 +534,55 @@ class _LoginPageState extends State<LoginPage>
               ),
             ),
           ),
-        ),
-        if (_isLoading)
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.black.withOpacity(0.7),
-                  Colors.black.withOpacity(0.5),
-                ],
-              ),
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.teal.shade200,
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.teal.shade600,
-                      ),
-                      strokeWidth: 3,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Entrando...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.teal.shade700,
-                      ),
-                    ),
+          if (_isLoading)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withOpacity(0.7),
+                    Colors.black.withOpacity(0.5),
                   ],
                 ),
               ),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.teal.shade200,
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.teal.shade600,
+                        ),
+                        strokeWidth: 3,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Entrando...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.teal.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

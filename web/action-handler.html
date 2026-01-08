@@ -309,7 +309,7 @@
         <div class="error-message" id="errorMessage"></div>
         <div class="success-message" id="successMessage">
             <strong>✓ Senha alterada com sucesso!</strong><br>
-            Redirecionando para o login...
+            Você já pode fechar esta página e fazer login no aplicativo com sua nova senha.
         </div>
 
         <form id="resetForm">
@@ -428,20 +428,12 @@
                 successDiv.innerHTML = `
                     <div class="icon success">✓</div>
                     <h2>Email Verificado com Sucesso! 🎉</h2>
-                    <p>Seu email foi confirmado. Agora você pode fazer login no aplicativo e aproveitar todos os recursos do Orcemais!</p>
+                    <p>Seu email foi confirmado com sucesso!</p>
+                    <p style="margin-top: 15px; color: #666; font-size: 14px;">Agora você pode fechar esta página e voltar ao aplicativo Orcemais.</p>
                 `;
                 successDiv.classList.add('show');
                 
-                // Redireciona após 4 segundos
-                setTimeout(() => {
-                    // Tenta abrir o app (deep link)
-                    window.location.href = 'gestorfy://login';
-                    
-                    // Fallback: volta para página principal
-                    setTimeout(() => {
-                        window.location.href = 'https://gestorfy-app.web.app';
-                    }, 1000);
-                }, 4000);
+                // NÃO redireciona - usuário fecha manualmente
                 
             } catch (error) {
                 document.getElementById('loading').classList.remove('show');
@@ -567,16 +559,7 @@
                 document.getElementById('loading').classList.remove('show');
                 document.getElementById('successMessage').classList.add('show');
 
-                // Redireciona após 3 segundos
-                setTimeout(() => {
-                    // Tenta abrir o app (deep link)
-                    window.location.href = 'gestorfy://login';
-                    
-                    // Fallback: volta para página de login web
-                    setTimeout(() => {
-                        window.location.href = 'https://gestorfy-app.web.app';
-                    }, 1000);
-                }, 3000);
+                // NÃO redireciona - usuário fecha manualmente e abre o app
 
             } catch (error) {
                 document.getElementById('loading').classList.remove('show');

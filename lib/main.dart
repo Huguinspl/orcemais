@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'conditional_desktop.dart' if (dart.library.html) 'stub_desktop.dart';
 import 'services/messaging_service.dart';
 import 'services/notification_handler.dart';
+import 'services/notification_service.dart';
 
 // Providers
 import 'providers/user_provider.dart';
@@ -57,7 +58,6 @@ import 'pages/home/tabs/outras_funcionalidades_page.dart';
 import 'pages/home/checklists/meus_checklists_page.dart';
 import 'pages/controle_financeiro_page.dart';
 import 'models/peca_material.dart';
-import 'services/notification_service.dart';
 import 'chat/widget/chat_local.dart';
 
 import 'firebase_options.dart';

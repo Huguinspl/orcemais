@@ -19,12 +19,14 @@ class UserProvider extends ChangeNotifier {
   String _email = '';
   String _cpf = '';
   String _emailCadastro = '';
+  bool _emailVerified = false;
 
   /* -------------------- GETTERS ----------------------- */
   String get nome => _nome;
   String get email => _email;
   String get cpf => _cpf;
   String get emailCadastro => _emailCadastro;
+  bool get emailVerified => _emailVerified;
 
   /* --------------- CARREGA DADOS DO USUÁRIO ---------------- */
   Future<void> carregarDoFirestore() async {
@@ -36,18 +38,24 @@ class UserProvider extends ChangeNotifier {
         return;
       }
 
-      _uid = user.uid; // ← garante que UID esteja preenchido
+      // Recarrega dados do usuário do Firebase para atualizar emailVerified
+      await user.reload();
+      final updatedUser = _auth.currentUser;
+
+      _uid =
+          updatedUser?.uid ?? user.uid; // ← garante que UID esteja preenchido
       _carregado = false; // força recarga
 
       final data = await _fs.fetchUser();
       if (data != null) {
         _nome = data['nome'] ?? '';
-        _email = data['email'] ?? user.email ?? '';
+        _email = data['email'] ?? updatedUser?.email ?? user.email ?? '';
         _cpf = data['cpf'] ?? '';
       } else {
-        _email = user.email ?? '';
+        _email = updatedUser?.email ?? user.email ?? '';
       }
-      _emailCadastro = user.email ?? '';
+      _emailCadastro = updatedUser?.email ?? user.email ?? '';
+      _emailVerified = updatedUser?.emailVerified ?? user.emailVerified;
 
       _carregado = true;
       notifyListeners();
@@ -64,6 +72,7 @@ class UserProvider extends ChangeNotifier {
     _email = '';
     _cpf = '';
     _emailCadastro = '';
+    _emailVerified = false;
     _carregado = false;
     notifyListeners();
   }

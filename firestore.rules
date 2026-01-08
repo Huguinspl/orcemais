@@ -26,6 +26,15 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
     
+    // Regras para tokens de notificação push
+    match /usuarios/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /pushTokens/{platform} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
     // Regras para dados de negócio (documento principal)
     match /business/{userId} {
       // Permite leitura pública (necessário para links compartilhados)

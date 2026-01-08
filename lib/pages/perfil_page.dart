@@ -13,6 +13,15 @@ class PerfilPage extends StatefulWidget {
 
 class _PerfilPageState extends State<PerfilPage> {
   @override
+  void initState() {
+    super.initState();
+    // Recarrega dados do usuário para atualizar status de email verificado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserProvider>().carregarDoFirestore();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>();
 
@@ -235,6 +244,14 @@ class _PerfilPageState extends State<PerfilPage> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  if (user.emailVerified) ...[
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.verified,
+                                      color: Colors.green.shade600,
+                                      size: 22,
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
