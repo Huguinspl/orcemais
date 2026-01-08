@@ -14,22 +14,49 @@ class TransacoesProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get erro => _erro;
 
-  /// Retorna apenas receitas
+  /// Retorna apenas receitas (não futuras)
   List<Transacao> get receitas =>
-      _transacoes.where((t) => t.tipo == TipoTransacao.receita).toList();
+      _transacoes
+          .where((t) => t.tipo == TipoTransacao.receita && !t.isFutura)
+          .toList();
 
-  /// Retorna apenas despesas
+  /// Retorna apenas despesas (não futuras)
   List<Transacao> get despesas =>
-      _transacoes.where((t) => t.tipo == TipoTransacao.despesa).toList();
+      _transacoes
+          .where((t) => t.tipo == TipoTransacao.despesa && !t.isFutura)
+          .toList();
 
-  /// Calcula total de receitas
+  /// Retorna receitas a receber (futuras)
+  List<Transacao> get receitasAReceber =>
+      _transacoes
+          .where((t) => t.tipo == TipoTransacao.receita && t.isFutura)
+          .toList();
+
+  /// Retorna despesas a pagar (futuras)
+  List<Transacao> get despesasAPagar =>
+      _transacoes
+          .where((t) => t.tipo == TipoTransacao.despesa && t.isFutura)
+          .toList();
+
+  /// Calcula total de receitas (não futuras)
   double get totalReceitas => receitas.fold(0, (sum, t) => sum + t.valor);
 
-  /// Calcula total de despesas
+  /// Calcula total de despesas (não futuras)
   double get totalDespesas => despesas.fold(0, (sum, t) => sum + t.valor);
+
+  /// Calcula total de receitas a receber
+  double get totalReceitasAReceber =>
+      receitasAReceber.fold(0, (sum, t) => sum + t.valor);
+
+  /// Calcula total de despesas a pagar
+  double get totalDespesasAPagar =>
+      despesasAPagar.fold(0, (sum, t) => sum + t.valor);
 
   /// Calcula saldo (receitas - despesas)
   double get saldo => totalReceitas - totalDespesas;
+
+  /// Calcula saldo futuro (receitas a receber - despesas a pagar)
+  double get saldoFuturo => totalReceitasAReceber - totalDespesasAPagar;
 
   /// Carrega transações do Firestore para um usuário específico
   Future<void> carregarTransacoes(String userId) async {
@@ -169,6 +196,26 @@ class TransacoesProvider with ChangeNotifier {
   Map<CategoriaTransacao, double> despesasPorCategoria() {
     final Map<CategoriaTransacao, double> resultado = {};
     for (var transacao in despesas) {
+      resultado[transacao.categoria] =
+          (resultado[transacao.categoria] ?? 0) + transacao.valor;
+    }
+    return resultado;
+  }
+
+  /// Retorna receitas a receber agrupadas por categoria
+  Map<CategoriaTransacao, double> receitasAReceberPorCategoria() {
+    final Map<CategoriaTransacao, double> resultado = {};
+    for (var transacao in receitasAReceber) {
+      resultado[transacao.categoria] =
+          (resultado[transacao.categoria] ?? 0) + transacao.valor;
+    }
+    return resultado;
+  }
+
+  /// Retorna despesas a pagar agrupadas por categoria
+  Map<CategoriaTransacao, double> despesasAPagarPorCategoria() {
+    final Map<CategoriaTransacao, double> resultado = {};
+    for (var transacao in despesasAPagar) {
       resultado[transacao.categoria] =
           (resultado[transacao.categoria] ?? 0) + transacao.valor;
     }

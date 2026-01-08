@@ -33,6 +33,7 @@ class Transacao {
   final String? observacoes;
   final String userId;
   final DateTime criadoEm;
+  final bool isFutura; // true = receita a receber / despesa a pagar
 
   Transacao({
     this.id,
@@ -44,6 +45,7 @@ class Transacao {
     this.observacoes,
     required this.userId,
     DateTime? criadoEm,
+    this.isFutura = false,
   }) : criadoEm = criadoEm ?? DateTime.now();
 
   /// Converte para Map para salvar no Firestore
@@ -57,6 +59,7 @@ class Transacao {
       'observacoes': observacoes,
       'userId': userId,
       'criadoEm': Timestamp.fromDate(criadoEm),
+      'isFutura': isFutura,
     };
   }
 
@@ -79,6 +82,7 @@ class Transacao {
       observacoes: data['observacoes'],
       userId: data['userId'] ?? '',
       criadoEm: (data['criadoEm'] as Timestamp).toDate(),
+      isFutura: data['isFutura'] ?? false,
     );
   }
 
@@ -93,6 +97,7 @@ class Transacao {
     String? observacoes,
     String? userId,
     DateTime? criadoEm,
+    bool? isFutura,
   }) {
     return Transacao(
       id: id ?? this.id,
@@ -104,6 +109,7 @@ class Transacao {
       observacoes: observacoes ?? this.observacoes,
       userId: userId ?? this.userId,
       criadoEm: criadoEm ?? this.criadoEm,
+      isFutura: isFutura ?? this.isFutura,
     );
   }
 }

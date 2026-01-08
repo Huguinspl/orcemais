@@ -81,7 +81,7 @@ class ControllerChatLocal extends GetxController {
               }
 
               nome = editingController.text;
-              
+
               // Atualiza o nome no Firestore para o admin ver
               await _atualizarNomeNoFirestore(nome);
 
