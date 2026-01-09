@@ -13,6 +13,7 @@ import '../providers/clients_provider.dart';
 import '../providers/transacoes_provider.dart';
 import '../providers/user_provider.dart';
 import '../models/receita.dart';
+import 'home/agendamentos/agendamento_a_receber_page.dart';
 import 'home/tabs/clientes_page.dart';
 import 'home/tabs/novo_cliente_page.dart';
 import 'home/orcamentos/orcamentos_page.dart';
@@ -2160,14 +2161,26 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
       final tipo = resultado['tipo'] as TipoTransacao;
       final isFutura = resultado['isFutura'] as bool;
 
-      await showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder:
-            (context) =>
-                _NovaTransacaoSheet(tipoInicial: tipo, isFutura: isFutura),
-      );
+      // Para receita a receber, navega para página completa com AppBar
+      if (isFutura && tipo == TipoTransacao.receita) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AgendamentoAReceberPage(
+              fromControleFinanceiro: true,
+            ),
+          ),
+        );
+      } else {
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder:
+              (context) =>
+                  _NovaTransacaoSheet(tipoInicial: tipo, isFutura: isFutura),
+        );
+      }
     }
   }
 

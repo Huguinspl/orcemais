@@ -44,7 +44,15 @@ class AgendamentoAReceberPage extends StatefulWidget {
   /// Agendamento para edição (null = criar novo)
   final Agendamento? agendamento;
 
-  const AgendamentoAReceberPage({super.key, this.agendamento});
+  /// Se true, mostra checkbox "Salvar em Agendamento" (quando vem do Controle Financeiro)
+  /// Se false, sempre salva em agendamento (quando vem da tela de Agendamentos)
+  final bool fromControleFinanceiro;
+
+  const AgendamentoAReceberPage({
+    super.key,
+    this.agendamento,
+    this.fromControleFinanceiro = false,
+  });
 
   /// Verifica se está em modo de edição
   bool get isEditMode => agendamento != null;
@@ -70,6 +78,9 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
   bool _repetirParcelar = false;
   Orcamento? _orcamentoSelecionado;
   Cliente? _clienteSelecionado;
+
+  // Controle para salvar em agendamento (usado quando fromControleFinanceiro = true)
+  bool _salvarEmAgendamento = true;
 
   // ID do agendamento sendo editado (null = novo)
   String? _agendamentoId;
@@ -776,24 +787,33 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
         if (!mounted) return;
 
         if (sucesso) {
-          await agProv.adicionarAgendamento(
-            orcamentoId: 'receita_a_receber',
-            orcamentoNumero: _orcamentoSelecionado?.numero,
-            clienteNome: clienteNome,
-            dataHora: Timestamp.fromDate(dataHoraRecebimento),
-            status: 'Pendente',
-            observacoes: obsAgendamento.toString().trim(),
-          );
+          // Só adiciona em Agendamentos se:
+          // - Veio da tela de Agendamentos (fromControleFinanceiro = false), OU
+          // - Veio do Controle Financeiro E checkbox _salvarEmAgendamento está marcado
+          if (!widget.fromControleFinanceiro || _salvarEmAgendamento) {
+            await agProv.adicionarAgendamento(
+              orcamentoId: 'receita_a_receber',
+              orcamentoNumero: _orcamentoSelecionado?.numero,
+              clienteNome: clienteNome,
+              dataHora: Timestamp.fromDate(dataHoraRecebimento),
+              status: 'Pendente',
+              observacoes: obsAgendamento.toString().trim(),
+            );
+          }
 
           if (!mounted) return;
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Row(
+              content: Row(
                 children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Receita a receber adicionada!'),
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Text(
+                    _salvarEmAgendamento || !widget.fromControleFinanceiro
+                        ? 'Receita a receber adicionada!'
+                        : 'Receita a receber salva (sem agendamento)',
+                  ),
                 ],
               ),
               backgroundColor: _corTema.shade600,
@@ -1317,6 +1337,43 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
                   onTap: _selecionarHoraRecebimento,
                 ),
                 const SizedBox(height: 16),
+
+                // Checkbox "Salvar em Agendamento" (apenas quando vem do Controle Financeiro)
+                if (widget.fromControleFinanceiro) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: CheckboxListTile(
+                      value: _salvarEmAgendamento,
+                      onChanged: (v) => setState(() => _salvarEmAgendamento = v ?? true),
+                      title: const Text(
+                        'Salvar em Agendamento',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(
+                        _salvarEmAgendamento
+                            ? 'A receita também aparecerá na aba de Agendamentos'
+                            : 'A receita será salva apenas no Controle Financeiro',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontSize: 12,
+                        ),
+                      ),
+                      secondary: Icon(
+                        _salvarEmAgendamento ? Icons.event_available : Icons.event_busy,
+                        color: Colors.blue.shade600,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      activeColor: Colors.blue.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Observações
                 TextFormField(
