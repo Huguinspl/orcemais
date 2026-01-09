@@ -5,6 +5,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../models/agendamento.dart';
 import '../../../providers/agendamentos_provider.dart';
 import 'novo_agendamento_page.dart';
+import 'selecionar_tipo_agendamento_page.dart';
 
 class AgendamentosPage extends StatefulWidget {
   const AgendamentosPage({super.key});
@@ -66,15 +67,26 @@ class _AgendamentosPageState extends State<AgendamentosPage>
     Agendamento? agendamento,
     DateTime? dataInicial,
   }) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder:
-            (_) => NovoAgendamentoPage(
-              agendamento: agendamento,
-              dataInicial: dataInicial,
-            ),
-      ),
-    );
+    // Se for edição de agendamento existente, vai direto para o formulário
+    if (agendamento != null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder:
+              (_) => NovoAgendamentoPage(
+                agendamento: agendamento,
+                dataInicial: dataInicial,
+              ),
+        ),
+      );
+    } else {
+      // Novo agendamento: abre seleção de tipo
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder:
+              (_) => SelecionarTipoAgendamentoPage(dataInicial: dataInicial),
+        ),
+      );
+    }
   }
 
   Future<void> _mudarStatus(Agendamento ag) async {
@@ -251,7 +263,11 @@ class _AgendamentosPageState extends State<AgendamentosPage>
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Deseja excluir o agendamento do orçamento #${ag.orcamentoNumero?.toString().padLeft(4, '0') ?? '--'}?',
+                    ag.orcamentoId == 'receita_a_receber'
+                        ? 'Deseja excluir o agendamento "${ag.clienteNome}"?'
+                        : ag.orcamentoId == 'despesa_a_pagar'
+                        ? 'Deseja excluir o agendamento "${ag.clienteNome}"?'
+                        : 'Deseja excluir o agendamento do orçamento #${ag.orcamentoNumero?.toString().padLeft(4, '0') ?? '--'}?',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                   ),
@@ -435,8 +451,8 @@ class _AgendamentosPageState extends State<AgendamentosPage>
                                   _selectedDay = selectedDay;
                                   _focusedDay = focusedDay;
                                 });
-                                // Navegar para novo agendamento com data pré-selecionada
-                                _abrirFormulario(dataInicial: selectedDay);
+                                // Apenas atualiza a seleção para mostrar os agendamentos do dia
+                                // O botão flutuante (+) é usado para criar novos agendamentos
                               },
                               onFormatChanged: (format) {
                                 setState(() {
@@ -655,7 +671,17 @@ class _AgendamentosPageState extends State<AgendamentosPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Orçamento #${ag.orcamentoNumero?.toString().padLeft(4, '0') ?? '--'}',
+                          ag.orcamentoId == 'receita_a_receber'
+                              ? 'Receita a Receber'
+                              : ag.orcamentoId == 'despesa_a_pagar'
+                              ? 'Despesa a Pagar'
+                              : ag.orcamentoId.isEmpty || ag.orcamentoId == ''
+                              ? (ag.observacoes.contains('[DIVERSO]')
+                                  ? 'Agendamento Rápido'
+                                  : ag.observacoes.contains('[VENDA]')
+                                  ? 'Agendamento de Venda'
+                                  : 'Agendamento de Serviço')
+                              : 'Orçamento #${ag.orcamentoNumero?.toString().padLeft(4, '0') ?? '--'}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

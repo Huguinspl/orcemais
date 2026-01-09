@@ -8,7 +8,9 @@ import 'revisar_orcamento_page.dart';
 import 'etapas_revisar/compartilhar_orcamento.dart';
 
 class OrcamentosPage extends StatefulWidget {
-  const OrcamentosPage({super.key});
+  final bool isPickerMode;
+
+  const OrcamentosPage({super.key, this.isPickerMode = false});
 
   @override
   State<OrcamentosPage> createState() => _OrcamentosPageState();
@@ -422,9 +424,9 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Orçamentos Criados',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Text(
+          widget.isPickerMode ? 'Selecionar Orçamento' : 'Orçamentos Criados',
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
         elevation: 0,
@@ -749,7 +751,13 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16.0),
-        onTap: () => _revisarOrcamento(orcamento),
+        onTap: () {
+          if (widget.isPickerMode) {
+            Navigator.pop(context, orcamento);
+          } else {
+            _revisarOrcamento(orcamento);
+          }
+        },
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.0),

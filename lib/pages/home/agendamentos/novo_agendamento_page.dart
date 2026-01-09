@@ -785,7 +785,7 @@ class _NovoAgendamentoPageState extends State<NovoAgendamentoPage> {
                     Expanded(
                       child: Text(
                         widget.agendamento == null
-                            ? 'Novo Agendamento'
+                            ? 'Agendamento de Serviços'
                             : 'Editar Agendamento',
                         style: const TextStyle(
                           color: Colors.white,

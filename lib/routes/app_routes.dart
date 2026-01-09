@@ -21,6 +21,11 @@
   static const novoOrcamento = '/novo-orcamento';
   static const agendamentos = '/agendamentos';
   static const novoAgendamento = '/novo-agendamento';
+  static const selecionarTipoAgendamento = '/selecionar-tipo-agendamento';
+  static const agendamentoVendas = '/agendamento-vendas';
+  static const agendamentoAReceber = '/agendamento-a-receber';
+  static const agendamentoAPagar = '/agendamento-a-pagar';
+  static const agendamentoDiversos = '/agendamento-diversos';
   static const recibos = '/recibos';
   static const novoRecibo = '/novo-recibo';
   static const novoValorRecebido = '/novo-valor-recebido';
