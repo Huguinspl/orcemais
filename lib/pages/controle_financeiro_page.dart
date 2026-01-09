@@ -1,11 +1,21 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../models/agendamento.dart';
+import '../models/cliente.dart';
+import '../models/orcamento.dart';
+import '../providers/agendamentos_provider.dart';
+import '../providers/clients_provider.dart';
 import '../providers/transacoes_provider.dart';
 import '../providers/user_provider.dart';
 import '../models/receita.dart';
+import 'home/tabs/clientes_page.dart';
+import 'home/tabs/novo_cliente_page.dart';
+import 'home/orcamentos/orcamentos_page.dart';
 
 class CurrencyInputFormatter extends TextInputFormatter {
   @override
@@ -2508,10 +2518,24 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
   DateTime _data = DateTime.now();
   bool _salvando = false;
 
+  // Novos campos para receita a receber (isFutura = true)
+  bool _repetirParcelar = false;
+  Orcamento? _orcamentoSelecionado;
+  Cliente? _clienteSelecionado;
+  DateTime? _dataRecebimento;
+  TimeOfDay? _horaRecebimento;
+  bool _salvarEmAgendamento = true; // Por padrão, salva na agenda
+
   @override
   void initState() {
     super.initState();
     _tipo = widget.tipoInicial;
+
+    // Valores padrão para receita a receber
+    if (widget.isFutura && widget.tipoInicial == TipoTransacao.receita) {
+      _dataRecebimento = DateTime.now().add(const Duration(days: 7));
+      _horaRecebimento = const TimeOfDay(hour: 10, minute: 0);
+    }
   }
 
   @override
@@ -2647,6 +2671,187 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
               ),
               const SizedBox(height: 24),
 
+              // ========== CAMPOS ESPECIAIS PARA RECEITA A RECEBER ==========
+              if (widget.isFutura && isReceita) ...[
+                // Repetir / Parcelar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.repeat, color: corTema.shade600),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Repetir / Parcelar',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: _repetirParcelar,
+                        onChanged:
+                            (value) => setState(() => _repetirParcelar = value),
+                        activeColor: corTema.shade600,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Receita de Orçamento
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.description, color: Colors.blue.shade600),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Receita de Orçamento',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _orcamentoSelecionado != null
+                                  ? 'Orçamento #${_orcamentoSelecionado!.numero.toString().padLeft(4, '0')} - ${_orcamentoSelecionado!.cliente.nome}'
+                                  : 'Nenhum orçamento selecionado',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight:
+                                    _orcamentoSelecionado != null
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                color:
+                                    _orcamentoSelecionado != null
+                                        ? Colors.blue.shade700
+                                        : Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _selecionarOrcamento,
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            color: Colors.blue.shade700,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Cliente
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, color: Colors.purple.shade600),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Cliente',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _clienteSelecionado != null
+                                  ? _clienteSelecionado!.nome
+                                  : 'Nenhum cliente selecionado',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight:
+                                    _clienteSelecionado != null
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                color:
+                                    _clienteSelecionado != null
+                                        ? Colors.purple.shade700
+                                        : Colors.grey.shade500,
+                              ),
+                            ),
+                            if (_clienteSelecionado?.celular.isNotEmpty == true)
+                              Text(
+                                _clienteSelecionado!.celular,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _mostrarOpcoesCliente,
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            color: Colors.purple.shade700,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+
               // Descrição
               TextFormField(
                 controller: _descricaoController,
@@ -2744,6 +2949,123 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
               ),
               const SizedBox(height: 16),
 
+              // ========== CAMPOS DE DATA/HORA PARA RECEITA A RECEBER ==========
+              if (widget.isFutura && _tipo == TipoTransacao.receita) ...[
+                // Data do Recebimento
+                ListTile(
+                  leading: Icon(Icons.event, color: corTema.shade600),
+                  title: Text(
+                    _dataRecebimento != null
+                        ? DateFormat('dd/MM/yyyy').format(_dataRecebimento!)
+                        : 'Selecionar data',
+                    style: TextStyle(
+                      color:
+                          _dataRecebimento != null
+                              ? Colors.black
+                              : Colors.grey.shade500,
+                    ),
+                  ),
+                  subtitle: const Text('Data do Recebimento'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  onTap: _selecionarDataRecebimento,
+                ),
+                const SizedBox(height: 16),
+
+                // Hora do Recebimento
+                ListTile(
+                  leading: Icon(Icons.access_time, color: corTema.shade600),
+                  title: Text(
+                    _horaRecebimento != null
+                        ? _horaRecebimento!.format(context)
+                        : 'Selecionar hora',
+                    style: TextStyle(
+                      color:
+                          _horaRecebimento != null
+                              ? Colors.black
+                              : Colors.grey.shade500,
+                    ),
+                  ),
+                  subtitle: const Text('Hora do Recebimento'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  onTap: _selecionarHoraRecebimento,
+                ),
+                const SizedBox(height: 16),
+
+                // Checkbox Salvar em Agendamento
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        _salvarEmAgendamento
+                            ? corTema.shade50
+                            : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color:
+                          _salvarEmAgendamento
+                              ? corTema.shade300
+                              : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_month,
+                        color:
+                            _salvarEmAgendamento
+                                ? corTema.shade600
+                                : Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Salvar em Agendamento',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color:
+                                    _salvarEmAgendamento
+                                        ? corTema.shade700
+                                        : Colors.grey.shade700,
+                              ),
+                            ),
+                            Text(
+                              'Também adicionar na agenda',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _salvarEmAgendamento,
+                        onChanged:
+                            (value) =>
+                                setState(() => _salvarEmAgendamento = value),
+                        activeColor: corTema.shade600,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
               // Observações
               TextFormField(
                 controller: _observacoesController,
@@ -2812,8 +3134,446 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
     }).toList();
   }
 
+  // ========== Métodos para Receita a Receber ==========
+
+  Future<void> _selecionarDataRecebimento() async {
+    final data = await showDatePicker(
+      context: context,
+      initialDate:
+          _dataRecebimento ?? DateTime.now().add(const Duration(days: 7)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 730)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.orange.shade600,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (data != null) {
+      setState(() => _dataRecebimento = data);
+    }
+  }
+
+  Future<void> _selecionarHoraRecebimento() async {
+    final hora = await showTimePicker(
+      context: context,
+      initialTime: _horaRecebimento ?? const TimeOfDay(hour: 10, minute: 0),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: Colors.white,
+              dialBackgroundColor: Colors.orange.shade50,
+              hourMinuteTextColor: Colors.orange.shade700,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (hora != null) {
+      setState(() => _horaRecebimento = hora);
+    }
+  }
+
+  Future<void> _selecionarOrcamento() async {
+    final orcamento = await Navigator.push<Orcamento>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const OrcamentosPage(isPickerMode: true),
+      ),
+    );
+
+    if (orcamento != null && mounted) {
+      setState(() {
+        _orcamentoSelecionado = orcamento;
+        _descricaoController.text =
+            'Orçamento #${orcamento.numero.toString().padLeft(4, '0')} - ${orcamento.cliente.nome}';
+        final valorFormatado =
+            'R\$ ${orcamento.valorTotal.toStringAsFixed(2).replaceAll('.', ',')}';
+        _valorController.text = valorFormatado;
+        _clienteSelecionado = orcamento.cliente;
+      });
+    }
+  }
+
+  Future<void> _mostrarOpcoesCliente() async {
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (ctx) => Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Text(
+                  'Selecionar Cliente',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: _corTema.shade700,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildOpcaoCliente(
+                      icon: Icons.people,
+                      label: 'Clientes',
+                      cor: Colors.blue,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _navegarParaClientes();
+                      },
+                    ),
+                    _buildOpcaoCliente(
+                      icon: Icons.contact_phone,
+                      label: 'Agenda',
+                      cor: Colors.green,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _importarDaAgenda();
+                      },
+                    ),
+                    _buildOpcaoCliente(
+                      icon: Icons.person_add,
+                      label: 'Criar Novo',
+                      cor: Colors.purple,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _criarNovoCliente();
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildOpcaoCliente({
+    required IconData icon,
+    required String label,
+    required MaterialColor cor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 90,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: cor.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: cor.shade200),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [cor.shade400, cor.shade600]),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: cor.shade700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _navegarParaClientes() async {
+    final cliente = await Navigator.push<Cliente>(
+      context,
+      MaterialPageRoute(builder: (_) => const ClientesPage(isPickerMode: true)),
+    );
+
+    if (cliente != null && mounted) {
+      setState(() {
+        _clienteSelecionado = cliente;
+      });
+    }
+  }
+
+  Future<void> _importarDaAgenda() async {
+    if (!await FlutterContacts.requestPermission(readonly: true)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.white),
+              SizedBox(width: 12),
+              Expanded(child: Text('Permissão para acessar contatos negada')),
+            ],
+          ),
+          backgroundColor: Colors.orange.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final contacts = await FlutterContacts.getContacts(
+        withProperties: true,
+        withPhoto: false,
+      );
+
+      if (!mounted) return;
+
+      if (contacts.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(child: Text('Nenhum contato encontrado na agenda')),
+              ],
+            ),
+            backgroundColor: Colors.blue.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        return;
+      }
+
+      final selectedContact = await showDialog<Contact>(
+        context: context,
+        builder: (ctx) => _buildContactPickerDialog(contacts),
+      );
+
+      if (selectedContact != null && mounted) {
+        final nome = selectedContact.displayName;
+        final celular =
+            selectedContact.phones.isNotEmpty
+                ? selectedContact.phones.first.number
+                : '';
+        final email =
+            selectedContact.emails.isNotEmpty
+                ? selectedContact.emails.first.address
+                : '';
+
+        setState(() {
+          _clienteSelecionado = Cliente(
+            nome: nome,
+            celular: celular,
+            email: email,
+          );
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao buscar contatos: $e'),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Widget _buildContactPickerDialog(List<Contact> contacts) {
+    final searchController = TextEditingController();
+    List<Contact> filteredContacts = contacts;
+
+    return StatefulBuilder(
+      builder: (context, setDialogState) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            constraints: const BoxConstraints(maxHeight: 500, maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.green.shade600, Colors.green.shade400],
+                    ),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.contact_phone,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Selecionar Contato',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: searchController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Buscar contato...',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.white,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.2),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setDialogState(() {
+                            filteredContacts =
+                                contacts
+                                    .where(
+                                      (c) => c.displayName
+                                          .toLowerCase()
+                                          .contains(value.toLowerCase()),
+                                    )
+                                    .toList();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filteredContacts.length,
+                    itemBuilder: (ctx, index) {
+                      final contact = filteredContacts[index];
+                      final phone =
+                          contact.phones.isNotEmpty
+                              ? contact.phones.first.number
+                              : 'Sem telefone';
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.green.shade100,
+                          child: Text(
+                            contact.displayName.isNotEmpty
+                                ? contact.displayName[0].toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        title: Text(contact.displayName),
+                        subtitle: Text(phone),
+                        onTap: () => Navigator.pop(ctx, contact),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _criarNovoCliente() async {
+    final novoCliente = await Navigator.push<Cliente>(
+      context,
+      MaterialPageRoute(builder: (_) => const NovoClientePage()),
+    );
+
+    if (novoCliente != null && mounted) {
+      setState(() {
+        _clienteSelecionado = novoCliente;
+      });
+    } else if (mounted) {
+      final userProvider = context.read<UserProvider>();
+      final clientsProvider = context.read<ClientsProvider>();
+      await clientsProvider.carregarTodos(userProvider.uid);
+      if (clientsProvider.clientes.isNotEmpty) {
+        setState(() {
+          _clienteSelecionado = clientsProvider.clientes.last;
+        });
+      }
+    }
+  }
+
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Validação adicional para receita a receber
+    if (widget.isFutura &&
+        _tipo == TipoTransacao.receita &&
+        _dataRecebimento == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Selecione a data de recebimento'),
+          backgroundColor: _corTema.shade600,
+        ),
+      );
+      return;
+    }
 
     setState(() => _salvando = true);
 
@@ -2827,16 +3587,45 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
 
       final valor = _parseMoeda(_valorController.text) ?? 0.0;
 
+      // Monta observações para receita a receber
+      String? observacoesFinais =
+          _observacoesController.text.isEmpty
+              ? null
+              : _observacoesController.text;
+
+      if (widget.isFutura && _tipo == TipoTransacao.receita) {
+        final obsCompletas = StringBuffer();
+        obsCompletas.writeln('[RECEITA A RECEBER]');
+        obsCompletas.writeln(
+          'Data prevista: ${DateFormat('dd/MM/yyyy').format(_dataRecebimento!)}',
+        );
+        if (_clienteSelecionado != null) {
+          obsCompletas.writeln('Cliente: ${_clienteSelecionado!.nome}');
+        }
+        if (_orcamentoSelecionado != null) {
+          obsCompletas.writeln(
+            'Orçamento: #${_orcamentoSelecionado!.numero.toString().padLeft(4, '0')}',
+          );
+        }
+        if (_repetirParcelar) {
+          obsCompletas.writeln('Repetir/Parcelar: Sim');
+        }
+        if (_observacoesController.text.isNotEmpty) {
+          obsCompletas.writeln(_observacoesController.text);
+        }
+        observacoesFinais = obsCompletas.toString().trim();
+      }
+
       final transacao = Transacao(
         descricao: _descricaoController.text,
         valor: valor,
         tipo: _tipo,
         categoria: _categoria!,
-        data: _data,
-        observacoes:
-            _observacoesController.text.isEmpty
-                ? null
-                : _observacoesController.text,
+        data:
+            widget.isFutura && _tipo == TipoTransacao.receita
+                ? _dataRecebimento!
+                : _data,
+        observacoes: observacoesFinais,
         userId: userId,
         isFutura: widget.isFutura,
       );
@@ -2848,15 +3637,68 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
       if (!mounted) return;
 
       if (sucesso) {
+        // Salvar na agenda se opção estiver marcada
+        if (widget.isFutura &&
+            _tipo == TipoTransacao.receita &&
+            _salvarEmAgendamento) {
+          final agProv = context.read<AgendamentosProvider>();
+
+          // Combina data e hora de recebimento
+          final dataHoraRecebimento = DateTime(
+            _dataRecebimento!.year,
+            _dataRecebimento!.month,
+            _dataRecebimento!.day,
+            _horaRecebimento?.hour ?? 10,
+            _horaRecebimento?.minute ?? 0,
+          );
+
+          // Monta observações para o agendamento
+          final obsAgendamento = StringBuffer();
+          obsAgendamento.writeln('[RECEITA A RECEBER]');
+          obsAgendamento.writeln('Descrição: ${_descricaoController.text}');
+          obsAgendamento.writeln(
+            'Valor: R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
+          );
+          if (_categoria != null) {
+            obsAgendamento.writeln('Categoria: ${_categoria!.nome}');
+          }
+          if (_clienteSelecionado != null) {
+            obsAgendamento.writeln('Cliente: ${_clienteSelecionado!.nome}');
+          }
+          if (_repetirParcelar) {
+            obsAgendamento.writeln('Repetir/Parcelar: Sim');
+          }
+          if (_observacoesController.text.isNotEmpty) {
+            obsAgendamento.writeln(_observacoesController.text);
+          }
+
+          final clienteNome =
+              _clienteSelecionado?.nome ??
+              'Receita: ${_descricaoController.text}';
+
+          await agProv.adicionarAgendamento(
+            orcamentoId: 'receita_a_receber',
+            orcamentoNumero: _orcamentoSelecionado?.numero,
+            clienteNome: clienteNome,
+            dataHora: Timestamp.fromDate(dataHoraRecebimento),
+            status: 'Pendente',
+            observacoes: obsAgendamento.toString().trim(),
+          );
+        }
+
         final isReceita = _tipo == TipoTransacao.receita;
         Navigator.pop(context);
 
         String mensagem;
         if (widget.isFutura) {
-          mensagem =
-              isReceita
-                  ? 'Receita a receber adicionada!'
-                  : 'Despesa a pagar adicionada!';
+          if (_salvarEmAgendamento && isReceita) {
+            mensagem = 'Receita a receber adicionada e agendada!';
+          } else {
+            mensagem =
+                isReceita
+                    ? 'Receita a receber adicionada!'
+                    : 'Despesa a pagar adicionada!';
+          }
         } else {
           mensagem =
               isReceita
@@ -2870,7 +3712,7 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
               children: [
                 const Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 12),
-                Text(mensagem),
+                Expanded(child: Text(mensagem)),
               ],
             ),
             backgroundColor: _corTema.shade600,

@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../models/agendamento.dart';
 import '../../../providers/agendamentos_provider.dart';
+import 'agendamento_a_pagar_page.dart';
+import 'agendamento_a_receber_page.dart';
+import 'agendamento_diversos_page.dart';
+import 'agendamento_vendas_page.dart';
 import 'novo_agendamento_page.dart';
 import 'selecionar_tipo_agendamento_page.dart';
 
@@ -67,17 +71,36 @@ class _AgendamentosPageState extends State<AgendamentosPage>
     Agendamento? agendamento,
     DateTime? dataInicial,
   }) async {
-    // Se for edição de agendamento existente, vai direto para o formulário
+    // Se for edição de agendamento existente, abre a página correspondente ao tipo
     if (agendamento != null) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder:
-              (_) => NovoAgendamentoPage(
-                agendamento: agendamento,
-                dataInicial: dataInicial,
-              ),
-        ),
-      );
+      Widget pagina;
+
+      // Verifica o tipo do agendamento pelo orcamentoId
+      switch (agendamento.orcamentoId) {
+        case 'receita_a_receber':
+          pagina = AgendamentoAReceberPage(agendamento: agendamento);
+          break;
+        case 'despesa_a_pagar':
+          pagina = AgendamentoAPagarPage(agendamento: agendamento);
+          break;
+        case 'agendamento_diversos':
+          pagina = AgendamentoDiversosPage(agendamento: agendamento);
+          break;
+        case 'agendamento_vendas':
+          pagina = AgendamentoVendasPage(agendamento: agendamento);
+          break;
+        default:
+          // Agendamento padrão (de orçamento) ou tipo desconhecido
+          pagina = NovoAgendamentoPage(
+            agendamento: agendamento,
+            dataInicial: dataInicial,
+          );
+          break;
+      }
+
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => pagina));
     } else {
       // Novo agendamento: abre seleção de tipo
       await Navigator.of(context).push(

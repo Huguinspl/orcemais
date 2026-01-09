@@ -4,12 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../models/agendamento.dart';
 import '../../../models/cliente.dart';
 import '../../../models/orcamento.dart';
 import '../../../models/receita.dart';
 import '../../../providers/agendamentos_provider.dart';
 import '../../../providers/clients_provider.dart';
-import '../../../providers/orcamentos_provider.dart';
 import '../../../providers/transacoes_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../tabs/clientes_page.dart';
@@ -37,11 +37,17 @@ class CurrencyInputFormatter extends TextInputFormatter {
   }
 }
 
-/// Página para criar agendamento de receita a receber (receita futura)
+/// Página para criar/editar agendamento de receita a receber (receita futura)
 /// Igual ao formulário de Nova Receita do Controle Financeiro,
 /// mas com campo adicional de Data do Recebimento
 class AgendamentoAReceberPage extends StatefulWidget {
-  const AgendamentoAReceberPage({super.key});
+  /// Agendamento para edição (null = criar novo)
+  final Agendamento? agendamento;
+
+  const AgendamentoAReceberPage({super.key, this.agendamento});
+
+  /// Verifica se está em modo de edição
+  bool get isEditMode => agendamento != null;
 
   @override
   State<AgendamentoAReceberPage> createState() =>
@@ -65,13 +71,72 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
   Orcamento? _orcamentoSelecionado;
   Cliente? _clienteSelecionado;
 
+  // ID do agendamento sendo editado (null = novo)
+  String? _agendamentoId;
+
   @override
   void initState() {
     super.initState();
-    // Data de recebimento padrão: 7 dias a partir de hoje
-    _dataRecebimento = DateTime.now().add(const Duration(days: 7));
-    // Hora de recebimento padrão: 10:00
-    _horaRecebimento = const TimeOfDay(hour: 10, minute: 0);
+
+    final agendamento = widget.agendamento;
+
+    if (agendamento != null) {
+      // Modo edição: carregar dados do agendamento existente
+      _agendamentoId = agendamento.id;
+
+      // Extrair data e hora do agendamento
+      final dataHora = agendamento.dataHora.toDate();
+      _dataRecebimento = dataHora;
+      _horaRecebimento = TimeOfDay(
+        hour: dataHora.hour,
+        minute: dataHora.minute,
+      );
+
+      // Carregar nome do cliente se disponível
+      if (agendamento.clienteNome != null &&
+          agendamento.clienteNome!.isNotEmpty) {
+        // Cria um cliente temporário com o nome
+        _clienteSelecionado = Cliente(nome: agendamento.clienteNome!);
+      }
+
+      // Extrair informações das observações
+      _parseObservacoesAgendamento(agendamento.observacoes);
+    } else {
+      // Modo criação: valores padrão
+      _dataRecebimento = DateTime.now().add(const Duration(days: 7));
+      _horaRecebimento = const TimeOfDay(hour: 10, minute: 0);
+    }
+  }
+
+  /// Extrai informações das observações do agendamento para preencher os campos
+  void _parseObservacoesAgendamento(String observacoes) {
+    final linhas = observacoes.split('\n');
+
+    for (final linha in linhas) {
+      if (linha.startsWith('Descrição:')) {
+        _descricaoController.text = linha.replaceFirst('Descrição:', '').trim();
+      } else if (linha.startsWith('Valor:')) {
+        _valorController.text = linha.replaceFirst('Valor:', '').trim();
+      } else if (linha.startsWith('Categoria:')) {
+        final nomeCategoria = linha.replaceFirst('Categoria:', '').trim();
+        // Buscar categoria pelo nome
+        try {
+          _categoriaSelecionada = CategoriaTransacao.values.firstWhere(
+            (cat) => cat.nome.toLowerCase() == nomeCategoria.toLowerCase(),
+          );
+        } catch (_) {
+          // Categoria não encontrada, ignora
+        }
+      } else if (linha.contains('Repetir/Parcelar: Sim')) {
+        _repetirParcelar = true;
+      }
+    }
+
+    // Se não conseguiu extrair descrição das observações, usa o clienteNome
+    if (_descricaoController.text.isEmpty &&
+        widget.agendamento?.clienteNome != null) {
+      _descricaoController.text = widget.agendamento!.clienteNome!;
+    }
   }
 
   @override
@@ -601,84 +666,55 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
       }
 
       final valor = _parseMoeda(_valorController.text) ?? 0.0;
+      final agProv = context.read<AgendamentosProvider>();
 
-      // Monta observações com data de recebimento
-      final obsCompletas = StringBuffer();
-      obsCompletas.writeln('[RECEITA A RECEBER]');
-      obsCompletas.writeln(
-        'Data prevista: ${DateFormat('dd/MM/yyyy').format(_dataRecebimento!)}',
+      // Combina data e hora de recebimento
+      final dataHoraRecebimento = DateTime(
+        _dataRecebimento!.year,
+        _dataRecebimento!.month,
+        _dataRecebimento!.day,
+        _horaRecebimento?.hour ?? 10,
+        _horaRecebimento?.minute ?? 0,
       );
-      if (_clienteSelecionado != null) {
-        obsCompletas.writeln('Cliente: ${_clienteSelecionado!.nome}');
+
+      // Monta observações para o agendamento
+      final obsAgendamento = StringBuffer();
+      obsAgendamento.writeln('[RECEITA A RECEBER]');
+      obsAgendamento.writeln('Descrição: ${_descricaoController.text}');
+      obsAgendamento.writeln(
+        'Valor: R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
+      );
+      if (_categoriaSelecionada != null) {
+        obsAgendamento.writeln('Categoria: ${_categoriaSelecionada!.nome}');
       }
-      if (_orcamentoSelecionado != null) {
-        obsCompletas.writeln(
-          'Orçamento: #${_orcamentoSelecionado!.numero.toString().padLeft(4, '0')}',
-        );
+      if (_clienteSelecionado != null) {
+        obsAgendamento.writeln('Cliente: ${_clienteSelecionado!.nome}');
       }
       if (_repetirParcelar) {
-        obsCompletas.writeln('Repetir/Parcelar: Sim');
+        obsAgendamento.writeln('Repetir/Parcelar: Sim');
       }
       if (_observacoesController.text.isNotEmpty) {
-        obsCompletas.writeln(_observacoesController.text);
+        obsAgendamento.writeln(_observacoesController.text);
       }
 
-      final transacao = Transacao(
-        descricao: _descricaoController.text,
-        valor: valor,
-        tipo: TipoTransacao.receita,
-        categoria: _categoriaSelecionada!,
-        data:
-            _dataRecebimento!, // Usa a data de recebimento como data da transação futura
-        observacoes: obsCompletas.toString().trim(),
-        userId: userId,
-        isFutura: true, // Marca como receita a receber
-      );
+      final clienteNome =
+          _clienteSelecionado?.nome ?? 'Receita: ${_descricaoController.text}';
 
-      final sucesso = await context
-          .read<TransacoesProvider>()
-          .adicionarTransacao(transacao);
-
-      if (!mounted) return;
-
-      if (sucesso) {
-        // Também cria um agendamento na agenda com a data de recebimento
-        final agProv = context.read<AgendamentosProvider>();
-
-        // Combina data e hora de recebimento
-        final dataHoraRecebimento = DateTime(
-          _dataRecebimento!.year,
-          _dataRecebimento!.month,
-          _dataRecebimento!.day,
-          _horaRecebimento?.hour ?? 10,
-          _horaRecebimento?.minute ?? 0,
-        );
-
-        // Monta observações para o agendamento
-        final obsAgendamento = StringBuffer();
-        obsAgendamento.writeln('[RECEITA A RECEBER]');
-        obsAgendamento.writeln('Descrição: ${_descricaoController.text}');
-        obsAgendamento.writeln(
-          'Valor: R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
-        );
-        obsAgendamento.writeln('Categoria: ${_categoriaSelecionada!.nome}');
-        if (_clienteSelecionado != null) {
-          obsAgendamento.writeln('Cliente: ${_clienteSelecionado!.nome}');
-        }
-        if (_observacoesController.text.isNotEmpty) {
-          obsAgendamento.writeln(_observacoesController.text);
-        }
-
-        await agProv.adicionarAgendamento(
+      if (_agendamentoId != null) {
+        // MODO EDIÇÃO: Atualizar agendamento existente
+        final agendamentoAtualizado = Agendamento(
+          id: _agendamentoId!,
           orcamentoId: 'receita_a_receber',
           orcamentoNumero: _orcamentoSelecionado?.numero,
-          clienteNome:
-              _clienteSelecionado?.nome ??
-              'Receita: ${_descricaoController.text}',
+          clienteNome: clienteNome,
           dataHora: Timestamp.fromDate(dataHoraRecebimento),
-          status: 'Pendente',
+          status: widget.agendamento?.status ?? 'Pendente',
           observacoes: obsAgendamento.toString().trim(),
+          criadoEm: widget.agendamento?.criadoEm ?? Timestamp.now(),
+          atualizadoEm: Timestamp.now(),
         );
+
+        await agProv.atualizarAgendamento(agendamentoAtualizado);
 
         if (!mounted) return;
         Navigator.pop(context);
@@ -688,7 +724,7 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 12),
-                Text('Receita a receber adicionada!'),
+                Text('Receita a receber atualizada!'),
               ],
             ),
             backgroundColor: _corTema.shade600,
@@ -699,7 +735,77 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
           ),
         );
       } else {
-        throw Exception('Erro ao salvar transação');
+        // MODO CRIAÇÃO: Criar nova transação e agendamento
+        // Monta observações com data de recebimento
+        final obsCompletas = StringBuffer();
+        obsCompletas.writeln('[RECEITA A RECEBER]');
+        obsCompletas.writeln(
+          'Data prevista: ${DateFormat('dd/MM/yyyy').format(_dataRecebimento!)}',
+        );
+        if (_clienteSelecionado != null) {
+          obsCompletas.writeln('Cliente: ${_clienteSelecionado!.nome}');
+        }
+        if (_orcamentoSelecionado != null) {
+          obsCompletas.writeln(
+            'Orçamento: #${_orcamentoSelecionado!.numero.toString().padLeft(4, '0')}',
+          );
+        }
+        if (_repetirParcelar) {
+          obsCompletas.writeln('Repetir/Parcelar: Sim');
+        }
+        if (_observacoesController.text.isNotEmpty) {
+          obsCompletas.writeln(_observacoesController.text);
+        }
+
+        final transacao = Transacao(
+          descricao: _descricaoController.text,
+          valor: valor,
+          tipo: TipoTransacao.receita,
+          categoria: _categoriaSelecionada!,
+          data:
+              _dataRecebimento!, // Usa a data de recebimento como data da transação futura
+          observacoes: obsCompletas.toString().trim(),
+          userId: userId,
+          isFutura: true, // Marca como receita a receber
+        );
+
+        final sucesso = await context
+            .read<TransacoesProvider>()
+            .adicionarTransacao(transacao);
+
+        if (!mounted) return;
+
+        if (sucesso) {
+          await agProv.adicionarAgendamento(
+            orcamentoId: 'receita_a_receber',
+            orcamentoNumero: _orcamentoSelecionado?.numero,
+            clienteNome: clienteNome,
+            dataHora: Timestamp.fromDate(dataHoraRecebimento),
+            status: 'Pendente',
+            observacoes: obsAgendamento.toString().trim(),
+          );
+
+          if (!mounted) return;
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('Receita a receber adicionada!'),
+                ],
+              ),
+              backgroundColor: _corTema.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        } else {
+          throw Exception('Erro ao salvar transação');
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -727,9 +833,11 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
       appBar: AppBar(
         backgroundColor: corTema.shade600,
         foregroundColor: Colors.white,
-        title: const Text(
-          'Nova Receita a Receber',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          widget.agendamento != null
+              ? 'Editar Receita a Receber'
+              : 'Nova Receita a Receber',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,

@@ -1,14 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../models/agendamento.dart';
 import '../../../models/receita.dart';
+import '../../../providers/agendamentos_provider.dart';
 import '../../../providers/transacoes_provider.dart';
 import '../../../providers/user_provider.dart';
 
-/// Página para criar agendamento de despesa a pagar (despesa futura)
+/// Página para criar/editar agendamento de despesa a pagar (despesa futura)
 /// Permite criar uma nova despesa a pagar ou buscar de despesas existentes
 class AgendamentoAPagarPage extends StatefulWidget {
-  const AgendamentoAPagarPage({super.key});
+  final Agendamento? agendamento;
+
+  const AgendamentoAPagarPage({super.key, this.agendamento});
 
   @override
   State<AgendamentoAPagarPage> createState() => _AgendamentoAPagarPageState();
@@ -22,17 +27,67 @@ class _AgendamentoAPagarPageState extends State<AgendamentoAPagarPage> {
   final _observacoesController = TextEditingController();
 
   DateTime? _dataSelecionada;
+  TimeOfDay? _horaSelecionada;
   CategoriaTransacao _categoriaSelecionada = CategoriaTransacao.fornecedores;
   bool _salvando = false;
+  String? _agendamentoId;
 
   @override
   void initState() {
     super.initState();
+
+    // Se está editando um agendamento existente
+    if (widget.agendamento != null) {
+      _mostrarFormulario = true;
+      _agendamentoId = widget.agendamento!.id;
+
+      // Extrair data e hora do agendamento
+      final dataHora = widget.agendamento!.dataHora.toDate();
+      _dataSelecionada = dataHora;
+      _horaSelecionada = TimeOfDay(
+        hour: dataHora.hour,
+        minute: dataHora.minute,
+      );
+
+      // Extrair informações das observações
+      _parseObservacoesAgendamento(widget.agendamento!.observacoes);
+    }
+
     // Carrega transações
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userId = context.read<UserProvider>().uid;
       context.read<TransacoesProvider>().carregarTransacoes(userId);
     });
+  }
+
+  /// Extrai informações das observações do agendamento para preencher os campos
+  void _parseObservacoesAgendamento(String observacoes) {
+    final linhas = observacoes.split('\n');
+
+    for (final linha in linhas) {
+      if (linha.startsWith('Descrição:')) {
+        _descricaoController.text = linha.replaceFirst('Descrição:', '').trim();
+      } else if (linha.startsWith('Valor:')) {
+        _valorController.text =
+            linha.replaceFirst('Valor:', '').replaceAll('R\$', '').trim();
+      } else if (linha.startsWith('Categoria:')) {
+        final nomeCategoria = linha.replaceFirst('Categoria:', '').trim();
+        // Buscar categoria pelo nome
+        try {
+          _categoriaSelecionada = CategoriaTransacao.values.firstWhere(
+            (cat) => cat.nome.toLowerCase() == nomeCategoria.toLowerCase(),
+          );
+        } catch (_) {
+          // Categoria não encontrada, ignora
+        }
+      }
+    }
+
+    // Se não conseguiu extrair descrição, usa o clienteNome
+    if (_descricaoController.text.isEmpty &&
+        widget.agendamento?.clienteNome != null) {
+      _descricaoController.text = widget.agendamento!.clienteNome!;
+    }
   }
 
   @override
@@ -68,6 +123,28 @@ class _AgendamentoAPagarPageState extends State<AgendamentoAPagarPage> {
     }
   }
 
+  Future<void> _selecionarHora() async {
+    final hora = await showTimePicker(
+      context: context,
+      initialTime: _horaSelecionada ?? const TimeOfDay(hour: 10, minute: 0),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: Colors.white,
+              dialBackgroundColor: Colors.red.shade50,
+              hourMinuteTextColor: Colors.red.shade700,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (hora != null) {
+      setState(() => _horaSelecionada = hora);
+    }
+  }
+
   Future<void> _salvarNovaDespesa() async {
     if (!_formKey.currentState!.validate()) return;
     if (_dataSelecionada == null) {
@@ -84,32 +161,95 @@ class _AgendamentoAPagarPageState extends State<AgendamentoAPagarPage> {
 
     try {
       final userId = context.read<UserProvider>().uid;
-      final transacoesProv = context.read<TransacoesProvider>();
+      final agProv = context.read<AgendamentosProvider>();
 
       final valor =
           double.tryParse(_valorController.text.replaceAll(',', '.')) ?? 0.0;
 
-      final transacao = Transacao(
-        descricao: _descricaoController.text,
-        valor: valor,
-        tipo: TipoTransacao.despesa,
-        categoria: _categoriaSelecionada,
-        data: _dataSelecionada!,
-        observacoes: _observacoesController.text,
-        userId: userId,
-        isFutura: true, // Marca como despesa a pagar
+      // Combina data e hora
+      final dataHora = DateTime(
+        _dataSelecionada!.year,
+        _dataSelecionada!.month,
+        _dataSelecionada!.day,
+        _horaSelecionada?.hour ?? 10,
+        _horaSelecionada?.minute ?? 0,
       );
 
-      await transacoesProv.adicionarTransacao(transacao);
+      // Monta observações para o agendamento
+      final obsAgendamento = StringBuffer();
+      obsAgendamento.writeln('[DESPESA A PAGAR]');
+      obsAgendamento.writeln('Descrição: ${_descricaoController.text}');
+      obsAgendamento.writeln(
+        'Valor: R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
+      );
+      obsAgendamento.writeln('Categoria: ${_categoriaSelecionada.nome}');
+      if (_observacoesController.text.isNotEmpty) {
+        obsAgendamento.writeln(_observacoesController.text);
+      }
 
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Despesa a pagar agendada com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
+      final clienteNome = 'Despesa: ${_descricaoController.text}';
+
+      if (_agendamentoId != null) {
+        // MODO EDIÇÃO: Atualizar agendamento existente
+        final agendamentoAtualizado = Agendamento(
+          id: _agendamentoId!,
+          orcamentoId: 'despesa_a_pagar',
+          orcamentoNumero: null,
+          clienteNome: clienteNome,
+          dataHora: Timestamp.fromDate(dataHora),
+          status: widget.agendamento?.status ?? 'Pendente',
+          observacoes: obsAgendamento.toString().trim(),
+          criadoEm: widget.agendamento?.criadoEm ?? Timestamp.now(),
+          atualizadoEm: Timestamp.now(),
         );
+
+        await agProv.atualizarAgendamento(agendamentoAtualizado);
+
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Despesa a pagar atualizada!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        // MODO CRIAÇÃO: Criar nova transação e agendamento
+        final transacoesProv = context.read<TransacoesProvider>();
+
+        final transacao = Transacao(
+          descricao: _descricaoController.text,
+          valor: valor,
+          tipo: TipoTransacao.despesa,
+          categoria: _categoriaSelecionada,
+          data: _dataSelecionada!,
+          observacoes: _observacoesController.text,
+          userId: userId,
+          isFutura: true, // Marca como despesa a pagar
+        );
+
+        await transacoesProv.adicionarTransacao(transacao);
+
+        // Também cria um agendamento
+        await agProv.adicionarAgendamento(
+          orcamentoId: 'despesa_a_pagar',
+          orcamentoNumero: null,
+          clienteNome: clienteNome,
+          dataHora: Timestamp.fromDate(dataHora),
+          status: 'Pendente',
+          observacoes: obsAgendamento.toString().trim(),
+        );
+
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Despesa a pagar agendada com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -131,9 +271,11 @@ class _AgendamentoAPagarPageState extends State<AgendamentoAPagarPage> {
       appBar: AppBar(
         backgroundColor: Colors.red.shade600,
         foregroundColor: Colors.white,
-        title: const Text(
-          'Agendamento a Pagar',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          widget.agendamento != null
+              ? 'Editar Despesa a Pagar'
+              : 'Agendamento a Pagar',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,
