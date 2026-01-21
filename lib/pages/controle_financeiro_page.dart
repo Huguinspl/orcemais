@@ -14,6 +14,7 @@ import '../providers/transacoes_provider.dart';
 import '../providers/user_provider.dart';
 import '../models/receita.dart';
 import 'home/agendamentos/agendamento_a_receber_page.dart';
+import 'home/despesas/nova_despesa_a_pagar_page.dart';
 import 'home/tabs/clientes_page.dart';
 import 'home/tabs/novo_cliente_page.dart';
 import 'home/orcamentos/orcamentos_page.dart';
@@ -2171,6 +2172,16 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                     const AgendamentoAReceberPage(fromControleFinanceiro: true),
           ),
         );
+      } else if (isFutura && tipo == TipoTransacao.despesa) {
+        // Para despesa a pagar, navega para página completa com AppBar
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (_) =>
+                    const NovaDespesaAPagarPage(fromControleFinanceiro: true),
+          ),
+        );
       } else {
         await showModalBottomSheet(
           context: context,
@@ -2525,6 +2536,7 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
   final _descricaoController = TextEditingController();
   final _valorController = TextEditingController();
   final _observacoesController = TextEditingController();
+  final _fornecedorController = TextEditingController();
 
   late TipoTransacao _tipo;
   CategoriaTransacao? _categoria;
@@ -2539,6 +2551,10 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
   TimeOfDay? _horaRecebimento;
   bool _salvarEmAgendamento = true; // Por padrão, salva na agenda
 
+  // Campos para despesa a pagar (isFutura = true && despesa)
+  DateTime? _dataPagamento;
+  TimeOfDay? _horaPagamento;
+
   @override
   void initState() {
     super.initState();
@@ -2549,6 +2565,12 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
       _dataRecebimento = DateTime.now().add(const Duration(days: 7));
       _horaRecebimento = const TimeOfDay(hour: 10, minute: 0);
     }
+
+    // Valores padrão para despesa a pagar
+    if (widget.isFutura && widget.tipoInicial == TipoTransacao.despesa) {
+      _dataPagamento = DateTime.now().add(const Duration(days: 7));
+      _horaPagamento = const TimeOfDay(hour: 10, minute: 0);
+    }
   }
 
   @override
@@ -2556,6 +2578,7 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
     _descricaoController.dispose();
     _valorController.dispose();
     _observacoesController.dispose();
+    _fornecedorController.dispose();
     super.dispose();
   }
 
@@ -2865,6 +2888,138 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
                 const SizedBox(height: 24),
               ],
 
+              // ========== CAMPOS ESPECIAIS PARA DESPESA A PAGAR ==========
+              if (widget.isFutura && !isReceita) ...[
+                // Repetir / Parcelar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.repeat, color: corTema.shade600),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Repetir / Parcelar',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: _repetirParcelar,
+                        onChanged:
+                            (value) => setState(() => _repetirParcelar = value),
+                        activeColor: corTema.shade600,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Buscar Despesa Existente
+                InkWell(
+                  onTap: _mostrarBuscaDespesas,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade300),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.search,
+                            color: Colors.blue.shade600,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Buscar Despesa Existente',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                'Carregar dados de uma despesa salva',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.blue.shade400,
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Fornecedor
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.store, color: Colors.orange.shade600),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _fornecedorController,
+                          decoration: const InputDecoration(
+                            hintText: 'Nome do fornecedor (opcional)',
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+
               // Descrição
               TextFormField(
                 controller: _descricaoController,
@@ -3079,6 +3234,153 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
                 const SizedBox(height: 16),
               ],
 
+              // ========== CAMPOS DE DATA/HORA PARA DESPESA A PAGAR ==========
+              if (widget.isFutura && _tipo == TipoTransacao.despesa) ...[
+                // Data do Pagamento
+                ListTile(
+                  leading: Icon(
+                    Icons.event_available,
+                    color: Colors.orange.shade600,
+                  ),
+                  title: Row(
+                    children: [
+                      const Text('Data do Pagamento'),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade100,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Previsto',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.orange.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(
+                    _dataPagamento != null
+                        ? DateFormat('dd/MM/yyyy').format(_dataPagamento!)
+                        : 'Selecionar data',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color:
+                          _dataPagamento != null
+                              ? Colors.orange.shade700
+                              : Colors.grey.shade500,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.orange.shade300),
+                  ),
+                  tileColor: Colors.orange.shade50,
+                  onTap: _selecionarDataPagamento,
+                ),
+                const SizedBox(height: 16),
+
+                // Hora do Pagamento
+                ListTile(
+                  leading: Icon(
+                    Icons.access_time,
+                    color: Colors.orange.shade600,
+                  ),
+                  title: Row(
+                    children: [
+                      const Text('Hora do Pagamento'),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade100,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Previsto',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.orange.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(
+                    _horaPagamento != null
+                        ? _horaPagamento!.format(context)
+                        : 'Selecionar hora',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color:
+                          _horaPagamento != null
+                              ? Colors.orange.shade700
+                              : Colors.grey.shade500,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.orange.shade300),
+                  ),
+                  tileColor: Colors.orange.shade50,
+                  onTap: _selecionarHoraPagamento,
+                ),
+                const SizedBox(height: 16),
+
+                // Checkbox Salvar em Agendamento
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: CheckboxListTile(
+                    value: _salvarEmAgendamento,
+                    onChanged:
+                        (v) => setState(() => _salvarEmAgendamento = v ?? true),
+                    title: const Text(
+                      'Salvar em Agendamento',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      _salvarEmAgendamento
+                          ? 'A despesa também aparecerá na aba de Agendamentos'
+                          : 'A despesa será salva apenas no Controle Financeiro',
+                      style: TextStyle(
+                        color: Colors.blue.shade700,
+                        fontSize: 12,
+                      ),
+                    ),
+                    secondary: Icon(
+                      _salvarEmAgendamento
+                          ? Icons.event_available
+                          : Icons.event_busy,
+                      color: Colors.blue.shade600,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    activeColor: Colors.blue.shade600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
               // Observações
               TextFormField(
                 controller: _observacoesController,
@@ -3194,6 +3496,300 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
     if (hora != null) {
       setState(() => _horaRecebimento = hora);
     }
+  }
+
+  // ========== Métodos para Despesa a Pagar ==========
+
+  Future<void> _selecionarDataPagamento() async {
+    final data = await showDatePicker(
+      context: context,
+      initialDate:
+          _dataPagamento ?? DateTime.now().add(const Duration(days: 7)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 730)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.orange.shade600,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (data != null) {
+      setState(() => _dataPagamento = data);
+    }
+  }
+
+  Future<void> _selecionarHoraPagamento() async {
+    final hora = await showTimePicker(
+      context: context,
+      initialTime: _horaPagamento ?? const TimeOfDay(hour: 10, minute: 0),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: Colors.white,
+              dialBackgroundColor: Colors.orange.shade50,
+              hourMinuteTextColor: Colors.orange.shade700,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (hora != null) {
+      setState(() => _horaPagamento = hora);
+    }
+  }
+
+  void _mostrarBuscaDespesas() {
+    final transacoesProv = context.read<TransacoesProvider>();
+    final despesasAPagar =
+        transacoesProv.transacoes
+            .where((t) => t.tipo == TipoTransacao.despesa && t.isFutura)
+            .toList()
+          ..sort((a, b) => a.data.compareTo(b.data));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final dateFormat = DateFormat('dd/MM/yyyy');
+        final currencyFormat = NumberFormat.currency(
+          locale: 'pt_BR',
+          symbol: 'R\$',
+        );
+        String filtro = '';
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final despesasFiltradas =
+                filtro.isEmpty
+                    ? despesasAPagar
+                    : despesasAPagar
+                        .where(
+                          (d) => d.descricao.toLowerCase().contains(
+                            filtro.toLowerCase(),
+                          ),
+                        )
+                        .toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.80,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.red.shade600, Colors.red.shade400],
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.search, color: Colors.white, size: 24),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Buscar Despesa Existente',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Campo de busca
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: TextField(
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Digite para buscar...',
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Colors.red.shade400,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.red.shade400,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                      ),
+                      onChanged: (value) {
+                        setModalState(() => filtro = value);
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child:
+                        despesasFiltradas.isEmpty
+                            ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.inbox_outlined,
+                                    size: 64,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    filtro.isEmpty
+                                        ? 'Nenhuma despesa a pagar cadastrada'
+                                        : 'Nenhuma despesa encontrada',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                            : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemCount: despesasFiltradas.length,
+                              itemBuilder: (_, i) {
+                                final despesa = despesasFiltradas[i];
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.all(16),
+                                    leading: Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade100,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Icon(
+                                        Icons.receipt_long,
+                                        color: Colors.red.shade600,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      despesa.descricao,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Vencimento: ${dateFormat.format(despesa.data)}',
+                                          style: TextStyle(
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        Text(
+                                          despesa.categoria.nome,
+                                          style: TextStyle(
+                                            color: Colors.grey.shade500,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Text(
+                                      currencyFormat.format(despesa.valor),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Colors.red.shade600,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      // Preencher os campos com os dados da despesa
+                                      _preencherComDespesa(despesa);
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _preencherComDespesa(Transacao despesa) {
+    setState(() {
+      _descricaoController.text = despesa.descricao;
+      _valorController.text =
+          'R\$ ${despesa.valor.toStringAsFixed(2).replaceAll('.', ',')}';
+      _categoria = despesa.categoria;
+      _dataPagamento = despesa.data;
+      _observacoesController.text = despesa.observacoes ?? '';
+
+      // Tentar extrair fornecedor das observações
+      final obs = despesa.observacoes ?? '';
+      if (obs.isNotEmpty) {
+        final linhas = obs.split('\n');
+        for (final linha in linhas) {
+          if (linha.startsWith('Fornecedor:')) {
+            _fornecedorController.text =
+                linha.replaceFirst('Fornecedor:', '').trim();
+            break;
+          }
+        }
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Despesa "${despesa.descricao}" carregada'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _selecionarOrcamento() async {
@@ -3588,6 +4184,19 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
       return;
     }
 
+    // Validação adicional para despesa a pagar
+    if (widget.isFutura &&
+        _tipo == TipoTransacao.despesa &&
+        _dataPagamento == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Selecione a data de pagamento'),
+          backgroundColor: _corTema.shade600,
+        ),
+      );
+      return;
+    }
+
     setState(() => _salvando = true);
 
     try {
@@ -3629,15 +4238,46 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
         observacoesFinais = obsCompletas.toString().trim();
       }
 
+      // Monta observações para despesa a pagar
+      if (widget.isFutura && _tipo == TipoTransacao.despesa) {
+        final obsCompletas = StringBuffer();
+        obsCompletas.writeln('[DESPESA A PAGAR]');
+        obsCompletas.writeln(
+          'Data prevista: ${DateFormat('dd/MM/yyyy').format(_dataPagamento!)}',
+        );
+        if (_horaPagamento != null) {
+          obsCompletas.writeln(
+            'Hora prevista: ${_horaPagamento!.hour.toString().padLeft(2, '0')}:${_horaPagamento!.minute.toString().padLeft(2, '0')}',
+          );
+        }
+        if (_fornecedorController.text.isNotEmpty) {
+          obsCompletas.writeln('Fornecedor: ${_fornecedorController.text}');
+        }
+        if (_repetirParcelar) {
+          obsCompletas.writeln('Repetir/Parcelar: Sim');
+        }
+        if (_observacoesController.text.isNotEmpty) {
+          obsCompletas.writeln(_observacoesController.text);
+        }
+        observacoesFinais = obsCompletas.toString().trim();
+      }
+
+      // Determina a data correta baseado no tipo de transação futura
+      DateTime dataTransacao = _data;
+      if (widget.isFutura) {
+        if (_tipo == TipoTransacao.receita && _dataRecebimento != null) {
+          dataTransacao = _dataRecebimento!;
+        } else if (_tipo == TipoTransacao.despesa && _dataPagamento != null) {
+          dataTransacao = _dataPagamento!;
+        }
+      }
+
       final transacao = Transacao(
         descricao: _descricaoController.text,
         valor: valor,
         tipo: _tipo,
         categoria: _categoria!,
-        data:
-            widget.isFutura && _tipo == TipoTransacao.receita
-                ? _dataRecebimento!
-                : _data,
+        data: dataTransacao,
         observacoes: observacoesFinais,
         userId: userId,
         isFutura: widget.isFutura,
@@ -3699,13 +4339,66 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
           );
         }
 
+        // Salvar na agenda se opção estiver marcada para despesa a pagar
+        if (widget.isFutura &&
+            _tipo == TipoTransacao.despesa &&
+            _salvarEmAgendamento) {
+          final agProv = context.read<AgendamentosProvider>();
+
+          // Combina data e hora de pagamento
+          final dataHoraPagamento = DateTime(
+            _dataPagamento!.year,
+            _dataPagamento!.month,
+            _dataPagamento!.day,
+            _horaPagamento?.hour ?? 10,
+            _horaPagamento?.minute ?? 0,
+          );
+
+          // Monta observações para o agendamento
+          final obsAgendamento = StringBuffer();
+          obsAgendamento.writeln('[DESPESA A PAGAR]');
+          obsAgendamento.writeln('Descrição: ${_descricaoController.text}');
+          obsAgendamento.writeln(
+            'Valor: R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
+          );
+          if (_categoria != null) {
+            obsAgendamento.writeln('Categoria: ${_categoria!.nome}');
+          }
+          if (_fornecedorController.text.isNotEmpty) {
+            obsAgendamento.writeln('Fornecedor: ${_fornecedorController.text}');
+          }
+          if (_repetirParcelar) {
+            obsAgendamento.writeln('Repetir/Parcelar: Sim');
+          }
+          if (_observacoesController.text.isNotEmpty) {
+            obsAgendamento.writeln(_observacoesController.text);
+          }
+
+          final descricaoAgendamento =
+              _fornecedorController.text.isNotEmpty
+                  ? 'Despesa: ${_fornecedorController.text}'
+                  : 'Despesa: ${_descricaoController.text}';
+
+          await agProv.adicionarAgendamento(
+            orcamentoId: 'despesa_a_pagar',
+            orcamentoNumero: null,
+            clienteNome: descricaoAgendamento,
+            dataHora: Timestamp.fromDate(dataHoraPagamento),
+            status: 'Pendente',
+            observacoes: obsAgendamento.toString().trim(),
+          );
+        }
+
         final isReceita = _tipo == TipoTransacao.receita;
         Navigator.pop(context);
 
         String mensagem;
         if (widget.isFutura) {
-          if (_salvarEmAgendamento && isReceita) {
-            mensagem = 'Receita a receber adicionada e agendada!';
+          if (_salvarEmAgendamento) {
+            mensagem =
+                isReceita
+                    ? 'Receita a receber adicionada e agendada!'
+                    : 'Despesa a pagar adicionada e agendada!';
           } else {
             mensagem =
                 isReceita

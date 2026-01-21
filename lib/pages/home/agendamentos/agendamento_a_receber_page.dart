@@ -1,7 +1,13 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../models/agendamento.dart';
@@ -84,6 +90,10 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
 
   // ID do agendamento sendo editado (null = novo)
   String? _agendamentoId;
+
+  // Lista de arquivos/fotos anexados
+  final List<_ArquivoAnexoReceita> _arquivosAnexados = [];
+  bool _enviandoArquivo = false;
 
   @override
   void initState() {
@@ -246,6 +256,381 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
     return categorias.map((cat) {
       return DropdownMenuItem(value: cat, child: Text(cat.nome));
     }).toList();
+  }
+
+  // ========== MÉTODOS DE COMPROVANTES ==========
+
+  void _mostrarOpcoesAnexo() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Adicionar Comprovante',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildOpcaoAnexo(
+                    icone: Icons.camera_alt,
+                    label: 'Câmera',
+                    cor: Colors.blue,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _capturarFoto();
+                    },
+                  ),
+                  _buildOpcaoAnexo(
+                    icone: Icons.photo_library,
+                    label: 'Galeria',
+                    cor: Colors.green,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _selecionarDaGaleria();
+                    },
+                  ),
+                  _buildOpcaoAnexo(
+                    icone: Icons.attach_file,
+                    label: 'Arquivo',
+                    cor: Colors.orange,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _selecionarArquivo();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOpcaoAnexo({
+    required IconData icone,
+    required String label,
+    required MaterialColor cor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cor.shade100,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icone, color: cor.shade600, size: 32),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: cor.shade700,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _capturarFoto() async {
+    try {
+      final picker = ImagePicker();
+      final foto = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 70,
+      );
+      if (foto != null) {
+        await _adicionarArquivo(foto.path, foto.name, 'image');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao capturar foto: $e')));
+      }
+    }
+  }
+
+  Future<void> _selecionarDaGaleria() async {
+    try {
+      final picker = ImagePicker();
+      final imagens = await picker.pickMultiImage(imageQuality: 70);
+      for (final img in imagens) {
+        await _adicionarArquivo(img.path, img.name, 'image');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao selecionar imagens: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _selecionarArquivo() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'],
+        allowMultiple: true,
+      );
+      if (result != null) {
+        for (final file in result.files) {
+          if (file.path != null) {
+            final tipo =
+                file.extension?.toLowerCase() == 'pdf' ? 'pdf' : 'image';
+            await _adicionarArquivo(file.path!, file.name, tipo);
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao selecionar arquivo: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _adicionarArquivo(String path, String nome, String tipo) async {
+    setState(() => _enviandoArquivo = true);
+    try {
+      final userId = context.read<UserProvider>().uid;
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final storagePath = 'receitas/$userId/comprovantes/$timestamp\_$nome';
+
+      final ref = FirebaseStorage.instance.ref().child(storagePath);
+
+      String url;
+      if (kIsWeb) {
+        final bytes = await File(path).readAsBytes();
+        await ref.putData(bytes);
+        url = await ref.getDownloadURL();
+      } else {
+        await ref.putFile(File(path));
+        url = await ref.getDownloadURL();
+      }
+
+      setState(() {
+        _arquivosAnexados.add(
+          _ArquivoAnexoReceita(nome: nome, url: url, tipo: tipo),
+        );
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao enviar arquivo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _enviandoArquivo = false);
+      }
+    }
+  }
+
+  void _removerArquivo(int index) {
+    setState(() {
+      _arquivosAnexados.removeAt(index);
+    });
+  }
+
+  Widget _buildCardAnexos() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.receipt_long, color: Colors.teal.shade600),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Comprovantes',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+              if (_enviandoArquivo)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                IconButton(
+                  onPressed: _mostrarOpcoesAnexo,
+                  icon: Icon(Icons.add_circle, color: Colors.teal.shade600),
+                  tooltip: 'Adicionar comprovante',
+                ),
+            ],
+          ),
+          if (_arquivosAnexados.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Nenhum comprovante anexado',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+              ),
+            )
+          else ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _arquivosAnexados.length,
+                itemBuilder: (context, index) {
+                  final arquivo = _arquivosAnexados[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child:
+                                arquivo.tipo == 'image'
+                                    ? Image.network(
+                                      arquivo.url,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (_, __, ___) => Icon(
+                                            Icons.image,
+                                            color: Colors.grey.shade400,
+                                            size: 40,
+                                          ),
+                                    )
+                                    : Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.picture_as_pdf,
+                                          color: Colors.red.shade400,
+                                          size: 40,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'PDF',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () => _removerArquivo(index),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          InkWell(
+            onTap: _mostrarOpcoesAnexo,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.teal.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.teal.shade200,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_a_photo,
+                    color: Colors.teal.shade600,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Adicionar foto ou arquivo',
+                    style: TextStyle(
+                      color: Colors.teal.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Navegar para selecionar orçamento
@@ -1062,6 +1447,10 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // ========== COMPROVANTES ==========
+                    _buildCardAnexos(),
                     const SizedBox(height: 24),
 
                     // Título com indicador do tipo
@@ -1454,4 +1843,17 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
       ),
     );
   }
+}
+
+/// Classe auxiliar para armazenar informações de arquivos anexados
+class _ArquivoAnexoReceita {
+  final String nome;
+  final String url;
+  final String tipo; // 'image' ou 'pdf'
+
+  _ArquivoAnexoReceita({
+    required this.nome,
+    required this.url,
+    required this.tipo,
+  });
 }
