@@ -2166,9 +2166,9 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
         await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const AgendamentoAReceberPage(
-              fromControleFinanceiro: true,
-            ),
+            builder:
+                (_) =>
+                    const AgendamentoAReceberPage(fromControleFinanceiro: true),
           ),
         );
       } else {
