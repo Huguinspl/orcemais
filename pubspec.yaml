@@ -52,6 +52,7 @@ dependencies:
   mobile_scanner: ^7.0.1
   image_picker: ^1.1.2
   firebase_storage: ^13.0.0
+  file_picker: ^8.0.0
   http: ^1.2.2
   hand_signature: ^3.0.3
   image_picker_for_web: ^3.1.0
