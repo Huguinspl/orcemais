@@ -108,11 +108,31 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
       _fornecedorController.text = ag.clienteNome!;
     }
 
+    // Remove seção de comprovantes antes de processar
+    var obsLimpa = ag.observacoes.replaceAll(
+      RegExp(r'\[COMPROVANTES\].*?\[/COMPROVANTES\]', dotAll: true),
+      '',
+    );
+
     // Extrair dados das observações
-    final obs = ag.observacoes;
-    final linhas = obs.split('\n');
+    final linhas = obsLimpa.split('\n');
+    bool dentroComprovantes = false;
 
     for (final linha in linhas) {
+      // Ignora linhas vazias
+      if (linha.trim().isEmpty) continue;
+
+      // Ignora tags de comprovantes (caso a regex não tenha pego)
+      if (linha.startsWith('[COMPROVANTES]')) {
+        dentroComprovantes = true;
+        continue;
+      }
+      if (linha.startsWith('[/COMPROVANTES]')) {
+        dentroComprovantes = false;
+        continue;
+      }
+      if (dentroComprovantes) continue;
+
       if (linha.startsWith('Descrição:')) {
         _descricaoController.text = linha.replaceFirst('Descrição:', '').trim();
       } else if (linha.startsWith('Valor:')) {
@@ -133,11 +153,9 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
       } else if (linha.startsWith('Repetir/Parcelar:')) {
         _repetirParcelar = linha.contains('Sim');
       } else if (!linha.startsWith('[') &&
-          !linha.startsWith('Descrição:') &&
-          !linha.startsWith('Valor:') &&
-          !linha.startsWith('Categoria:') &&
-          !linha.startsWith('Fornecedor:') &&
-          !linha.startsWith('Repetir/Parcelar:') &&
+          !linha.startsWith('Data prevista:') &&
+          !linha.startsWith('Hora prevista:') &&
+          !linha.contains('|') && // URLs de comprovantes contêm |
           linha.trim().isNotEmpty) {
         // Outras observações
         if (_observacoesController.text.isNotEmpty) {
@@ -700,6 +718,14 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
           }
           if (_observacoesController.text.isNotEmpty) {
             obsAgendamento.writeln(_observacoesController.text);
+          }
+          // Adiciona URLs dos comprovantes
+          if (_arquivosAnexados.isNotEmpty) {
+            obsAgendamento.writeln('[COMPROVANTES]');
+            for (final arquivo in _arquivosAnexados) {
+              obsAgendamento.writeln('${arquivo.nome}|${arquivo.url}');
+            }
+            obsAgendamento.writeln('[/COMPROVANTES]');
           }
 
           final clienteNome =

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../models/agendamento.dart';
 import '../../../providers/agendamentos_provider.dart';
 import '../despesas/nova_despesa_a_pagar_page.dart';
@@ -317,14 +318,330 @@ class _DetalhesAgendamentoPageState extends State<DetalhesAgendamentoPage> {
     }
   }
 
+  /// Abre o comprovante em visualização
+  Future<void> _abrirComprovante(String url, String nome) async {
+    // Tenta extrair a URL se tiver caracteres extras
+    var urlLimpa = url.trim();
+
+    // Se a URL contém "https://" mas não começa com ele, extrai a parte correta
+    if (!urlLimpa.startsWith('http') && urlLimpa.contains('https://')) {
+      final startIndex = urlLimpa.indexOf('https://');
+      urlLimpa = urlLimpa.substring(startIndex);
+    }
+
+    // Verifica se a URL é válida
+    if (urlLimpa.isEmpty || !urlLimpa.startsWith('http')) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('URL do comprovante inválida: $nome'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    final isImagem =
+        urlLimpa.contains('.jpg') ||
+        urlLimpa.contains('.jpeg') ||
+        urlLimpa.contains('.png') ||
+        urlLimpa.contains('.gif') ||
+        urlLimpa.contains('.webp') ||
+        urlLimpa.contains('image');
+
+    if (isImagem) {
+      // Exibe a imagem em um dialog
+      showDialog(
+        context: context,
+        builder:
+            (context) => Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header com nome e botão fechar
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            nome,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Imagem
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.7,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(12),
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(12),
+                      ),
+                      child: InteractiveViewer(
+                        minScale: 0.5,
+                        maxScale: 4.0,
+                        child: Image.network(
+                          urlLimpa,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              height: 200,
+                              alignment: Alignment.center,
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 200,
+                              alignment: Alignment.center,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.white54,
+                                    size: 64,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Erro ao carregar imagem',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      );
+    } else {
+      // Para outros tipos de arquivo, tenta abrir externamente
+      final uri = Uri.parse(urlLimpa);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Não foi possível abrir o comprovante: $nome'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  /// Extrai comprovantes da string de observações
+  /// Formato novo: [COMPROVANTES]\nnome|url\n[/COMPROVANTES]
+  /// Formato antigo: Comprovantes:\n- nome: url
+  List<Map<String, String>> _extrairComprovantes(String obs) {
+    final comprovantes = <Map<String, String>>[];
+
+    // Primeiro, tenta extrair do formato novo [COMPROVANTES]...[/COMPROVANTES]
+    final regex = RegExp(
+      r'\[COMPROVANTES\](.*?)\[/COMPROVANTES\]',
+      dotAll: true,
+    );
+    final match = regex.firstMatch(obs);
+    if (match != null) {
+      final conteudo = match.group(1)?.trim() ?? '';
+      final linhas = conteudo.split('\n');
+      for (final linha in linhas) {
+        if (linha.contains('|')) {
+          final partes = linha.split('|');
+          if (partes.length >= 2) {
+            final nome = partes[0].trim();
+            final url = partes.sublist(1).join('|').trim();
+            comprovantes.add({'nome': nome, 'url': url});
+          }
+        }
+      }
+    }
+
+    // Se não encontrou no formato novo, procura pelo formato antigo "- nome: url"
+    if (comprovantes.isEmpty) {
+      final linhas = obs.split('\n');
+      for (final linha in linhas) {
+        final linhaLimpa = linha.trim();
+
+        // Formato antigo: "- scaled_1000283819.jpg: https://..."
+        if (linhaLimpa.startsWith('- ') &&
+            linhaLimpa.contains('firebasestorage.googleapis.com')) {
+          // Remove o "- " do início
+          var conteudo = linhaLimpa.substring(2).trim();
+
+          // Divide por ": " para separar nome da URL
+          final indexDoisPontos = conteudo.indexOf(': ');
+          if (indexDoisPontos > 0) {
+            final nome = conteudo.substring(0, indexDoisPontos).trim();
+            final url = conteudo.substring(indexDoisPontos + 2).trim();
+            comprovantes.add({'nome': nome, 'url': url});
+          }
+        }
+        // URL solta do Firebase
+        else if (linhaLimpa.contains('firebasestorage.googleapis.com') &&
+            !linhaLimpa.startsWith('Comprovantes')) {
+          if (linhaLimpa.contains('|')) {
+            final partes = linhaLimpa.split('|');
+            if (partes.length >= 2) {
+              comprovantes.add({
+                'nome': partes[0].trim(),
+                'url': partes.sublist(1).join('|').trim(),
+              });
+            }
+          } else {
+            comprovantes.add({
+              'nome': 'Comprovante ${comprovantes.length + 1}',
+              'url': linhaLimpa,
+            });
+          }
+        }
+      }
+    }
+
+    return comprovantes;
+  }
+
   String _formatarObservacoes(String obs) {
-    // Remove as tags de tipo do início
-    return obs
-        .replaceAll('[DESPESA A PAGAR]\n', '')
-        .replaceAll('[RECEITA A RECEBER]\n', '')
-        .replaceAll('[VENDA]\n', '')
-        .replaceAll('[DIVERSOS]\n', '')
-        .trim();
+    // Remove seção de comprovantes (formato novo)
+    var obsLimpa = obs.replaceAll(
+      RegExp(r'\[COMPROVANTES\].*?\[/COMPROVANTES\]', dotAll: true),
+      '',
+    );
+
+    // Remove seção de comprovantes (formato antigo: "Comprovantes:\n- nome: url")
+    obsLimpa = obsLimpa.replaceAll(
+      RegExp(r'Comprovantes:\s*\n(- [^\n]+\n?)+', caseSensitive: false),
+      '',
+    );
+    // Remove as tags de tipo do início e filtra linhas desnecessárias
+    final linhas = obsLimpa.split('\n');
+    final linhasFiltradas =
+        linhas.where((linha) {
+          final linhaLimpa = linha.trim().toLowerCase();
+
+          // Remove linhas vazias
+          if (linhaLimpa.isEmpty) return false;
+
+          // Remove tags de tipo
+          if (linhaLimpa.startsWith('[despesa a pagar]') ||
+              linhaLimpa.startsWith('[receita a receber]') ||
+              linhaLimpa.startsWith('[venda]') ||
+              linhaLimpa.startsWith('[diversos]') ||
+              linhaLimpa.startsWith('[comprovantes]') ||
+              linhaLimpa.startsWith('[/comprovantes]')) {
+            return false;
+          }
+
+          // Remove linha de data (já exibida no header)
+          if (linhaLimpa.startsWith('data prevista:') ||
+              linhaLimpa.startsWith('hora prevista:')) {
+            return false;
+          }
+
+          // Remove URLs de comprovantes (linhas que contêm URLs do Firebase Storage)
+          if (linhaLimpa.contains('firebasestorage.googleapis.com') ||
+              (linhaLimpa.contains('https://') && linhaLimpa.contains('|'))) {
+            return false;
+          }
+
+          // Remove nomes de arquivos de comprovantes (formato: timestamp_nome.extensao)
+          // Ex: 1737484925048_imagem.jpg
+          if (RegExp(
+            r'^\d+_.*\.(jpg|jpeg|png|gif|webp|pdf|doc|docx)$',
+            caseSensitive: false,
+          ).hasMatch(linhaLimpa)) {
+            return false;
+          }
+
+          // Remove linhas que parecem ser nome de arquivo com pipe (nome|url)
+          if (linhaLimpa.contains('|') &&
+              (linhaLimpa.contains('.jpg') ||
+                  linhaLimpa.contains('.jpeg') ||
+                  linhaLimpa.contains('.png') ||
+                  linhaLimpa.contains('.gif') ||
+                  linhaLimpa.contains('.pdf'))) {
+            return false;
+          }
+
+          // Remove linhas que são apenas "comprovante" ou "comprovantes"
+          if (linhaLimpa == 'comprovante' ||
+              linhaLimpa == 'comprovantes' ||
+              linhaLimpa == 'comprovantes:' ||
+              linhaLimpa.startsWith('comprovante ') ||
+              linhaLimpa.startsWith('comprovante:') ||
+              linhaLimpa.startsWith('comprovantes:')) {
+            return false;
+          }
+
+          // Remove linhas do formato antigo "- nome: url"
+          if (linhaLimpa.startsWith('- ') &&
+              linhaLimpa.contains('firebasestorage.googleapis.com')) {
+            return false;
+          }
+
+          // Remove linhas que contêm apenas nome de arquivo de imagem
+          if (RegExp(
+                r'^.*\.(jpg|jpeg|png|gif|webp|pdf)$',
+                caseSensitive: false,
+              ).hasMatch(linhaLimpa) &&
+              !linhaLimpa.contains(':')) {
+            return false;
+          }
+
+          return true;
+        }).toList();
+
+    return linhasFiltradas.join('\n').trim();
   }
 
   @override
@@ -391,6 +708,7 @@ class _DetalhesAgendamentoPageState extends State<DetalhesAgendamentoPage> {
     final horaFormatada = DateFormat('HH:mm').format(dataHora);
     final diaSemana = DateFormat('EEEE', 'pt_BR').format(dataHora);
     final obsFormatadas = _formatarObservacoes(_agendamento!.observacoes);
+    final comprovantes = _extrairComprovantes(_agendamento!.observacoes);
 
     return Scaffold(
       appBar: AppBar(
@@ -644,43 +962,60 @@ class _DetalhesAgendamentoPageState extends State<DetalhesAgendamentoPage> {
                     ),
                   ],
 
-                  const SizedBox(height: 24),
-
-                  // Botões de ação rápida
-                  Text(
-                    'Ações Rápidas',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  // Comprovantes
+                  if (comprovantes.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Comprovantes',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildAcaoRapida(
-                          icon: Icons.check_circle,
-                          label: 'Concluir',
-                          color: Colors.green,
-                          onTap:
-                              _agendamento!.status != 'Concluido'
-                                  ? () => _alterarStatus('Concluido')
-                                  : null,
-                        ),
+                    const SizedBox(height: 8),
+                    Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildAcaoRapida(
-                          icon: Icons.cancel,
-                          label: 'Cancelar',
-                          color: Colors.red,
-                          onTap:
-                              _agendamento!.status != 'Cancelado'
-                                  ? () => _alterarStatus('Cancelado')
-                                  : null,
-                        ),
+                      child: Column(
+                        children:
+                            comprovantes.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final comprovante = entry.value;
+                              final nome = comprovante['nome'] ?? 'Comprovante';
+                              final url = comprovante['url'] ?? '';
+                              final isImagem =
+                                  url.contains('.jpg') ||
+                                  url.contains('.jpeg') ||
+                                  url.contains('.png') ||
+                                  url.contains('.gif') ||
+                                  url.contains('.webp') ||
+                                  url.contains('image');
+
+                              return Column(
+                                children: [
+                                  if (index > 0) const Divider(height: 1),
+                                  ListTile(
+                                    leading: Icon(
+                                      isImagem
+                                          ? Icons.image
+                                          : Icons.attach_file,
+                                      color: _getTipoColor(),
+                                    ),
+                                    title: Text(
+                                      nome,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    trailing: const Icon(Icons.open_in_new),
+                                    onTap: () => _abrirComprovante(url, nome),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
 
                   const SizedBox(height: 24),
 
@@ -721,39 +1056,6 @@ class _DetalhesAgendamentoPageState extends State<DetalhesAgendamentoPage> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAcaoRapida({
-    required IconData icon,
-    required String label,
-    required Color color,
-    VoidCallback? onTap,
-  }) {
-    final isDisabled = onTap == null;
-    return Material(
-      color: isDisabled ? Colors.grey.shade200 : color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            children: [
-              Icon(icon, color: isDisabled ? Colors.grey : color, size: 28),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isDisabled ? Colors.grey : color,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

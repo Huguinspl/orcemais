@@ -132,9 +132,43 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
 
   /// Extrai informações das observações do agendamento para preencher os campos
   void _parseObservacoesAgendamento(String observacoes) {
-    final linhas = observacoes.split('\n');
+    // Remove seção de comprovantes antes de processar
+    var obsLimpa = observacoes.replaceAll(
+      RegExp(r'\[COMPROVANTES\].*?\[/COMPROVANTES\]', dotAll: true),
+      '',
+    );
+
+    final linhas = obsLimpa.split('\n');
+    bool dentroComprovantes = false;
 
     for (final linha in linhas) {
+      // Ignora linhas vazias
+      if (linha.trim().isEmpty) continue;
+
+      // Ignora tags de comprovantes (caso a regex não tenha pego)
+      if (linha.startsWith('[COMPROVANTES]')) {
+        dentroComprovantes = true;
+        continue;
+      }
+      if (linha.startsWith('[/COMPROVANTES]')) {
+        dentroComprovantes = false;
+        continue;
+      }
+      if (dentroComprovantes) continue;
+
+      // Ignora tags de tipo
+      if (linha.startsWith('[RECEITA A RECEBER]')) continue;
+      if (linha.startsWith('[DESPESA A PAGAR]')) continue;
+      if (linha.startsWith('[VENDA]')) continue;
+      if (linha.startsWith('[DIVERSOS]')) continue;
+
+      // Ignora linhas de data/hora (já extraídas do campo dataHora)
+      if (linha.startsWith('Data prevista:')) continue;
+      if (linha.startsWith('Hora prevista:')) continue;
+
+      // Ignora URLs de comprovantes
+      if (linha.contains('|') && linha.contains('http')) continue;
+
       if (linha.startsWith('Descrição:')) {
         _descricaoController.text = linha.replaceFirst('Descrição:', '').trim();
       } else if (linha.startsWith('Valor:')) {
@@ -1096,6 +1130,14 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
       }
       if (_observacoesController.text.isNotEmpty) {
         obsAgendamento.writeln(_observacoesController.text);
+      }
+      // Adiciona URLs dos comprovantes
+      if (_arquivosAnexados.isNotEmpty) {
+        obsAgendamento.writeln('[COMPROVANTES]');
+        for (final arquivo in _arquivosAnexados) {
+          obsAgendamento.writeln('${arquivo.nome}|${arquivo.url}');
+        }
+        obsAgendamento.writeln('[/COMPROVANTES]');
       }
 
       final clienteNome =
