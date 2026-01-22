@@ -101,11 +101,21 @@ class NotificationHandler {
         break;
 
       default:
-        debugPrint('Payload não reconhecido: $payload');
-        // Voltar para home por padrão
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+        // Verifica se o payload pode ser um ID de agendamento
+        // IDs do Firestore geralmente têm 20+ caracteres alfanuméricos
+        if (payload.length >= 20 &&
+            RegExp(r'^[a-zA-Z0-9]+$').hasMatch(payload)) {
+          debugPrint('Payload parece ser um ID de agendamento: $payload');
+          Navigator.of(
+            context,
+          ).pushNamed(AppRoutes.detalhesAgendamento, arguments: payload);
+        } else {
+          debugPrint('Payload não reconhecido: $payload');
+          // Voltar para home por padrão
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+        }
     }
   }
 

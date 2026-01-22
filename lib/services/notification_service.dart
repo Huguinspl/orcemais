@@ -1,7 +1,10 @@
-﻿import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
 import '../models/agendamento.dart';
+import '../routes/app_routes.dart';
+import 'notification_handler.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -91,12 +94,22 @@ class NotificationService {
 
   /// Callback quando notificação é tocada
   void _onNotificationTapped(NotificationResponse response) {
-    // Aqui você pode navegar para a página de agendamentos
-    // ou exibir detalhes do agendamento
     print('Notificação tocada: ${response.payload}');
+
+    final agendamentoId = response.payload;
+    if (agendamentoId != null && agendamentoId.isNotEmpty) {
+      // Navega para a página de detalhes do agendamento
+      final navigator = NavigationService.navigatorKey.currentState;
+      if (navigator != null) {
+        navigator.pushNamed(
+          AppRoutes.detalhesAgendamento,
+          arguments: agendamentoId,
+        );
+      }
+    }
   }
 
-  /// Agenda notificação para um agendamento (30 minutos antes)
+  /// Agenda notificação para um agendamento (no horário exato)
   Future<void> agendarNotificacao(Agendamento agendamento) async {
     print('=== AGENDANDO NOTIFICAÇÃO ===');
     print('Permissão concedida: $_permissionGranted');
@@ -110,10 +123,8 @@ class NotificationService {
     final dataHoraAgendamento = agendamento.dataHora.toDate();
     print('Data/Hora do agendamento: $dataHoraAgendamento');
 
-    // Calcula 30 minutos antes
-    final dataHoraNotificacao = dataHoraAgendamento.subtract(
-      const Duration(minutes: 30),
-    );
+    // Usa o horário exato do agendamento (sem subtrair 30 minutos)
+    final dataHoraNotificacao = dataHoraAgendamento;
     print('Data/Hora da notificação: $dataHoraNotificacao');
 
     // Verifica se a notificação não está no passado
@@ -163,10 +174,39 @@ class NotificationService {
 
     // Agenda a notificação
     try {
+      // Determina se é uma despesa a pagar ou receita a receber
+      final isDespesa =
+          agendamento.observacoes?.contains('[DESPESA A PAGAR]') ?? false;
+      final isReceita =
+          agendamento.observacoes?.contains('[RECEITA A RECEBER]') ?? false;
+
+      String titulo;
+      String corpo;
+
+      if (isDespesa) {
+        titulo = '💰 Despesa a Pagar!';
+        corpo =
+            agendamento.clienteNome != null
+                ? '${agendamento.clienteNome} - às $hora'
+                : 'Despesa agendada para às $hora';
+      } else if (isReceita) {
+        titulo = '💵 Receita a Receber!';
+        corpo =
+            agendamento.clienteNome != null
+                ? '${agendamento.clienteNome} - às $hora'
+                : 'Receita agendada para às $hora';
+      } else {
+        titulo = '⏰ Lembrete de Agendamento!';
+        corpo =
+            agendamento.clienteNome != null
+                ? 'Serviço para ${agendamento.clienteNome} às $hora'
+                : 'Agendamento às $hora';
+      }
+
       await _notifications.zonedSchedule(
         agendamento.id.hashCode, // ID único baseado no ID do agendamento
-        '⏰ Agendamento em 30 minutos!',
-        'Serviço${agendamento.clienteNome != null ? ' para ${agendamento.clienteNome}' : ''} às $hora',
+        titulo,
+        corpo,
         tzDateTime,
         notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,

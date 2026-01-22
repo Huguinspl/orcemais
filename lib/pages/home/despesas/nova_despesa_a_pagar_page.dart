@@ -14,6 +14,7 @@ import '../../../models/receita.dart';
 import '../../../providers/agendamentos_provider.dart';
 import '../../../providers/transacoes_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../services/notification_service.dart';
 
 class CurrencyInputFormatterDespesaAPagar extends TextInputFormatter {
   @override
@@ -39,10 +40,17 @@ class CurrencyInputFormatterDespesaAPagar extends TextInputFormatter {
 /// Página para criar despesa a pagar (despesa futura) vindo do Controle Financeiro
 /// Estrutura similar à página de Receita a Receber
 class NovaDespesaAPagarPage extends StatefulWidget {
+  /// Agendamento para edição (null = criar novo)
+  final Agendamento? agendamento;
+
   /// Se true, mostra checkbox "Salvar em Agendamento"
   final bool fromControleFinanceiro;
 
-  const NovaDespesaAPagarPage({super.key, this.fromControleFinanceiro = true});
+  const NovaDespesaAPagarPage({
+    super.key,
+    this.agendamento,
+    this.fromControleFinanceiro = true,
+  });
 
   @override
   State<NovaDespesaAPagarPage> createState() => _NovaDespesaAPagarPageState();
@@ -70,12 +78,74 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
   final List<_ArquivoAnexo> _arquivosAnexados = [];
   bool _enviandoArquivo = false;
 
+  // ID do agendamento sendo editado (se for edição)
+  String? _agendamentoIdEditando;
+
   @override
   void initState() {
     super.initState();
-    // Valores padrão para nova despesa a pagar
-    _dataPagamento = DateTime.now().add(const Duration(days: 7));
-    _horaPagamento = const TimeOfDay(hour: 10, minute: 0);
+
+    if (widget.agendamento != null) {
+      // Modo edição - preencher campos com dados do agendamento
+      _agendamentoIdEditando = widget.agendamento!.id;
+      _preencherDadosDoAgendamento();
+    } else {
+      // Valores padrão para nova despesa a pagar
+      _dataPagamento = DateTime.now().add(const Duration(days: 7));
+      _horaPagamento = const TimeOfDay(hour: 10, minute: 0);
+    }
+  }
+
+  void _preencherDadosDoAgendamento() {
+    final ag = widget.agendamento!;
+    final dataHora = ag.dataHora.toDate();
+
+    _dataPagamento = dataHora;
+    _horaPagamento = TimeOfDay.fromDateTime(dataHora);
+
+    // Preencher fornecedor (clienteNome no agendamento)
+    if (ag.clienteNome != null && !ag.clienteNome!.startsWith('Despesa:')) {
+      _fornecedorController.text = ag.clienteNome!;
+    }
+
+    // Extrair dados das observações
+    final obs = ag.observacoes;
+    final linhas = obs.split('\n');
+
+    for (final linha in linhas) {
+      if (linha.startsWith('Descrição:')) {
+        _descricaoController.text = linha.replaceFirst('Descrição:', '').trim();
+      } else if (linha.startsWith('Valor:')) {
+        final valorStr = linha.replaceFirst('Valor:', '').trim();
+        _valorController.text = valorStr;
+      } else if (linha.startsWith('Categoria:')) {
+        final categoriaNome = linha.replaceFirst('Categoria:', '').trim();
+        // Buscar categoria pelo nome
+        for (final cat in CategoriaTransacao.values) {
+          if (cat.nome == categoriaNome) {
+            _categoriaSelecionada = cat;
+            break;
+          }
+        }
+      } else if (linha.startsWith('Fornecedor:')) {
+        _fornecedorController.text =
+            linha.replaceFirst('Fornecedor:', '').trim();
+      } else if (linha.startsWith('Repetir/Parcelar:')) {
+        _repetirParcelar = linha.contains('Sim');
+      } else if (!linha.startsWith('[') &&
+          !linha.startsWith('Descrição:') &&
+          !linha.startsWith('Valor:') &&
+          !linha.startsWith('Categoria:') &&
+          !linha.startsWith('Fornecedor:') &&
+          !linha.startsWith('Repetir/Parcelar:') &&
+          linha.trim().isNotEmpty) {
+        // Outras observações
+        if (_observacoesController.text.isNotEmpty) {
+          _observacoesController.text += '\n';
+        }
+        _observacoesController.text += linha;
+      }
+    }
   }
 
   @override
@@ -599,8 +669,17 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
       if (!mounted) return;
 
       if (sucesso) {
-        // Salvar na agenda se opção estiver marcada
-        if (_salvarEmAgendamento) {
+        // Salvar na agenda se opção estiver marcada OU se for edição de agendamento
+        if (_salvarEmAgendamento || _agendamentoIdEditando != null) {
+          // Solicita permissão de notificação se ainda não foi concedida
+          final notificationService = NotificationService();
+          if (!notificationService.isInitialized) {
+            await notificationService.initialize();
+          }
+          if (!notificationService.permissionGranted) {
+            await notificationService.requestPermission();
+          }
+
           final agProv = context.read<AgendamentosProvider>();
 
           // Monta observações para o agendamento
@@ -628,14 +707,29 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
                   ? _fornecedorController.text
                   : 'Despesa: ${_descricaoController.text}';
 
-          await agProv.adicionarAgendamento(
-            orcamentoId: 'despesa_a_pagar',
-            orcamentoNumero: null,
-            clienteNome: clienteNome,
-            dataHora: Timestamp.fromDate(dataHoraPagamento),
-            status: 'Pendente',
-            observacoes: obsAgendamento.toString().trim(),
-          );
+          // Se for edição, atualiza o agendamento existente
+          if (_agendamentoIdEditando != null) {
+            print('=== EDITANDO DESPESA A PAGAR ===');
+            print('Agendamento original status: ${widget.agendamento!.status}');
+            final agendamentoAtualizado = widget.agendamento!.copyWith(
+              clienteNome: clienteNome,
+              dataHora: Timestamp.fromDate(dataHoraPagamento),
+              observacoes: obsAgendamento.toString().trim(),
+            );
+            print(
+              'Agendamento atualizado status: ${agendamentoAtualizado.status}',
+            );
+            await agProv.atualizarAgendamento(agendamentoAtualizado);
+          } else {
+            await agProv.adicionarAgendamento(
+              orcamentoId: 'despesa_a_pagar',
+              orcamentoNumero: null,
+              clienteNome: clienteNome,
+              dataHora: Timestamp.fromDate(dataHoraPagamento),
+              status: 'Pendente',
+              observacoes: obsAgendamento.toString().trim(),
+            );
+          }
         }
 
         if (!mounted) return;
@@ -647,7 +741,9 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
                 const Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 12),
                 Text(
-                  _salvarEmAgendamento
+                  _agendamentoIdEditando != null
+                      ? 'Despesa a pagar atualizada!'
+                      : _salvarEmAgendamento
                       ? 'Despesa a pagar adicionada e agendada!'
                       : 'Despesa a pagar salva (sem agendamento)',
                 ),
@@ -684,14 +780,16 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
     final corTema = _corTema;
     final dateFormat = DateFormat('dd/MM/yyyy');
 
+    final isEdicao = widget.agendamento != null;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: corTema.shade600,
         foregroundColor: Colors.white,
-        title: const Text(
-          'Nova Despesa a Pagar',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          isEdicao ? 'Editar Despesa a Pagar' : 'Nova Despesa a Pagar',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,

@@ -18,6 +18,7 @@ import '../../../providers/agendamentos_provider.dart';
 import '../../../providers/clients_provider.dart';
 import '../../../providers/transacoes_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../services/notification_service.dart';
 import '../tabs/clientes_page.dart';
 import '../tabs/novo_cliente_page.dart';
 import '../orcamentos/orcamentos_page.dart';
@@ -1180,6 +1181,15 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
           // - Veio da tela de Agendamentos (fromControleFinanceiro = false), OU
           // - Veio do Controle Financeiro E checkbox _salvarEmAgendamento está marcado
           if (!widget.fromControleFinanceiro || _salvarEmAgendamento) {
+            // Solicita permissão de notificação se ainda não foi concedida
+            final notificationService = NotificationService();
+            if (!notificationService.isInitialized) {
+              await notificationService.initialize();
+            }
+            if (!notificationService.permissionGranted) {
+              await notificationService.requestPermission();
+            }
+
             await agProv.adicionarAgendamento(
               orcamentoId: 'receita_a_receber',
               orcamentoNumero: _orcamentoSelecionado?.numero,

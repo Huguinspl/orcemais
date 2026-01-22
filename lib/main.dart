@@ -50,6 +50,7 @@ import 'pages/home/orcamentos/novo_orcamento_page.dart';
 import 'pages/home/orcamentos/novo_orcamento/selecionar_servicos_page.dart';
 import 'pages/home/agendamentos/agendamentos_page.dart';
 import 'pages/home/agendamentos/novo_agendamento_page.dart';
+import 'pages/home/agendamentos/detalhes_agendamento_page.dart';
 import 'pages/home/recibos/recibos_page.dart';
 import 'pages/home/recibos/novo_recibo_page.dart';
 import 'pages/home/recibos/novo_valor_recebido_page.dart';
@@ -204,6 +205,11 @@ class GestorfyApp extends StatelessWidget {
         AppRoutes.pecasMateriais: (_) => const PecasMateriaisPage(),
         AppRoutes.orcamentos: (_) => const OrcamentosPage(),
         AppRoutes.agendamentos: (_) => const AgendamentosPage(),
+        AppRoutes.detalhesAgendamento: (context) {
+          final agendamentoId =
+              ModalRoute.of(context)!.settings.arguments as String;
+          return DetalhesAgendamentoPage(agendamentoId: agendamentoId);
+        },
         AppRoutes.novoPecaMaterial: (context) {
           final peca =
               ModalRoute.of(context)!.settings.arguments as PecaMaterial?;

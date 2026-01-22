@@ -83,11 +83,20 @@ class AgendamentosProvider with ChangeNotifier {
       _agendamentos[idx] = atualizado;
       _agendamentos.sort((a, b) => a.dataHora.compareTo(b.dataHora));
 
+      print('=== ATUALIZANDO AGENDAMENTO ===');
+      print('ID: ${atualizado.id}');
+      print('Status: ${atualizado.status}');
+      print('DataHora: ${atualizado.dataHora.toDate()}');
+
       // Reagenda notificação se status for Confirmado ou Pendente
       if (atualizado.status == 'Confirmado' ||
           atualizado.status == 'Pendente') {
+        print('✅ Status válido, reagendando notificação...');
         await NotificationService().agendarNotificacao(atualizado);
       } else {
+        print(
+          '❌ Status não válido (${atualizado.status}), cancelando notificação...',
+        );
         // Cancela notificação se status mudou para Concluido ou Cancelado
         await NotificationService().cancelarNotificacao(atualizado.id);
       }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../models/agendamento.dart';
 import '../../../providers/agendamentos_provider.dart';
+import '../../../routes/app_routes.dart';
 import 'agendamento_a_pagar_page.dart';
 import 'agendamento_a_receber_page.dart';
 import 'agendamento_diversos_page.dart';
@@ -981,7 +982,13 @@ class _AgendamentosPageState extends State<AgendamentosPage>
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: InkWell(
-          onTap: () => _abrirFormulario(agendamento: ag),
+          onTap:
+              () => Navigator.pushNamed(
+                context,
+                AppRoutes.detalhesAgendamento,
+                arguments: ag.id,
+              ),
+          onLongPress: () => _abrirFormulario(agendamento: ag),
           borderRadius: BorderRadius.circular(16),
           child: Container(
             decoration: BoxDecoration(
