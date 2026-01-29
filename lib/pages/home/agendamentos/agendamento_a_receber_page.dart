@@ -55,10 +55,14 @@ class AgendamentoAReceberPage extends StatefulWidget {
   /// Se false, sempre salva em agendamento (quando vem da tela de Agendamentos)
   final bool fromControleFinanceiro;
 
+  /// Callback para voltar ao modal de nova transação
+  final VoidCallback? onVoltarParaModal;
+
   const AgendamentoAReceberPage({
     super.key,
     this.agendamento,
     this.fromControleFinanceiro = false,
+    this.onVoltarParaModal,
   });
 
   /// Verifica se está em modo de edição
@@ -1294,6 +1298,16 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
       appBar: AppBar(
         backgroundColor: corTema.shade600,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+            if (widget.fromControleFinanceiro &&
+                widget.onVoltarParaModal != null) {
+              widget.onVoltarParaModal!();
+            }
+          },
+        ),
         title: Text(
           widget.agendamento != null
               ? 'Editar Receita a Receber'

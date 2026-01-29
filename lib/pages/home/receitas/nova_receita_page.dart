@@ -1,18 +1,25 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../models/cliente.dart';
+import '../../../models/orcamento.dart';
 import '../../../models/receita.dart';
+import '../../../providers/clients_provider.dart';
 import '../../../providers/transacoes_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../tabs/clientes_page.dart';
+import '../tabs/novo_cliente_page.dart';
+import '../orcamentos/orcamentos_page.dart';
 
-class CurrencyInputFormatterDespesa extends TextInputFormatter {
+class CurrencyInputFormatterReceita extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
@@ -33,30 +40,29 @@ class CurrencyInputFormatterDespesa extends TextInputFormatter {
   }
 }
 
-/// Página para criar/editar despesa (saída de dinheiro já realizada)
-/// Estrutura similar à página de Despesa a Pagar, mas sem campos de agendamento
-class NovaDespesaPage extends StatefulWidget {
+/// Página para criar/editar receita (entrada de dinheiro já realizada)
+/// Estrutura similar à página de Receita a Receber, mas sem campos de agendamento
+class NovaReceitaPage extends StatefulWidget {
   /// Transação para edição (null = criar novo)
   final Transacao? transacao;
 
   /// Callback para voltar ao modal de nova transação
   final VoidCallback? onVoltarParaModal;
 
-  const NovaDespesaPage({super.key, this.transacao, this.onVoltarParaModal});
+  const NovaReceitaPage({super.key, this.transacao, this.onVoltarParaModal});
 
   /// Verifica se está em modo de edição
   bool get isEditMode => transacao != null;
 
   @override
-  State<NovaDespesaPage> createState() => _NovaDespesaPageState();
+  State<NovaReceitaPage> createState() => _NovaReceitaPageState();
 }
 
-class _NovaDespesaPageState extends State<NovaDespesaPage> {
+class _NovaReceitaPageState extends State<NovaReceitaPage> {
   final _formKey = GlobalKey<FormState>();
   final _descricaoController = TextEditingController();
   final _valorController = TextEditingController();
   final _observacoesController = TextEditingController();
-  final _fornecedorController = TextEditingController();
 
   DateTime _dataTransacao = DateTime.now();
   CategoriaTransacao? _categoriaSelecionada;
@@ -66,12 +72,14 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
   bool _repetirParcelar = false;
   int _quantidadeRepeticoes = 2; // Número de vezes que vai repetir (mínimo 2)
   String _tipoRepeticao = 'mensal'; // mensal, quinzenal, semanal
+  Orcamento? _orcamentoSelecionado;
+  Cliente? _clienteSelecionado;
 
   // ID da transação sendo editada (null = novo)
   String? _transacaoId;
 
   // Lista de arquivos/fotos anexados
-  final List<_ArquivoAnexoDespesa> _arquivosAnexados = [];
+  final List<_ArquivoAnexoReceita> _arquivosAnexados = [];
   bool _enviandoArquivo = false;
 
   @override
@@ -97,11 +105,10 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
     _descricaoController.dispose();
     _valorController.dispose();
     _observacoesController.dispose();
-    _fornecedorController.dispose();
     super.dispose();
   }
 
-  MaterialColor get _corTema => Colors.red;
+  MaterialColor get _corTema => Colors.green;
 
   double? _parseMoeda(String texto) {
     if (texto.isEmpty) return null;
@@ -136,7 +143,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
 
   List<DropdownMenuItem<CategoriaTransacao>> _getCategorias() {
     final categorias =
-        CategoriaTransacao.values.where((cat) => cat.isDespesa).toList();
+        CategoriaTransacao.values.where((cat) => cat.isReceita).toList();
     return categorias.map((cat) {
       return DropdownMenuItem(value: cat, child: Text(cat.nome));
     }).toList();
@@ -312,7 +319,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
     try {
       final userId = context.read<UserProvider>().uid;
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final storagePath = 'despesas/$userId/comprovantes/$timestamp\_$nome';
+      final storagePath = 'receitas/$userId/comprovantes/$timestamp\_$nome';
 
       final ref = FirebaseStorage.instance.ref().child(storagePath);
 
@@ -328,7 +335,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
 
       setState(() {
         _arquivosAnexados.add(
-          _ArquivoAnexoDespesa(nome: nome, url: url, tipo: tipo),
+          _ArquivoAnexoReceita(nome: nome, url: url, tipo: tipo),
         );
       });
     } catch (e) {
@@ -366,7 +373,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.receipt_long, color: Colors.purple.shade600),
+              Icon(Icons.receipt_long, color: Colors.green.shade600),
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
@@ -383,7 +390,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
               else
                 IconButton(
                   onPressed: _mostrarOpcoesAnexo,
-                  icon: Icon(Icons.add_circle, color: Colors.purple.shade600),
+                  icon: Icon(Icons.add_circle, color: Colors.green.shade600),
                   tooltip: 'Adicionar comprovante',
                 ),
             ],
@@ -485,10 +492,10 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.purple.shade50,
+                color: Colors.green.shade50,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Colors.purple.shade200,
+                  color: Colors.green.shade200,
                   style: BorderStyle.solid,
                 ),
               ),
@@ -497,14 +504,14 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                 children: [
                   Icon(
                     Icons.add_a_photo,
-                    color: Colors.purple.shade600,
+                    color: Colors.green.shade600,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Adicionar foto ou arquivo',
                     style: TextStyle(
-                      color: Colors.purple.shade600,
+                      color: Colors.green.shade600,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -517,7 +524,398 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
     );
   }
 
-  // ========== SALVAR ==========
+  // Navegar para selecionar orçamento
+  Future<void> _selecionarOrcamento() async {
+    final orcamento = await Navigator.push<Orcamento>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const OrcamentosPage(isPickerMode: true),
+      ),
+    );
+
+    if (orcamento != null && mounted) {
+      setState(() {
+        _orcamentoSelecionado = orcamento;
+        _descricaoController.text =
+            'Orçamento #${orcamento.numero.toString().padLeft(4, '0')} - ${orcamento.cliente.nome}';
+        final valorFormatado =
+            'R\$ ${orcamento.valorTotal.toStringAsFixed(2).replaceAll('.', ',')}';
+        _valorController.text = valorFormatado;
+        _clienteSelecionado = orcamento.cliente;
+      });
+    }
+  }
+
+  // Mostrar opções para selecionar cliente
+  Future<void> _mostrarOpcoesCliente() async {
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (ctx) => Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Text(
+                  'Selecionar Cliente',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: _corTema.shade700,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildOpcaoCliente(
+                      icon: Icons.people,
+                      label: 'Clientes',
+                      cor: Colors.blue,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _navegarParaClientes();
+                      },
+                    ),
+                    _buildOpcaoCliente(
+                      icon: Icons.contact_phone,
+                      label: 'Agenda',
+                      cor: Colors.green,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _importarDaAgenda();
+                      },
+                    ),
+                    _buildOpcaoCliente(
+                      icon: Icons.person_add,
+                      label: 'Criar Novo',
+                      cor: Colors.purple,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _criarNovoCliente();
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildOpcaoCliente({
+    required IconData icon,
+    required String label,
+    required MaterialColor cor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 90,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: cor.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: cor.shade200),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [cor.shade400, cor.shade600]),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: cor.shade700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _navegarParaClientes() async {
+    final cliente = await Navigator.push<Cliente>(
+      context,
+      MaterialPageRoute(builder: (_) => const ClientesPage(isPickerMode: true)),
+    );
+
+    if (cliente != null && mounted) {
+      setState(() {
+        _clienteSelecionado = cliente;
+      });
+    }
+  }
+
+  Future<void> _importarDaAgenda() async {
+    if (!await FlutterContacts.requestPermission(readonly: true)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.white),
+              SizedBox(width: 12),
+              Expanded(child: Text('Permissão para acessar contatos negada')),
+            ],
+          ),
+          backgroundColor: Colors.orange.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final contacts = await FlutterContacts.getContacts(
+        withProperties: true,
+        withPhoto: false,
+      );
+
+      if (!mounted) return;
+
+      if (contacts.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(child: Text('Nenhum contato encontrado na agenda')),
+              ],
+            ),
+            backgroundColor: Colors.blue.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        return;
+      }
+
+      final selectedContact = await showDialog<Contact>(
+        context: context,
+        builder: (ctx) => _buildContactPickerDialog(contacts),
+      );
+
+      if (selectedContact != null && mounted) {
+        final nome = selectedContact.displayName;
+        final celular =
+            selectedContact.phones.isNotEmpty
+                ? selectedContact.phones.first.number
+                : '';
+        final email =
+            selectedContact.emails.isNotEmpty
+                ? selectedContact.emails.first.address
+                : '';
+
+        setState(() {
+          _clienteSelecionado = Cliente(
+            nome: nome,
+            celular: celular,
+            email: email,
+          );
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text('Erro ao buscar contatos: $e')),
+            ],
+          ),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildContactPickerDialog(List<Contact> contacts) {
+    final searchController = TextEditingController();
+    List<Contact> filteredContacts = contacts;
+
+    return StatefulBuilder(
+      builder: (context, setDialogState) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+              maxWidth: 400,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.green.shade600, Colors.green.shade400],
+                    ),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.contact_phone,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Selecionar Contato',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: searchController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Buscar contato...',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.white,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.2),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setDialogState(() {
+                            filteredContacts =
+                                contacts
+                                    .where(
+                                      (c) => c.displayName
+                                          .toLowerCase()
+                                          .contains(value.toLowerCase()),
+                                    )
+                                    .toList();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: filteredContacts.length,
+                    itemBuilder: (ctx, index) {
+                      final contact = filteredContacts[index];
+                      final phone =
+                          contact.phones.isNotEmpty
+                              ? contact.phones.first.number
+                              : 'Sem telefone';
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.green.shade100,
+                          child: Text(
+                            contact.displayName.isNotEmpty
+                                ? contact.displayName[0].toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        title: Text(contact.displayName),
+                        subtitle: Text(phone),
+                        onTap: () => Navigator.pop(ctx, contact),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _criarNovoCliente() async {
+    final novoCliente = await Navigator.push<Cliente>(
+      context,
+      MaterialPageRoute(builder: (_) => const NovoClientePage()),
+    );
+
+    if (novoCliente != null && mounted) {
+      setState(() {
+        _clienteSelecionado = novoCliente;
+      });
+    } else if (mounted) {
+      final userProvider = context.read<UserProvider>();
+      final clientsProvider = context.read<ClientsProvider>();
+      await clientsProvider.carregarTodos(userProvider.uid);
+      if (clientsProvider.clientes.isNotEmpty) {
+        setState(() {
+          _clienteSelecionado = clientsProvider.clientes.last;
+        });
+      }
+    }
+  }
+
+  // ========== MÉTODOS DE REPETIÇÃO ==========
 
   void _mostrarConfigRepeticao() {
     int tempQuantidade = _quantidadeRepeticoes;
@@ -563,7 +961,6 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Tipo de repetição
                   const Text(
                     'Repetir a cada:',
                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
@@ -596,7 +993,6 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Quantidade de repetições
                   const Text(
                     'Quantidade de vezes:',
                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
@@ -709,7 +1105,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
         tipo == 'semanal'
             ? 'semanas'
             : (tipo == 'quinzenal' ? 'quinzenas' : 'meses');
-    return 'Total: $quantidade despesas ao longo de ${quantidade} $periodo';
+    return 'Total: $quantidade receitas ao longo de $quantidade $periodo';
   }
 
   DateTime _calcularProximaData(DateTime dataBase, String tipo, int indice) {
@@ -739,11 +1135,15 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
 
       final valor = _parseMoeda(_valorController.text) ?? 0.0;
 
-      // Monta observações completas
+      // Monta observações
       final obsCompletas = StringBuffer();
-      obsCompletas.writeln('[DESPESA]');
-      if (_fornecedorController.text.isNotEmpty) {
-        obsCompletas.writeln('Fornecedor: ${_fornecedorController.text}');
+      if (_clienteSelecionado != null) {
+        obsCompletas.writeln('Cliente: ${_clienteSelecionado!.nome}');
+      }
+      if (_orcamentoSelecionado != null) {
+        obsCompletas.writeln(
+          'Orçamento: #${_orcamentoSelecionado!.numero.toString().padLeft(4, '0')}',
+        );
       }
       if (_repetirParcelar) {
         obsCompletas.writeln('Repetir/Parcelar: Sim');
@@ -760,20 +1160,20 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
         obsCompletas.writeln('[/COMPROVANTES]');
       }
 
-      // Criar transação (despesa já realizada)
       final transacao = Transacao(
         id: _transacaoId,
         descricao: _descricaoController.text,
         valor: valor,
-        tipo: TipoTransacao.despesa,
-        categoria: _categoriaSelecionada ?? CategoriaTransacao.outros,
+        tipo: TipoTransacao.receita,
+        categoria: _categoriaSelecionada!,
         data: _dataTransacao,
         observacoes: obsCompletas.toString().trim(),
         userId: userId,
-        isFutura: false, // Despesa já realizada
+        isFutura: false, // Receita real, não futura
       );
 
       final transacoesProvider = context.read<TransacoesProvider>();
+
       bool sucesso;
       int quantidadeSalva = 1;
 
@@ -793,9 +1193,13 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
               i,
             );
             final obsRepeticao = StringBuffer();
-            obsRepeticao.writeln('[DESPESA]');
-            if (_fornecedorController.text.isNotEmpty) {
-              obsRepeticao.writeln('Fornecedor: ${_fornecedorController.text}');
+            if (_clienteSelecionado != null) {
+              obsRepeticao.writeln('Cliente: ${_clienteSelecionado!.nome}');
+            }
+            if (_orcamentoSelecionado != null) {
+              obsRepeticao.writeln(
+                'Orçamento: #${_orcamentoSelecionado!.numero.toString().padLeft(4, '0')}',
+              );
             }
             obsRepeticao.writeln('Repetição: ${i + 1}/$_quantidadeRepeticoes');
             if (_observacoesController.text.isNotEmpty) {
@@ -805,8 +1209,8 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
             final transacaoRepeticao = Transacao(
               descricao: _descricaoController.text,
               valor: valor,
-              tipo: TipoTransacao.despesa,
-              categoria: _categoriaSelecionada ?? CategoriaTransacao.outros,
+              tipo: TipoTransacao.receita,
+              categoria: _categoriaSelecionada!,
               data: dataRepeticao,
               observacoes: obsRepeticao.toString().trim(),
               userId: userId,
@@ -832,10 +1236,10 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                 const SizedBox(width: 12),
                 Text(
                   _transacaoId != null
-                      ? 'Despesa atualizada com sucesso!'
+                      ? 'Receita atualizada!'
                       : _repetirParcelar && _quantidadeRepeticoes > 1
-                      ? '$quantidadeSalva despesas salvas com sucesso!'
-                      : 'Despesa salva com sucesso!',
+                      ? '$quantidadeSalva receitas salvas com sucesso!'
+                      : 'Receita adicionada!',
                 ),
               ],
             ),
@@ -847,7 +1251,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
           ),
         );
       } else {
-        throw Exception('Erro ao salvar despesa');
+        throw Exception('Erro ao salvar receita');
       }
     } catch (e) {
       if (!mounted) return;
@@ -865,12 +1269,17 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
     }
   }
 
+  void _voltarParaModal() {
+    Navigator.pop(context);
+    if (widget.onVoltarParaModal != null) {
+      widget.onVoltarParaModal!();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final corTema = _corTema;
     final dateFormat = DateFormat('dd/MM/yyyy');
-
-    final isEdicao = widget.transacao != null;
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -879,16 +1288,10 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-            // Se tiver callback, chama para reabrir o modal
-            if (widget.onVoltarParaModal != null) {
-              widget.onVoltarParaModal!();
-            }
-          },
+          onPressed: _voltarParaModal,
         ),
         title: Text(
-          isEdicao ? 'Editar Despesa' : 'Nova Despesa',
+          widget.transacao != null ? 'Editar Receita' : 'Nova Receita',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -1017,29 +1420,195 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // ========== FORNECEDOR ==========
-                    TextFormField(
-                      controller: _fornecedorController,
-                      decoration: InputDecoration(
-                        labelText: 'Fornecedor (opcional)',
-                        prefixIcon: Icon(
-                          Icons.business,
-                          color: corTema.shade600,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
+                    // ========== RECEITA DE ORÇAMENTO ==========
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.description, color: Colors.blue.shade600),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Receita de Orçamento',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _orcamentoSelecionado != null
+                                      ? 'Orçamento #${_orcamentoSelecionado!.numero.toString().padLeft(4, '0')} - ${_orcamentoSelecionado!.cliente.nome}'
+                                      : 'Nenhum orçamento selecionado',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight:
+                                        _orcamentoSelecionado != null
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                    color:
+                                        _orcamentoSelecionado != null
+                                            ? Colors.blue.shade700
+                                            : Colors.grey.shade500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: _selecionarOrcamento,
+                            icon: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.blue.shade700,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ========== CLIENTE ==========
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.person, color: Colors.purple.shade600),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Cliente',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _clienteSelecionado != null
+                                      ? _clienteSelecionado!.nome
+                                      : 'Nenhum cliente selecionado',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight:
+                                        _clienteSelecionado != null
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                    color:
+                                        _clienteSelecionado != null
+                                            ? Colors.purple.shade700
+                                            : Colors.grey.shade500,
+                                  ),
+                                ),
+                                if (_clienteSelecionado?.celular.isNotEmpty ==
+                                    true)
+                                  Text(
+                                    _clienteSelecionado!.celular,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: _mostrarOpcoesCliente,
+                            icon: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.shade100,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.purple.shade700,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
 
                     // ========== COMPROVANTES ==========
                     _buildCardAnexos(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                    // ========== DESCRIÇÃO ==========
+                    // Título com indicador do tipo
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [corTema.shade600, corTema.shade400],
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.trending_up,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Dados da Receita',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Entrada de dinheiro',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Descrição
                     TextFormField(
                       controller: _descricaoController,
                       decoration: InputDecoration(
@@ -1048,43 +1617,64 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator:
-                          (v) =>
-                              v == null || v.isEmpty
-                                  ? 'Informe a descrição'
-                                  : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== VALOR ==========
-                    TextFormField(
-                      controller: _valorController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [CurrencyInputFormatterDespesa()],
-                      decoration: InputDecoration(
-                        labelText: 'Valor',
-                        prefixIcon: const Icon(Icons.attach_money),
-                        border: OutlineInputBorder(
+                        focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: corTema.shade600,
+                            width: 2,
+                          ),
                         ),
                         filled: true,
                         fillColor: Colors.white,
                       ),
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Informe o valor';
-                        final valor = _parseMoeda(v);
-                        if (valor == null || valor <= 0) {
-                          return 'Valor inválido';
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Digite uma descrição';
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
 
-                    // ========== CATEGORIA ==========
+                    // Valor
+                    TextFormField(
+                      controller: _valorController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        CurrencyInputFormatterReceita(),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Valor *',
+                        prefixIcon: Icon(
+                          Icons.attach_money,
+                          color: corTema.shade600,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: corTema.shade600,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            _parseMoeda(value) == 0) {
+                          return 'Informe um valor válido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Categoria
                     DropdownButtonFormField<CategoriaTransacao>(
                       value: _categoriaSelecionada,
                       decoration: InputDecoration(
@@ -1098,36 +1688,40 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                       ),
                       items: _getCategorias(),
                       onChanged:
-                          (v) => setState(() => _categoriaSelecionada = v),
-                      validator:
-                          (v) => v == null ? 'Selecione uma categoria' : null,
+                          (value) =>
+                              setState(() => _categoriaSelecionada = value),
+                      validator: (value) {
+                        if (value == null) return 'Selecione uma categoria';
+                        return null;
+                      },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-                    // ========== DATA DA DESPESA ==========
+                    // Data da Transação
                     ListTile(
                       leading: Icon(
                         Icons.calendar_today,
                         color: corTema.shade600,
                       ),
-                      title: const Text('Data da Despesa'),
+                      title: const Text('Data da Receita'),
                       subtitle: Text(
                         dateFormat.format(_dataTransacao),
-                        style: TextStyle(
-                          color: corTema.shade700,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
+                          fontSize: 16,
                         ),
                       ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: corTema.shade300),
+                        side: BorderSide(color: Colors.grey.shade300),
                       ),
-                      tileColor: corTema.shade50,
+                      tileColor: Colors.white,
                       onTap: _selecionarDataTransacao,
                     ),
                     const SizedBox(height: 16),
 
-                    // ========== OBSERVAÇÕES ==========
+                    // Observações
                     TextFormField(
                       controller: _observacoesController,
                       decoration: InputDecoration(
@@ -1143,7 +1737,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                     ),
                     const SizedBox(height: 24),
 
-                    // ========== BOTÃO SALVAR ==========
+                    // Botão salvar
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -1167,9 +1761,9 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
                                   ),
                                 )
                                 : Text(
-                                  isEdicao
-                                      ? 'Atualizar Despesa'
-                                      : 'Salvar Despesa',
+                                  _transacaoId != null
+                                      ? 'Atualizar Receita'
+                                      : 'Salvar Receita',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -1189,12 +1783,12 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
 }
 
 /// Classe auxiliar para armazenar informações de arquivos anexados
-class _ArquivoAnexoDespesa {
+class _ArquivoAnexoReceita {
   final String nome;
   final String url;
-  final String tipo; // 'image' ou 'pdf'
+  final String tipo;
 
-  _ArquivoAnexoDespesa({
+  _ArquivoAnexoReceita({
     required this.nome,
     required this.url,
     required this.tipo,

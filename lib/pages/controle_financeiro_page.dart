@@ -15,6 +15,11 @@ import '../providers/user_provider.dart';
 import '../models/receita.dart';
 import 'home/agendamentos/agendamento_a_receber_page.dart';
 import 'home/despesas/nova_despesa_a_pagar_page.dart';
+import 'home/despesas/nova_despesa_page.dart';
+import 'home/despesas/despesas_transacoes_page.dart';
+import 'home/receitas/nova_receita_page.dart';
+import 'home/receitas/receitas_page.dart';
+import 'home/saldo/extrato_page.dart';
 import 'home/tabs/clientes_page.dart';
 import 'home/tabs/novo_cliente_page.dart';
 import 'home/orcamentos/orcamentos_page.dart';
@@ -484,10 +489,9 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                 icone: Icons.trending_up,
                 cor: Colors.green,
                 onTap:
-                    () => _mostrarTransacoesFiltradas(
-                      titulo: 'Receitas',
-                      filtro: TipoTransacao.receita,
-                      cor: Colors.green,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ReceitasPage()),
                     ),
               ),
             ),
@@ -499,10 +503,11 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                 icone: Icons.trending_down,
                 cor: Colors.red.shade600,
                 onTap:
-                    () => _mostrarTransacoesFiltradas(
-                      titulo: 'Despesas',
-                      filtro: TipoTransacao.despesa,
-                      cor: Colors.red,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DespesasTransacoesPage(),
+                      ),
                     ),
               ),
             ),
@@ -513,12 +518,12 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                 valor: formatMoeda.format(saldo),
                 icone: Icons.account_balance,
                 cor: Colors.blue,
-                onTap:
-                    () => _mostrarTransacoesFiltradas(
-                      titulo: 'Todas as Transações',
-                      filtro: null, // null significa todas
-                      cor: Colors.blue,
-                    ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ExtratoPage()),
+                  );
+                },
               ),
             ),
           ],
@@ -2023,16 +2028,35 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 16),
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
+                  const SizedBox(height: 12),
+                  // Barra de arraste + Botão fechar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 48), // Espaço para balancear
+                        Expanded(
+                          child: Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Botão X para fechar
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: Icon(Icons.close, color: Colors.grey.shade600),
+                          tooltip: 'Fechar',
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   const Text(
                     'Nova Transação',
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -2128,7 +2152,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                                 isFutura: true,
                                 titulo: 'A Receber',
                                 subtitulo: 'Receita futura',
-                                icone: Icons.call_received,
+                                icone: Icons.call_made,
                                 cor: Colors.teal,
                               ),
                             ),
@@ -2141,7 +2165,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                                 isFutura: true,
                                 titulo: 'A Pagar',
                                 subtitulo: 'Despesa futura',
-                                icone: Icons.call_made,
+                                icone: Icons.call_received,
                                 cor: Colors.orange,
                               ),
                             ),
@@ -2168,8 +2192,10 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
           context,
           MaterialPageRoute(
             builder:
-                (_) =>
-                    const AgendamentoAReceberPage(fromControleFinanceiro: true),
+                (_) => AgendamentoAReceberPage(
+                  fromControleFinanceiro: true,
+                  onVoltarParaModal: () => _mostrarDialogNovaTransacao(),
+                ),
           ),
         );
       } else if (isFutura && tipo == TipoTransacao.despesa) {
@@ -2180,6 +2206,28 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
             builder:
                 (_) =>
                     const NovaDespesaAPagarPage(fromControleFinanceiro: true),
+          ),
+        );
+      } else if (!isFutura && tipo == TipoTransacao.receita) {
+        // Para receita normal, navega para página completa com AppBar
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (_) => NovaReceitaPage(
+                  onVoltarParaModal: () => _mostrarDialogNovaTransacao(),
+                ),
+          ),
+        );
+      } else if (!isFutura && tipo == TipoTransacao.despesa) {
+        // Para despesa normal, navega para página completa com AppBar
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (_) => NovaDespesaPage(
+                  onVoltarParaModal: () => _mostrarDialogNovaTransacao(),
+                ),
           ),
         );
       } else {
@@ -2707,8 +2755,8 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
               ),
               const SizedBox(height: 24),
 
-              // ========== CAMPOS ESPECIAIS PARA RECEITA A RECEBER ==========
-              if (widget.isFutura && isReceita) ...[
+              // ========== CAMPOS ESPECIAIS PARA RECEITA (A RECEBER E NORMAL) ==========
+              if (isReceita) ...[
                 // Repetir / Parcelar
                 Container(
                   padding: const EdgeInsets.symmetric(

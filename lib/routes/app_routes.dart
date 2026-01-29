@@ -30,6 +30,8 @@
   static const recibos = '/recibos';
   static const novoRecibo = '/novo-recibo';
   static const novoValorRecebido = '/novo-valor-recebido';
+  static const receitas = '/receitas';
+  static const novaReceita = '/nova-receita';
   static const despesas = '/despesas';
   static const novaDespesa = '/nova-despesa';
 

@@ -154,5 +154,19 @@ extension CategoriaTransacaoExtension on CategoriaTransacao {
     ].contains(this);
   }
 
-  bool get isDespesa => !isReceita;
+  /// Retorna true se a categoria é de despesa
+  /// Nota: "outros" é considerada tanto receita quanto despesa
+  bool get isDespesa {
+    return [
+      CategoriaTransacao.fornecedores,
+      CategoriaTransacao.salarios,
+      CategoriaTransacao.aluguel,
+      CategoriaTransacao.marketing,
+      CategoriaTransacao.equipamentos,
+      CategoriaTransacao.impostos,
+      CategoriaTransacao.utilities,
+      CategoriaTransacao.manutencao,
+      CategoriaTransacao.outros, // outros pode ser usado para ambos
+    ].contains(this);
+  }
 }
