@@ -39,10 +39,18 @@ class NovaDespesaPage extends StatefulWidget {
   /// Transação para edição (null = criar novo)
   final Transacao? transacao;
 
+  /// Se true, cria despesa a pagar (futura)
+  final bool isFutura;
+
   /// Callback para voltar ao modal de nova transação
   final VoidCallback? onVoltarParaModal;
 
-  const NovaDespesaPage({super.key, this.transacao, this.onVoltarParaModal});
+  const NovaDespesaPage({
+    super.key,
+    this.transacao,
+    this.isFutura = false,
+    this.onVoltarParaModal,
+  });
 
   /// Verifica se está em modo de edição
   bool get isEditMode => transacao != null;
@@ -770,7 +778,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
         data: _dataTransacao,
         observacoes: obsCompletas.toString().trim(),
         userId: userId,
-        isFutura: false, // Despesa já realizada
+        isFutura: widget.isFutura,
       );
 
       final transacoesProvider = context.read<TransacoesProvider>();
@@ -810,7 +818,7 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
               data: dataRepeticao,
               observacoes: obsRepeticao.toString().trim(),
               userId: userId,
-              isFutura: false,
+              isFutura: widget.isFutura,
             );
 
             final sucessoRepeticao = await transacoesProvider

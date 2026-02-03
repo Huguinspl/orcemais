@@ -46,10 +46,18 @@ class NovaReceitaPage extends StatefulWidget {
   /// Transação para edição (null = criar novo)
   final Transacao? transacao;
 
+  /// Se true, cria receita a receber (futura)
+  final bool isFutura;
+
   /// Callback para voltar ao modal de nova transação
   final VoidCallback? onVoltarParaModal;
 
-  const NovaReceitaPage({super.key, this.transacao, this.onVoltarParaModal});
+  const NovaReceitaPage({
+    super.key,
+    this.transacao,
+    this.isFutura = false,
+    this.onVoltarParaModal,
+  });
 
   /// Verifica se está em modo de edição
   bool get isEditMode => transacao != null;
@@ -1169,7 +1177,7 @@ class _NovaReceitaPageState extends State<NovaReceitaPage> {
         data: _dataTransacao,
         observacoes: obsCompletas.toString().trim(),
         userId: userId,
-        isFutura: false, // Receita real, não futura
+        isFutura: widget.isFutura,
       );
 
       final transacoesProvider = context.read<TransacoesProvider>();
@@ -1214,7 +1222,7 @@ class _NovaReceitaPageState extends State<NovaReceitaPage> {
               data: dataRepeticao,
               observacoes: obsRepeticao.toString().trim(),
               userId: userId,
-              isFutura: false,
+              isFutura: widget.isFutura,
             );
 
             final sucessoRepeticao = await transacoesProvider

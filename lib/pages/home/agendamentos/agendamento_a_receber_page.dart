@@ -1204,6 +1204,30 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
           obsCompletas.writeln(_observacoesController.text);
         }
 
+        // Primeiro, cria o agendamento se necessário para obter o ID
+        String? agendamentoIdVinculado;
+        if (!widget.fromControleFinanceiro || _salvarEmAgendamento) {
+          // Solicita permissão de notificação se ainda não foi concedida
+          final notificationService = NotificationService();
+          if (!notificationService.isInitialized) {
+            await notificationService.initialize();
+          }
+          if (!notificationService.permissionGranted) {
+            await notificationService.requestPermission();
+          }
+
+          final agendamentoCriado = await agProv.adicionarAgendamento(
+            orcamentoId: 'receita_a_receber',
+            orcamentoNumero: _orcamentoSelecionado?.numero,
+            clienteNome: clienteNome,
+            dataHora: Timestamp.fromDate(dataHoraRecebimento),
+            status: 'Pendente',
+            observacoes: obsAgendamento.toString().trim(),
+          );
+          agendamentoIdVinculado = agendamentoCriado.id;
+        }
+
+        // Agora cria a transação com o agendamentoId vinculado
         final transacao = Transacao(
           descricao: _descricaoController.text,
           valor: valor,
@@ -1214,6 +1238,7 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
           observacoes: obsCompletas.toString().trim(),
           userId: userId,
           isFutura: true, // Marca como receita a receber
+          agendamentoId: agendamentoIdVinculado, // Vincula ao agendamento
         );
 
         final sucesso = await context
@@ -1223,29 +1248,6 @@ class _AgendamentoAReceberPageState extends State<AgendamentoAReceberPage> {
         if (!mounted) return;
 
         if (sucesso) {
-          // Só adiciona em Agendamentos se:
-          // - Veio da tela de Agendamentos (fromControleFinanceiro = false), OU
-          // - Veio do Controle Financeiro E checkbox _salvarEmAgendamento está marcado
-          if (!widget.fromControleFinanceiro || _salvarEmAgendamento) {
-            // Solicita permissão de notificação se ainda não foi concedida
-            final notificationService = NotificationService();
-            if (!notificationService.isInitialized) {
-              await notificationService.initialize();
-            }
-            if (!notificationService.permissionGranted) {
-              await notificationService.requestPermission();
-            }
-
-            await agProv.adicionarAgendamento(
-              orcamentoId: 'receita_a_receber',
-              orcamentoNumero: _orcamentoSelecionado?.numero,
-              clienteNome: clienteNome,
-              dataHora: Timestamp.fromDate(dataHoraRecebimento),
-              status: 'Pendente',
-              observacoes: obsAgendamento.toString().trim(),
-            );
-          }
-
           if (!mounted) return;
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(

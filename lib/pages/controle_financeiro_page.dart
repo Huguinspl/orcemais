@@ -17,9 +17,13 @@ import 'home/agendamentos/agendamento_a_receber_page.dart';
 import 'home/despesas/nova_despesa_a_pagar_page.dart';
 import 'home/despesas/nova_despesa_page.dart';
 import 'home/despesas/despesas_transacoes_page.dart';
+import 'home/despesas/despesas_a_pagar_page.dart';
 import 'home/receitas/nova_receita_page.dart';
 import 'home/receitas/receitas_page.dart';
+import 'home/receitas/receitas_a_receber_page.dart';
 import 'home/saldo/extrato_page.dart';
+import 'home/saldo/extrato_futuro_page.dart';
+import 'home/saldo/todas_transacoes_page.dart';
 import 'home/tabs/clientes_page.dart';
 import 'home/tabs/novo_cliente_page.dart';
 import 'home/orcamentos/orcamentos_page.dart';
@@ -640,11 +644,12 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                               icone: Icons.call_received,
                               cor: Colors.teal,
                               onTap:
-                                  () => _mostrarTransacoesFiltradas(
-                                    titulo: 'Receitas a Receber',
-                                    filtro: TipoTransacao.receita,
-                                    cor: Colors.teal,
-                                    isFutura: true,
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => const ReceitasAReceberPage(),
+                                    ),
                                   ),
                             ),
                           ),
@@ -656,11 +661,12 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                               icone: Icons.call_made,
                               cor: Colors.orange,
                               onTap:
-                                  () => _mostrarTransacoesFiltradas(
-                                    titulo: 'Despesas a Pagar',
-                                    filtro: TipoTransacao.despesa,
-                                    cor: Colors.orange,
-                                    isFutura: true,
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => const DespesasAPagarPage(),
+                                    ),
                                   ),
                             ),
                           ),
@@ -672,11 +678,11 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                               icone: Icons.update,
                               cor: Colors.purple,
                               onTap:
-                                  () => _mostrarTransacoesFiltradas(
-                                    titulo: 'Todas Transações Futuras',
-                                    filtro: null,
-                                    cor: Colors.purple,
-                                    isFutura: true,
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const ExtratoFuturoPage(),
+                                    ),
                                   ),
                             ),
                           ),
@@ -1872,7 +1878,7 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Transações Recentes',
+                        'Todas Transações',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -1903,11 +1909,9 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
   }
 
   void _mostrarTransacoesRecentes(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const _TransacoesRecentesSheet(),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const TodasTransacoesPage()),
     );
   }
 
@@ -2204,8 +2208,10 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
           context,
           MaterialPageRoute(
             builder:
-                (_) =>
-                    const NovaDespesaAPagarPage(fromControleFinanceiro: true),
+                (_) => NovaDespesaAPagarPage(
+                  fromControleFinanceiro: true,
+                  onVoltarParaModal: () => _mostrarDialogNovaTransacao(),
+                ),
           ),
         );
       } else if (!isFutura && tipo == TipoTransacao.receita) {
@@ -4496,8 +4502,8 @@ class _NovaTransacaoSheetState extends State<_NovaTransacaoSheet> {
   }
 }
 
-/// Widget para exibir transações filtradas em um modal
-class _TransacoesFiltradasSheet extends StatelessWidget {
+/// Widget para exibir transações filtradas em um modal (estilo página Receitas)
+class _TransacoesFiltradasSheet extends StatefulWidget {
   final String titulo;
   final TipoTransacao? filtro;
   final MaterialColor cor;
@@ -4510,18 +4516,49 @@ class _TransacoesFiltradasSheet extends StatelessWidget {
     this.isFutura = false,
   });
 
+  @override
+  State<_TransacoesFiltradasSheet> createState() =>
+      _TransacoesFiltradasSheetState();
+}
+
+class _TransacoesFiltradasSheetState extends State<_TransacoesFiltradasSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  final ScrollController _categoriaScrollController = ScrollController();
+  String _filtroCategoria = 'Todas';
+  String _termoBusca = '';
+
+  List<String> get _categorias {
+    if (widget.filtro == TipoTransacao.receita) {
+      return ['Todas', 'Vendas', 'Serviços', 'Investimentos', 'Outros'];
+    } else {
+      return [
+        'Todas',
+        'Fornecedores',
+        'Salários',
+        'Aluguel',
+        'Marketing',
+        'Equipamentos',
+        'Impostos',
+        'Manutenção',
+        'Outros',
+      ];
+    }
+  }
+
   String get _textoBotao {
-    if (isFutura) {
-      return filtro == TipoTransacao.receita
+    if (widget.isFutura) {
+      return widget.filtro == TipoTransacao.receita
           ? 'Nova A Receber'
           : 'Nova A Pagar';
     } else {
-      return filtro == TipoTransacao.receita ? 'Nova Receita' : 'Nova Despesa';
+      return widget.filtro == TipoTransacao.receita
+          ? 'Nova Receita'
+          : 'Nova Despesa';
     }
   }
 
   IconData get _iconeBotao {
-    if (filtro == TipoTransacao.receita) {
+    if (widget.filtro == TipoTransacao.receita) {
       return Icons.trending_up;
     } else {
       return Icons.trending_down;
@@ -4529,393 +4566,880 @@ class _TransacoesFiltradasSheet extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _termoBusca = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _categoriaScrollController.dispose();
+    super.dispose();
+  }
+
+  // Método para alternar categoria via swipe
+  void _mudarCategoriaPorSwipe(DragEndDetails details) {
+    final velocidade = details.primaryVelocity ?? 0;
+    final indexAtual = _categorias.indexOf(_filtroCategoria);
+
+    if (velocidade < -300) {
+      // Swipe para esquerda -> próxima categoria
+      if (indexAtual < _categorias.length - 1) {
+        final novoIndex = indexAtual + 1;
+        setState(() {
+          _filtroCategoria = _categorias[novoIndex];
+        });
+        _rolarParaCategoria(novoIndex);
+      }
+    } else if (velocidade > 300) {
+      // Swipe para direita -> categoria anterior
+      if (indexAtual > 0) {
+        final novoIndex = indexAtual - 1;
+        setState(() {
+          _filtroCategoria = _categorias[novoIndex];
+        });
+        _rolarParaCategoria(novoIndex);
+      }
+    }
+  }
+
+  // Método para rolar a barra de filtros até a categoria selecionada
+  void _rolarParaCategoria(int index) {
+    const double larguraChip = 120.0;
+    final double posicaoAlvo = index * larguraChip;
+
+    _categoriaScrollController.animateTo(
+      posicaoAlvo,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  CategoriaTransacao? _getCategoriaFromString(String categoria) {
+    switch (categoria.toLowerCase()) {
+      case 'vendas':
+        return CategoriaTransacao.vendas;
+      case 'serviços':
+        return CategoriaTransacao.servicos;
+      case 'investimentos':
+        return CategoriaTransacao.investimentos;
+      case 'fornecedores':
+        return CategoriaTransacao.fornecedores;
+      case 'salários':
+        return CategoriaTransacao.salarios;
+      case 'aluguel':
+        return CategoriaTransacao.aluguel;
+      case 'marketing':
+        return CategoriaTransacao.marketing;
+      case 'equipamentos':
+        return CategoriaTransacao.equipamentos;
+      case 'impostos':
+        return CategoriaTransacao.impostos;
+      case 'manutenção':
+        return CategoriaTransacao.manutencao;
+      case 'outros':
+        return CategoriaTransacao.outros;
+      default:
+        return null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isReceita = widget.filtro == TipoTransacao.receita;
+
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
+      height: MediaQuery.of(context).size.height * 0.92,
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [cor.shade600, cor.shade400],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      child: GestureDetector(
+        onHorizontalDragEnd: _mudarCategoriaPorSwipe,
+        child: Column(
+          children: [
+            // Header com gradiente
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [widget.cor.shade600, widget.cor.shade400],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
               ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
+              child: Column(
+                children: [
+                  // Indicador de arrasto
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          widget.filtro == TipoTransacao.receita
+                              ? Icons.trending_up
+                              : widget.filtro == TipoTransacao.despesa
+                              ? Icons.trending_down
+                              : Icons.account_balance,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.titulo,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Consumer<TransacoesProvider>(
+                              builder: (context, provider, _) {
+                                final transacoesFiltradas = _getTransacoesBase(
+                                  provider,
+                                );
+                                return Text(
+                                  '${transacoesFiltradas.length} transação(ões)',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 14,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              children: [
-                // Indicador de arrasto
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(2),
+
+            // Barra de busca
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade300,
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por descrição...',
+                    hintStyle: TextStyle(color: Colors.grey.shade500),
+                    prefixIcon: Icon(Icons.search, color: widget.cor.shade600),
+                    suffixIcon:
+                        _termoBusca.isNotEmpty
+                            ? IconButton(
+                              icon: Icon(
+                                Icons.clear,
+                                color: Colors.grey.shade600,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                              },
+                              tooltip: 'Limpar busca',
+                            )
+                            : null,
+                    filled: false,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                   ),
                 ),
+              ),
+            ),
+
+            // Filtro por categoria
+            Consumer<TransacoesProvider>(
+              builder: (context, provider, child) {
+                final Map<String, int> contagemCategoria = {};
+                final transacoesBase = _getTransacoesBase(provider);
+                contagemCategoria['Todas'] = transacoesBase.length;
+                for (var categoria in _categorias) {
+                  if (categoria == 'Todas') continue;
+                  final cat = _getCategoriaFromString(categoria);
+                  contagemCategoria[categoria] =
+                      transacoesBase.where((r) => r.categoria == cat).length;
+                }
+                return _buildCategoriaFilterBar(contagemCategoria);
+              },
+            ),
+
+            // Lista de transações
+            Expanded(
+              child: Consumer<TransacoesProvider>(
+                builder: (context, provider, _) {
+                  final transacoesFiltradas = _getTransacoesFiltradas(provider);
+
+                  if (transacoesFiltradas.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            isReceita
+                                ? 'Nenhuma receita encontrada'
+                                : 'Nenhuma despesa encontrada',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tente ajustar os filtros ou adicionar uma nova',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                    itemCount: transacoesFiltradas.length,
+                    itemBuilder: (context, index) {
+                      final transacao = transacoesFiltradas[index];
+                      return _buildTransacaoCard(context, transacao);
+                    },
+                  );
+                },
+              ),
+            ),
+
+            // Botão fixo na parte inferior
+            if (widget.filtro != null)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context); // Fecha o modal de lista
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder:
+                              (context) => _NovaTransacaoSheet(
+                                tipoInicial: widget.filtro!,
+                                isFutura: widget.isFutura,
+                              ),
+                        );
+                      },
+                      icon: Icon(_iconeBotao, size: 22),
+                      label: Text(
+                        _textoBotao,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: widget.cor.shade600,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriaFilterBar(Map<String, int> contagem) {
+    final isReceita = widget.filtro == TipoTransacao.receita;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      height: 50,
+      child: ListView.builder(
+        controller: _categoriaScrollController,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _categorias.length,
+        itemBuilder: (context, index) {
+          final categoria = _categorias[index];
+          final selecionado = _filtroCategoria == categoria;
+
+          // Ícones e cores por categoria
+          IconData icone;
+          MaterialColor cor;
+          switch (categoria.toLowerCase()) {
+            case 'todas':
+              icone = Icons.dashboard;
+              cor = Colors.purple;
+              break;
+            case 'vendas':
+              icone = Icons.shopping_cart_outlined;
+              cor = Colors.blue;
+              break;
+            case 'serviços':
+              icone = Icons.build_outlined;
+              cor = Colors.purple;
+              break;
+            case 'investimentos':
+              icone = Icons.trending_up;
+              cor = Colors.orange;
+              break;
+            case 'fornecedores':
+              icone = Icons.local_shipping_outlined;
+              cor = Colors.indigo;
+              break;
+            case 'salários':
+              icone = Icons.people_outlined;
+              cor = Colors.teal;
+              break;
+            case 'aluguel':
+              icone = Icons.home_outlined;
+              cor = Colors.brown;
+              break;
+            case 'marketing':
+              icone = Icons.campaign_outlined;
+              cor = Colors.pink;
+              break;
+            case 'equipamentos':
+              icone = Icons.computer_outlined;
+              cor = Colors.blueGrey;
+              break;
+            case 'impostos':
+              icone = Icons.receipt_long_outlined;
+              cor = Colors.red;
+              break;
+            case 'manutenção':
+              icone = Icons.handyman_outlined;
+              cor = Colors.cyan;
+              break;
+            case 'outros':
+              icone = Icons.category_outlined;
+              cor = Colors.grey;
+              break;
+            default:
+              icone = Icons.info_outline;
+              cor = Colors.grey;
+          }
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Material(
+              elevation: selecionado ? 4 : 0,
+              borderRadius: BorderRadius.circular(25),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(25),
+                onTap: () {
+                  setState(() {
+                    _filtroCategoria = categoria;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient:
+                        selecionado
+                            ? LinearGradient(
+                              colors: [cor.shade400, cor.shade600],
+                            )
+                            : null,
+                    color: selecionado ? null : Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: selecionado ? Colors.transparent : cor.shade300,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        icone,
+                        size: 18,
+                        color: selecionado ? Colors.white : cor,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        categoria,
+                        style: TextStyle(
+                          color: selecionado ? Colors.white : cor.shade700,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              selecionado
+                                  ? Colors.white.withOpacity(0.3)
+                                  : cor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${contagem[categoria] ?? 0}',
+                          style: TextStyle(
+                            color: selecionado ? Colors.white : cor.shade700,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  List<Transacao> _getTransacoesBase(TransacoesProvider provider) {
+    // Filtra por isFutura e tipo
+    var transacoes =
+        provider.transacoes
+            .where((t) => t.isFutura == widget.isFutura)
+            .toList();
+
+    if (widget.filtro != null) {
+      transacoes = transacoes.where((t) => t.tipo == widget.filtro).toList();
+    }
+    return transacoes;
+  }
+
+  List<Transacao> _getTransacoesFiltradas(TransacoesProvider provider) {
+    var transacoes = _getTransacoesBase(provider);
+
+    // Filtro por categoria
+    if (_filtroCategoria != 'Todas') {
+      final cat = _getCategoriaFromString(_filtroCategoria);
+      transacoes = transacoes.where((t) => t.categoria == cat).toList();
+    }
+
+    // Filtro por busca
+    if (_termoBusca.isNotEmpty) {
+      transacoes =
+          transacoes
+              .where(
+                (t) => t.descricao.toLowerCase().contains(
+                  _termoBusca.toLowerCase(),
+                ),
+              )
+              .toList();
+    }
+
+    return transacoes;
+  }
+
+  Widget _buildTransacaoCard(BuildContext context, Transacao transacao) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    );
+    final dateFormat = DateFormat('dd/MM/yyyy');
+
+    final isReceita = transacao.tipo == TipoTransacao.receita;
+    final corTransacao = isReceita ? Colors.green : Colors.red;
+
+    // Cor e ícone baseado na categoria
+    Color categoriaColor;
+    IconData categoriaIcon;
+    switch (transacao.categoria) {
+      case CategoriaTransacao.vendas:
+        categoriaColor = Colors.blue;
+        categoriaIcon = Icons.shopping_cart_outlined;
+        break;
+      case CategoriaTransacao.servicos:
+        categoriaColor = Colors.purple;
+        categoriaIcon = Icons.build_outlined;
+        break;
+      case CategoriaTransacao.investimentos:
+        categoriaColor = Colors.orange;
+        categoriaIcon = Icons.trending_up;
+        break;
+      case CategoriaTransacao.fornecedores:
+        categoriaColor = Colors.indigo;
+        categoriaIcon = Icons.local_shipping_outlined;
+        break;
+      case CategoriaTransacao.salarios:
+        categoriaColor = Colors.teal;
+        categoriaIcon = Icons.people_outlined;
+        break;
+      case CategoriaTransacao.aluguel:
+        categoriaColor = Colors.brown;
+        categoriaIcon = Icons.home_outlined;
+        break;
+      case CategoriaTransacao.marketing:
+        categoriaColor = Colors.pink;
+        categoriaIcon = Icons.campaign_outlined;
+        break;
+      case CategoriaTransacao.equipamentos:
+        categoriaColor = Colors.blueGrey;
+        categoriaIcon = Icons.computer_outlined;
+        break;
+      case CategoriaTransacao.impostos:
+        categoriaColor = Colors.red;
+        categoriaIcon = Icons.receipt_long_outlined;
+        break;
+      case CategoriaTransacao.utilities:
+        categoriaColor = Colors.amber;
+        categoriaIcon = Icons.bolt_outlined;
+        break;
+      case CategoriaTransacao.manutencao:
+        categoriaColor = Colors.cyan;
+        categoriaIcon = Icons.handyman_outlined;
+        break;
+      default:
+        categoriaColor = Colors.grey;
+        categoriaIcon = Icons.category_outlined;
+    }
+
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16.0),
+        onTap: () => _editarTransacao(context, transacao),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.0),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Colors.grey.shade50],
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Categoria chip no topo
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: categoriaColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: categoriaColor, width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(categoriaIcon, size: 16, color: categoriaColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        transacao.categoria.nome,
+                        style: TextStyle(
+                          color: categoriaColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Informações da transação
                 Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        gradient: LinearGradient(
+                          colors: [corTransacao.shade100, corTransacao.shade50],
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        filtro == TipoTransacao.receita
-                            ? Icons.trending_up
-                            : filtro == TipoTransacao.despesa
-                            ? Icons.trending_down
-                            : Icons.account_balance,
-                        color: Colors.white,
-                        size: 28,
+                        isReceita ? Icons.trending_up : Icons.trending_down,
+                        color: corTransacao.shade700,
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            titulo,
+                            transacao.descricao,
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
                               fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          Consumer<TransacoesProvider>(
-                            builder: (context, provider, _) {
-                              final transacoesFiltradas =
-                                  _getTransacoesFiltradas(provider);
-                              return Text(
-                                '${transacoesFiltradas.length} transação(ões)',
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                dateFormat.format(transacao.data),
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 14,
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
                                 ),
-                              );
-                            },
+                              ),
+                              if (widget.isFutura) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.shade100,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.schedule,
+                                        size: 12,
+                                        color: Colors.orange.shade700,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Futura',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.orange.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: Colors.white),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Lista de transações
-          Expanded(
-            child: Consumer<TransacoesProvider>(
-              builder: (context, provider, _) {
-                final transacoesFiltradas = _getTransacoesFiltradas(provider);
-
-                if (transacoesFiltradas.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.inbox_outlined,
-                          size: 64,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          filtro == TipoTransacao.receita
-                              ? 'Nenhuma receita cadastrada'
-                              : filtro == TipoTransacao.despesa
-                              ? 'Nenhuma despesa cadastrada'
-                              : 'Nenhuma transação cadastrada',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 16,
-                    bottom: 80, // Espaço para o botão fixo
-                  ),
-                  itemCount: transacoesFiltradas.length,
-                  itemBuilder: (context, index) {
-                    final transacao = transacoesFiltradas[index];
-                    return _buildTransacaoCard(context, transacao);
-                  },
-                );
-              },
-            ),
-          ),
-
-          // Botão fixo na parte inferior
-          if (filtro != null)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context); // Fecha o modal de lista
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder:
-                            (context) => _NovaTransacaoSheet(
-                              tipoInicial: filtro!,
-                              isFutura: isFutura,
-                            ),
-                      );
-                    },
-                    icon: Icon(_iconeBotao, size: 22),
-                    label: Text(
-                      _textoBotao,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cor.shade600,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  List<Transacao> _getTransacoesFiltradas(TransacoesProvider provider) {
-    // Filtra primeiro por isFutura
-    var transacoes =
-        provider.transacoes.where((t) => t.isFutura == isFutura).toList();
-
-    // Depois filtra por tipo se especificado
-    if (filtro != null) {
-      transacoes = transacoes.where((t) => t.tipo == filtro).toList();
-    }
-    return transacoes;
-  }
-
-  Widget _buildTransacaoCard(BuildContext context, Transacao transacao) {
-    final formatMoeda = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-    final formatData = DateFormat('dd/MM/yyyy');
-
-    final isReceita = transacao.tipo == TipoTransacao.receita;
-    final corTransacao = isReceita ? Colors.green : Colors.red;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: corTransacao.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              isReceita ? Icons.trending_up : Icons.trending_down,
-              color: corTransacao,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  transacao.descricao,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.category_outlined,
-                      size: 14,
-                      color: Colors.grey.shade500,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        transacao.categoria.nome,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14,
-                      color: Colors.grey.shade500,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      formatData.format(transacao.data),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],
                 ),
                 if (transacao.observacoes != null &&
                     transacao.observacoes!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    transacao.observacoes!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade500,
-                      fontStyle: FontStyle.italic,
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.notes,
+                          size: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            transacao.observacoes!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade700,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                // Valor e ações na parte de baixo
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Badge com valor
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Valor',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          currencyFormat.format(transacao.valor),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: corTransacao.shade700,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Menu de opções
+                    PopupMenuButton<String>(
+                      tooltip: 'Opções',
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.more_vert,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      onSelected: (value) {
+                        if (value == 'editar') {
+                          _editarTransacao(context, transacao);
+                        } else if (value == 'excluir') {
+                          _confirmarExclusao(context, transacao);
+                        }
+                      },
+                      itemBuilder:
+                          (BuildContext context) => <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'editar',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    color: Colors.orange.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuDivider(),
+                            PopupMenuItem<String>(
+                              value: 'excluir',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Excluir'),
+                                ],
+                              ),
+                            ),
+                          ],
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${isReceita ? '+' : '-'} ${formatMoeda.format(transacao.valor)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: corTransacao,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: corTransacao.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  isReceita ? 'Receita' : 'Despesa',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: corTransacao,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 4),
-          // Menu de opções (3 pontinhos)
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert, color: Colors.grey.shade600, size: 20),
-            padding: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            onSelected: (value) {
-              if (value == 'editar') {
-                _editarTransacao(context, transacao);
-              } else if (value == 'excluir') {
-                _confirmarExclusao(context, transacao);
-              }
-            },
-            itemBuilder:
-                (context) => [
-                  PopupMenuItem(
-                    value: 'editar',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          color: Colors.blue.shade600,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text('Editar'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'excluir',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.delete_outline,
-                          color: Colors.red.shade600,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text('Excluir'),
-                      ],
-                    ),
-                  ),
-                ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -4936,27 +5460,116 @@ class _TransacoesFiltradasSheet extends StatelessWidget {
       builder:
           (dialogContext) => AlertDialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
             ),
             title: Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.red.shade600),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.warning_outlined,
+                    color: Colors.red.shade700,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                const Text('Excluir Transação'),
+                const Text(
+                  'Confirmar exclusão',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
-            content: Text(
-              'Deseja realmente excluir "${transacao.descricao}"?\n\nEssa ação não pode ser desfeita.',
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Deseja realmente excluir esta transação?',
+                  style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        transacao.tipo == TipoTransacao.receita
+                            ? Icons.trending_up
+                            : Icons.trending_down,
+                        color:
+                            transacao.tipo == TipoTransacao.receita
+                                ? Colors.green.shade600
+                                : Colors.red.shade600,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          transacao.descricao,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '⚠️ Esta ação não pode ser desfeita',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.red.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
                 child: Text(
                   'Cancelar',
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                onPressed: () => Navigator.pop(dialogContext),
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.delete_outline, size: 18),
+                    SizedBox(width: 6),
+                    Text('Excluir'),
+                  ],
+                ),
                 onPressed: () async {
                   Navigator.pop(dialogContext);
 
@@ -4966,39 +5579,37 @@ class _TransacoesFiltradasSheet extends StatelessWidget {
                   );
 
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            Icon(
-                              sucesso ? Icons.check_circle : Icons.error,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              sucesso
-                                  ? 'Transação excluída com sucesso!'
-                                  : 'Erro ao excluir transação',
-                            ),
-                          ],
+                    ScaffoldMessenger.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(
+                                sucesso ? Icons.check_circle : Icons.error,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  sucesso
+                                      ? 'Transação "${transacao.descricao}" excluída com sucesso'
+                                      : 'Erro ao excluir transação',
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor:
+                              sucesso ? Colors.red.shade600 : Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          margin: const EdgeInsets.all(16),
                         ),
-                        backgroundColor: sucesso ? Colors.green : Colors.red,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    );
+                      );
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade600,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Excluir'),
               ),
             ],
           ),

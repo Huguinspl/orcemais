@@ -46,10 +46,14 @@ class NovaDespesaAPagarPage extends StatefulWidget {
   /// Se true, mostra checkbox "Salvar em Agendamento"
   final bool fromControleFinanceiro;
 
+  /// Callback para voltar ao modal de nova transação
+  final VoidCallback? onVoltarParaModal;
+
   const NovaDespesaAPagarPage({
     super.key,
     this.agendamento,
     this.fromControleFinanceiro = true,
+    this.onVoltarParaModal,
   });
 
   @override
@@ -801,6 +805,13 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
     }
   }
 
+  void _voltarParaModal() {
+    Navigator.pop(context);
+    if (widget.onVoltarParaModal != null) {
+      widget.onVoltarParaModal!();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final corTema = _corTema;
@@ -813,6 +824,10 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
       appBar: AppBar(
         backgroundColor: corTema.shade600,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: _voltarParaModal,
+        ),
         title: Text(
           isEdicao ? 'Editar Despesa a Pagar' : 'Nova Despesa a Pagar',
           style: const TextStyle(fontWeight: FontWeight.bold),

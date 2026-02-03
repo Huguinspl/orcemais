@@ -34,6 +34,7 @@ class Transacao {
   final String userId;
   final DateTime criadoEm;
   final bool isFutura; // true = receita a receber / despesa a pagar
+  final String? agendamentoId; // ID do agendamento vinculado (se houver)
 
   Transacao({
     this.id,
@@ -46,6 +47,7 @@ class Transacao {
     required this.userId,
     DateTime? criadoEm,
     this.isFutura = false,
+    this.agendamentoId,
   }) : criadoEm = criadoEm ?? DateTime.now();
 
   /// Converte para Map para salvar no Firestore
@@ -60,6 +62,7 @@ class Transacao {
       'userId': userId,
       'criadoEm': Timestamp.fromDate(criadoEm),
       'isFutura': isFutura,
+      'agendamentoId': agendamentoId,
     };
   }
 
@@ -83,6 +86,7 @@ class Transacao {
       userId: data['userId'] ?? '',
       criadoEm: (data['criadoEm'] as Timestamp).toDate(),
       isFutura: data['isFutura'] ?? false,
+      agendamentoId: data['agendamentoId'],
     );
   }
 
@@ -98,6 +102,7 @@ class Transacao {
     String? userId,
     DateTime? criadoEm,
     bool? isFutura,
+    String? agendamentoId,
   }) {
     return Transacao(
       id: id ?? this.id,
@@ -110,6 +115,7 @@ class Transacao {
       userId: userId ?? this.userId,
       criadoEm: criadoEm ?? this.criadoEm,
       isFutura: isFutura ?? this.isFutura,
+      agendamentoId: agendamentoId ?? this.agendamentoId,
     );
   }
 }

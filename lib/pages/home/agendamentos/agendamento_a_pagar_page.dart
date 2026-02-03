@@ -984,6 +984,21 @@ class _AgendamentoAPagarPageState extends State<AgendamentoAPagarPage> {
           obsCompletas.writeln(_observacoesController.text);
         }
 
+        // Primeiro, cria o agendamento se necessário para obter o ID
+        String? agendamentoIdVinculado;
+        if (!widget.fromControleFinanceiro || _salvarEmAgendamento) {
+          final agendamentoCriado = await agProv.adicionarAgendamento(
+            orcamentoId: 'despesa_a_pagar',
+            orcamentoNumero: null,
+            clienteNome: clienteNome,
+            dataHora: Timestamp.fromDate(dataHoraPagamento),
+            status: 'Pendente',
+            observacoes: obsAgendamento.toString().trim(),
+          );
+          agendamentoIdVinculado = agendamentoCriado.id;
+        }
+
+        // Agora cria a transação com o agendamentoId vinculado
         final transacao = Transacao(
           descricao: _descricaoController.text,
           valor: valor,
@@ -993,6 +1008,7 @@ class _AgendamentoAPagarPageState extends State<AgendamentoAPagarPage> {
           observacoes: obsCompletas.toString().trim(),
           userId: userId,
           isFutura: true,
+          agendamentoId: agendamentoIdVinculado, // Vincula ao agendamento
         );
 
         final sucesso = await context
@@ -1002,18 +1018,6 @@ class _AgendamentoAPagarPageState extends State<AgendamentoAPagarPage> {
         if (!mounted) return;
 
         if (sucesso) {
-          // Se deve salvar em agendamento
-          if (!widget.fromControleFinanceiro || _salvarEmAgendamento) {
-            await agProv.adicionarAgendamento(
-              orcamentoId: 'despesa_a_pagar',
-              orcamentoNumero: null,
-              clienteNome: clienteNome,
-              dataHora: Timestamp.fromDate(dataHoraPagamento),
-              status: 'Pendente',
-              observacoes: obsAgendamento.toString().trim(),
-            );
-          }
-
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
