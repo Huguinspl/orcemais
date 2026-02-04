@@ -7,7 +7,9 @@ import '../../../routes/app_routes.dart';
 import 'novo_servico_page.dart';
 
 class ServicosPage extends StatefulWidget {
-  const ServicosPage({super.key});
+  final bool isPickerMode;
+
+  const ServicosPage({super.key, this.isPickerMode = false});
 
   @override
   State<ServicosPage> createState() => _ServicosPageState();
@@ -78,9 +80,11 @@ class _ServicosPageState extends State<ServicosPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Meu Catálogo de Serviços',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Text(
+          widget.isPickerMode
+              ? 'Selecionar Serviço'
+              : 'Meu Catálogo de Serviços',
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
         flexibleSpace: Container(
@@ -254,13 +258,16 @@ class _ServicosPageState extends State<ServicosPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _abrirFormulario(),
-        icon: const Icon(Icons.add),
-        label: const Text('Novo Serviço'),
-        backgroundColor: Colors.green.shade600,
-        elevation: 4,
-      ),
+      floatingActionButton:
+          widget.isPickerMode
+              ? null
+              : FloatingActionButton.extended(
+                onPressed: () => _abrirFormulario(),
+                icon: const Icon(Icons.add),
+                label: const Text('Novo Serviço'),
+                backgroundColor: Colors.green.shade600,
+                elevation: 4,
+              ),
     );
   }
 
@@ -338,7 +345,20 @@ class _ServicosPageState extends State<ServicosPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          onTap: () => _abrirFormulario(original: servico),
+          onTap: () {
+            if (widget.isPickerMode) {
+              // Retornar o serviço como Map para AgendamentoServicosPage
+              Navigator.pop(context, {
+                'id': servico.id,
+                'nome': servico.titulo,
+                'descricao': servico.descricao,
+                'preco': servico.preco,
+                'custo': servico.custo,
+              });
+            } else {
+              _abrirFormulario(original: servico);
+            }
+          },
           borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: const EdgeInsets.all(16),

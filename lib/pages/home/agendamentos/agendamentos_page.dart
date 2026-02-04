@@ -13,6 +13,7 @@ import 'agendamento_a_pagar_page.dart';
 import 'agendamento_a_receber_page.dart';
 import 'agendamento_diversos_page.dart';
 import 'agendamento_vendas_page.dart';
+import 'agendamento_servicos_page.dart';
 import 'novo_agendamento_page.dart';
 
 class AgendamentosPage extends StatefulWidget {
@@ -152,9 +153,12 @@ class _AgendamentosPageState extends State<AgendamentosPage>
         case 'agendamento_vendas':
           pagina = AgendamentoVendasPage(agendamento: agendamento);
           break;
+        case 'agendamento_servicos':
+          pagina = AgendamentoServicosPage(agendamento: agendamento);
+          break;
         default:
           // Agendamento padrão (de orçamento) ou tipo desconhecido
-          pagina = NovoAgendamentoPage(
+          pagina = AgendamentoServicosPage(
             agendamento: agendamento,
             dataInicial: dataInicial,
           );
@@ -175,12 +179,14 @@ class _AgendamentosPageState extends State<AgendamentosPage>
     final tipo = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder:
           (context) => Container(
-            margin: const EdgeInsets.all(16),
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            height: MediaQuery.of(context).size.height * 0.52,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -189,181 +195,102 @@ class _AgendamentosPageState extends State<AgendamentosPage>
                 ),
               ],
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 16),
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Novo Agendamento',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Selecione o tipo de agendamento',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Novo Agendamento',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Selecione o tipo',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 12),
 
-                  // Agendamentos de Trabalho
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                // Grid 2x2 + 1
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.work_outline,
-                              size: 16,
-                              color: Colors.blue.shade600,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Agendamentos de Trabalho',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade600,
+                        // Primeira linha: Serviços e Vendas
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _buildTipoAgendamentoButtonCompacto(
+                                  tipo: 'servicos',
+                                  titulo: 'Serviços',
+                                  icone: Icons.build_circle,
+                                  cor: Colors.blue,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildTipoAgendamentoButtonCompacto(
+                                  tipo: 'vendas',
+                                  titulo: 'Vendas',
+                                  icone: Icons.shopping_cart,
+                                  cor: Colors.orange,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            // Botão Serviços
-                            Expanded(
-                              child: _buildTipoAgendamentoButton(
-                                tipo: 'servicos',
-                                titulo: 'Serviços',
-                                subtitulo: 'Agendamento de serviços',
-                                icone: Icons.build_circle,
-                                cor: Colors.blue,
+                        const SizedBox(height: 8),
+                        // Segunda linha: A Receber e A Pagar
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _buildTipoAgendamentoButtonCompacto(
+                                  tipo: 'a_receber',
+                                  titulo: 'A Receber',
+                                  icone: Icons.call_made,
+                                  cor: Colors.teal,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Botão Vendas
-                            Expanded(
-                              child: _buildTipoAgendamentoButton(
-                                tipo: 'vendas',
-                                titulo: 'Vendas',
-                                subtitulo: 'Agendamento de vendas',
-                                icone: Icons.shopping_cart,
-                                cor: Colors.orange,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildTipoAgendamentoButtonCompacto(
+                                  tipo: 'a_pagar',
+                                  titulo: 'A Pagar',
+                                  icone: Icons.call_received,
+                                  cor: Colors.red,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Terceira linha: Diversos (Agendamento Rápido)
+                        SizedBox(
+                          height: 56,
+                          child: _buildTipoAgendamentoButtonCompacto(
+                            tipo: 'diversos',
+                            titulo: 'Agendamento Rápido',
+                            icone: Icons.flash_on,
+                            cor: Colors.purple,
+                            isFullWidth: true,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-
-                  // Agendamentos Financeiros
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.account_balance_wallet_outlined,
-                              size: 16,
-                              color: Colors.green.shade600,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Agendamentos Financeiros',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            // Botão A Receber
-                            Expanded(
-                              child: _buildTipoAgendamentoButton(
-                                tipo: 'a_receber',
-                                titulo: 'A Receber',
-                                subtitulo: 'Receita futura',
-                                icone: Icons.call_made,
-                                cor: Colors.teal,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Botão A Pagar
-                            Expanded(
-                              child: _buildTipoAgendamentoButton(
-                                tipo: 'a_pagar',
-                                titulo: 'A Pagar',
-                                subtitulo: 'Despesa futura',
-                                icone: Icons.call_received,
-                                cor: Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Agendamento Rápido
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.flash_on,
-                              size: 16,
-                              color: Colors.purple.shade600,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Agendamento Rápido',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // Card Diversos (largura total)
-                        _buildTipoAgendamentoButtonFull(
-                          tipo: 'diversos',
-                          titulo: 'Diversos',
-                          subtitulo:
-                              'Agendamento rápido para trabalhos rápidos',
-                          icone: Icons.event_available,
-                          cor: Colors.purple,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
           ),
     );
@@ -374,7 +301,7 @@ class _AgendamentosPageState extends State<AgendamentosPage>
 
       switch (tipo) {
         case 'servicos':
-          pagina = NovoAgendamentoPage(dataInicial: dataInicial);
+          pagina = AgendamentoServicosPage(dataInicial: dataInicial);
           break;
         case 'vendas':
           pagina = AgendamentoVendasPage(dataInicial: dataInicial);
@@ -389,7 +316,7 @@ class _AgendamentosPageState extends State<AgendamentosPage>
           pagina = AgendamentoDiversosPage(dataInicial: dataInicial);
           break;
         default:
-          pagina = NovoAgendamentoPage(dataInicial: dataInicial);
+          pagina = AgendamentoServicosPage(dataInicial: dataInicial);
       }
 
       await Navigator.of(
@@ -398,120 +325,69 @@ class _AgendamentosPageState extends State<AgendamentosPage>
     }
   }
 
-  Widget _buildTipoAgendamentoButton({
+  Widget _buildTipoAgendamentoButtonCompacto({
     required String tipo,
     required String titulo,
-    required String subtitulo,
     required IconData icone,
     required MaterialColor cor,
+    bool isFullWidth = false,
   }) {
     return GestureDetector(
       onTap: () => Navigator.pop(context, tipo),
       child: Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [cor.shade400, cor.shade600],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
               color: cor.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: Column(
-          children: [
-            Icon(icone, color: Colors.white, size: 40),
-            const SizedBox(height: 10),
-            Text(
-              titulo,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitulo,
-              style: const TextStyle(color: Colors.white70, fontSize: 11),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTipoAgendamentoButtonFull({
-    required String tipo,
-    required String titulo,
-    required String subtitulo,
-    required IconData icone,
-    required MaterialColor cor,
-  }) {
-    return GestureDetector(
-      onTap: () => Navigator.pop(context, tipo),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [cor.shade400, cor.shade600],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: cor.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icone, color: Colors.white, size: 32),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    titulo,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+        child:
+            isFullWidth
+                ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icone, color: Colors.white, size: 24),
+                    const SizedBox(width: 10),
+                    Text(
+                      titulo,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitulo,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.white70,
-              size: 20,
-            ),
-          ],
-        ),
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white70,
+                      size: 14,
+                    ),
+                  ],
+                )
+                : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icone, color: Colors.white, size: 32),
+                    const SizedBox(height: 6),
+                    Text(
+                      titulo,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
       ),
     );
   }

@@ -194,7 +194,13 @@ class _NovoServicoPageState extends State<NovoServicoPage> {
           margin: const EdgeInsets.all(16),
         ),
       );
-      Navigator.pop(context);
+      // Retornar o serviço como Map para uso em AgendamentoServicosPage
+      Navigator.pop(context, {
+        'id': servico.id,
+        'nome': servico.titulo,
+        'descricao': servico.descricao,
+        'preco': servico.preco,
+      });
     } catch (e) {
       debugPrint('Erro ao salvar serviço: $e');
       if (!mounted) return;

@@ -6,7 +6,9 @@ import '../../../routes/app_routes.dart';
 import '../../../models/peca_material.dart';
 
 class PecasMateriaisPage extends StatefulWidget {
-  const PecasMateriaisPage({super.key});
+  final bool isPickerMode;
+
+  const PecasMateriaisPage({super.key, this.isPickerMode = false});
 
   @override
   State<PecasMateriaisPage> createState() => _PecasMateriaisPageState();
@@ -88,9 +90,9 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
   ) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Peças e Materiais',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Text(
+          widget.isPickerMode ? 'Selecione um Produto' : 'Peças e Materiais',
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
         flexibleSpace: Container(
@@ -166,15 +168,18 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, AppRoutes.novoPecaMaterial);
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Nova Peça'),
-        backgroundColor: Colors.orange.shade600,
-        elevation: 4,
-      ),
+      floatingActionButton:
+          widget.isPickerMode
+              ? null
+              : FloatingActionButton.extended(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.novoPecaMaterial);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Nova Peça'),
+                backgroundColor: Colors.orange.shade600,
+                elevation: 4,
+              ),
     );
   }
 
@@ -312,11 +317,27 @@ class _PecasMateriaisPageState extends State<PecasMateriaisPage> {
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.novoPecaMaterial,
-                  arguments: peca,
-                );
+                if (widget.isPickerMode) {
+                  // Retorna o produto selecionado como Map
+                  Navigator.pop(context, {
+                    'nome': peca.nome,
+                    'preco': peca.preco ?? 0.0,
+                    'quantidade': 1.0,
+                    'unidade': '',
+                    'custo': 0.0,
+                    'descricao': '',
+                    'marca': '',
+                    'modelo': '',
+                    'codigoProduto': '',
+                    'codigoInterno': '',
+                  });
+                } else {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.novoPecaMaterial,
+                    arguments: peca,
+                  );
+                }
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
