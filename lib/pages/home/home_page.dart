@@ -75,6 +75,16 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  /* ------------------- NAVEGAÇÃO ENTRE ABAS ------------------- */
+  void _navigateToTab(int index) {
+    setState(() => _currentIdx = index);
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   /* ------------------- NOTIFICAÇÕES ------------------- */
   Future<void> _testarNotificacao() async {
     final notificationService = NotificationService();
@@ -300,9 +310,15 @@ class _HomePageState extends State<HomePage> {
                 onNotificationLongPressed: _testarNotificacao,
                 onLogout: _logout,
               ), // 0 – Início (SliverAppBar próprio)
-              const MeuNegocioPage(), // 1 – Meu negócio (AppBar próprio)
-              const CatalogoPage(), // 2 – Catálogo (AppBar próprio)
-              const ClientesPage(), // 3 – Clientes (AppBar próprio)
+              MeuNegocioPage(
+                onBack: () => _navigateToTab(0),
+              ), // 1 – Meu negócio (volta para Início)
+              CatalogoPage(
+                onBack: () => _navigateToTab(1),
+              ), // 2 – Catálogo (volta para Meu negócio)
+              ClientesPage(
+                onBack: () => _navigateToTab(2),
+              ), // 3 – Clientes (volta para Catálogo)
             ],
           ),
           if (_isLoading) const LoadingScreen(),

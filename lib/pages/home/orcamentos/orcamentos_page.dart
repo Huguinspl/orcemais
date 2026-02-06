@@ -6,6 +6,7 @@ import '../../../providers/orcamentos_provider.dart';
 import 'novo_orcamento_page.dart';
 import 'revisar_orcamento_page.dart';
 import 'etapas_revisar/compartilhar_orcamento.dart';
+import '../agendamentos/agendamento_servicos_page.dart';
 
 class OrcamentosPage extends StatefulWidget {
   final bool isPickerMode;
@@ -128,6 +129,16 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
       context,
       MaterialPageRoute(
         builder: (_) => CompartilharOrcamentoPage(orcamento: orcamento),
+      ),
+    );
+  }
+
+  // Ação para agendar o orçamento
+  void _agendarOrcamento(Orcamento orcamento) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AgendamentoServicosPage(orcamentoInicial: orcamento),
       ),
     );
   }
@@ -954,6 +965,8 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                           _revisarOrcamento(orcamento);
                         } else if (value == 'compartilhar') {
                           _compartilharOrcamento(orcamento);
+                        } else if (value == 'agendar') {
+                          _agendarOrcamento(orcamento);
                         } else if (value == 'editar') {
                           _abrirFormulario(orcamento: orcamento);
                         } else if (value == 'excluir') {
@@ -985,6 +998,19 @@ class _OrcamentosPageState extends State<OrcamentosPage> {
                                   ),
                                   const SizedBox(width: 12),
                                   const Text('Compartilhar'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'agendar',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.calendar_today_outlined,
+                                    color: Colors.teal.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Agendar'),
                                 ],
                               ),
                             ),

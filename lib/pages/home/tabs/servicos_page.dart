@@ -5,6 +5,7 @@ import '../../../providers/services_provider.dart';
 import '../../../models/servico.dart';
 import '../../../routes/app_routes.dart';
 import 'novo_servico_page.dart';
+import 'visualizar_servico_page.dart';
 
 class ServicosPage extends StatefulWidget {
   final bool isPickerMode;
@@ -76,6 +77,15 @@ class _ServicosPageState extends State<ServicosPage> {
     );
   }
 
+  void _abrirVisualizacao(Servico servico) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VisualizarServicoPage(servico: servico),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,16 +97,16 @@ class _ServicosPageState extends State<ServicosPage> {
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
+        elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
+              colors: [Colors.green.shade600, Colors.green.shade400],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Colors.green.shade600, Colors.green.shade400],
             ),
           ),
         ),
-        elevation: 0,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -110,74 +120,54 @@ class _ServicosPageState extends State<ServicosPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            // Header moderno
+            _buildSearchBar(),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       Icons.miscellaneous_services,
                       color: Colors.green.shade700,
-                      size: 28,
+                      size: 24,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Serviços',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                          ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Seus Serviços',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                          letterSpacing: -0.5,
                         ),
-                        Text(
-                          'Gerencie seu catálogo de serviços',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
+                      ),
+                      Text(
+                        'Gerencie seu catálogo',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            _buildSearchBar(),
-            const SizedBox(height: 8),
+            _buildServicoCountBar(),
             Expanded(
               child: Consumer<ServicesProvider>(
                 builder: (_, prov, __) {
                   if (prov.isLoading) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            color: Colors.green.shade600,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Carregando serviços...',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   final listaFiltrada =
@@ -192,23 +182,30 @@ class _ServicosPageState extends State<ServicosPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            size: 80,
-                            color: Colors.grey.shade300,
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.inventory_2_outlined,
+                              size: 64,
+                              color: Colors.grey.shade400,
+                            ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           Text(
                             'Nenhum serviço cadastrado',
                             style: TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Clique no botão + para adicionar',
+                            'Toque em "Novo Serviço" para adicionar',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey.shade500,
@@ -224,23 +221,30 @@ class _ServicosPageState extends State<ServicosPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 80,
-                            color: Colors.grey.shade300,
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey.shade400,
+                            ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           Text(
                             'Nenhum resultado encontrado',
                             style: TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Tente buscar com outros termos',
+                            'Tente ajustar os filtros ou criar um novo',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey.shade500,
@@ -280,34 +284,34 @@ class _ServicosPageState extends State<ServicosPage> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.green.shade100.withOpacity(0.5),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.grey.shade300,
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Buscar serviços...',
-            hintStyle: TextStyle(color: Colors.grey.shade400),
+            hintText: 'Buscar por nome do serviço...',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
             prefixIcon: Icon(Icons.search, color: Colors.green.shade600),
             suffixIcon:
                 _termoBusca.isNotEmpty
                     ? IconButton(
-                      icon: Icon(Icons.clear, color: Colors.grey.shade400),
+                      icon: Icon(Icons.clear, color: Colors.grey.shade600),
                       onPressed: _clearSearch,
+                      tooltip: 'Limpar busca',
                     )
                     : null,
-            filled: true,
-            fillColor: Colors.white,
+            filled: false,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 16,
+              horizontal: 16,
+              vertical: 14,
             ),
           ),
         ),
@@ -315,64 +319,134 @@ class _ServicosPageState extends State<ServicosPage> {
     );
   }
 
-  Widget _buildServiceList(List<Servico> servicos) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-      itemCount: servicos.length,
-      itemBuilder: (_, i) => _item(servicos[i]),
+  Widget _buildServicoCountBar() {
+    return Consumer<ServicesProvider>(
+      builder: (context, provider, child) {
+        final total = provider.servicos.length;
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 12),
+          height: 50,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            children: [
+              Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(25),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.green.shade400, Colors.green.shade600],
+                    ),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.dashboard,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'Total',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$total',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _item(Servico servico) {
+  Widget _buildServiceList(List<Servico> servicos) {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+      itemCount: servicos.length,
+      itemBuilder: (_, i) => _buildServicoCard(servicos[i]),
+    );
+  }
+
+  Widget _buildServicoCard(Servico servico) {
     final currencyFormat = NumberFormat.currency(
       locale: 'pt_BR',
       symbol: 'R\$',
     );
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.green.shade100.withOpacity(0.5),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: () {
-            if (widget.isPickerMode) {
-              // Retornar o serviço como Map para AgendamentoServicosPage
-              Navigator.pop(context, {
-                'id': servico.id,
-                'nome': servico.titulo,
-                'descricao': servico.descricao,
-                'preco': servico.preco,
-                'custo': servico.custo,
-              });
-            } else {
-              _abrirFormulario(original: servico);
-            }
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.green.shade100, width: 1),
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16.0),
+        onTap: () {
+          if (widget.isPickerMode) {
+            Navigator.pop(context, {
+              'id': servico.id,
+              'nome': servico.titulo,
+              'descricao': servico.descricao,
+              'preco': servico.preco,
+              'custo': servico.custo,
+            });
+          } else {
+            _abrirVisualizacao(servico);
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.0),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Colors.grey.shade50],
             ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Badge com ícone do serviço
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -380,11 +454,89 @@ class _ServicosPageState extends State<ServicosPage> {
                             Colors.green.shade600,
                           ],
                         ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.shade200,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.build_outlined,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Serviço',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Chip de preço
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.green.shade400,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.attach_money,
+                            size: 16,
+                            color: Colors.green.shade700,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            currencyFormat.format(servico.preco),
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Informações do serviço
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.green.shade100,
+                            Colors.green.shade200,
+                          ],
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
-                        Icons.build_outlined,
-                        color: Colors.white,
+                      child: Icon(
+                        Icons.miscellaneous_services,
+                        color: Colors.green.shade700,
                         size: 24,
                       ),
                     ),
@@ -395,11 +547,12 @@ class _ServicosPageState extends State<ServicosPage> {
                         children: [
                           Text(
                             servico.titulo,
-                            style: TextStyle(
-                              fontSize: 16,
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
+                              fontSize: 16,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -416,118 +569,108 @@ class _ServicosPageState extends State<ServicosPage> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                const Divider(height: 1),
                 const SizedBox(height: 12),
+                // Valor e ações
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.green.shade600,
-                            Colors.green.shade500,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.attach_money,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            currencyFormat.format(servico.preco),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        PopupMenuButton<String>(
-                          icon: Icon(
-                            Icons.more_vert,
+                        Text(
+                          'Valor do Serviço',
+                          style: TextStyle(
+                            fontSize: 12,
                             color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          currencyFormat.format(servico.preco),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade700,
+                            fontSize: 20,
                           ),
-                          offset: const Offset(0, 40),
-                          onSelected: (value) {
-                            switch (value) {
-                              case 'orcamento':
-                                _usarParaOrcamento(servico);
-                                break;
-                              case 'editar':
-                                _abrirFormulario(original: servico);
-                                break;
-                              case 'excluir':
-                                _confirmarExclusao(servico);
-                                break;
-                            }
-                          },
-                          itemBuilder:
-                              (context) => [
-                                PopupMenuItem(
-                                  value: 'orcamento',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.receipt_long,
-                                        color: Colors.blue.shade600,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Text('Usar para Orçamento'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuDivider(),
-                                PopupMenuItem(
-                                  value: 'editar',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.edit_outlined,
-                                        color: Colors.green.shade600,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Text('Editar'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuDivider(),
-                                const PopupMenuItem(
-                                  value: 'excluir',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.delete_outline,
-                                        color: Colors.red,
-                                        size: 20,
-                                      ),
-                                      SizedBox(width: 12),
-                                      Text('Excluir'),
-                                    ],
-                                  ),
-                                ),
-                              ],
                         ),
                       ],
+                    ),
+                    PopupMenuButton<String>(
+                      tooltip: 'Opções',
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.more_vert,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'orcamento':
+                            _usarParaOrcamento(servico);
+                            break;
+                          case 'editar':
+                            _abrirFormulario(original: servico);
+                            break;
+                          case 'excluir':
+                            _confirmarExclusao(servico);
+                            break;
+                        }
+                      },
+                      itemBuilder:
+                          (BuildContext context) => <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'orcamento',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.receipt_long,
+                                    color: Colors.blue.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Usar para Orçamento'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'editar',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    color: Colors.orange.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuDivider(),
+                            PopupMenuItem<String>(
+                              value: 'excluir',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red.shade600,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Excluir'),
+                                ],
+                              ),
+                            ),
+                          ],
                     ),
                   ],
                 ),

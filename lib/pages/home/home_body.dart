@@ -278,16 +278,17 @@ class HomeBody extends StatelessWidget {
                       title: 'Outras Tarefas',
                       subtitle: 'Ações complementares',
                       cards: [
-                        FeatureCard(
-                          icon: Icons.receipt_long,
-                          title: 'Outras Funcionalidades',
-                          color: Colors.teal,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.outrasFuncionalidades,
-                              ),
-                        ),
+                        // TODO: Descomentar quando implementar Outras Funcionalidades
+                        // FeatureCard(
+                        //   icon: Icons.receipt_long,
+                        //   title: 'Outras Funcionalidades',
+                        //   color: Colors.teal,
+                        //   onTap:
+                        //       () => Navigator.pushNamed(
+                        //         context,
+                        //         AppRoutes.outrasFuncionalidades,
+                        //       ),
+                        // ),
                         FeatureCard(
                           icon: Icons.share,
                           title: 'Indique para um amigo',

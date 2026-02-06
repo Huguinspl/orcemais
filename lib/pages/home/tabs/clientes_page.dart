@@ -9,8 +9,9 @@ import 'novo_cliente_page.dart';
 
 class ClientesPage extends StatefulWidget {
   final bool isPickerMode;
+  final VoidCallback? onBack;
 
-  const ClientesPage({super.key, this.isPickerMode = false});
+  const ClientesPage({super.key, this.isPickerMode = false, this.onBack});
 
   @override
   State<ClientesPage> createState() => _ClientesPageState();
@@ -305,6 +306,13 @@ class _ClientesPageState extends State<ClientesPage> {
             pinned: true,
             automaticallyImplyLeading: false,
             backgroundColor: Colors.indigo.shade600,
+            leading:
+                widget.onBack != null
+                    ? IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: widget.onBack,
+                    )
+                    : null,
             title: Row(
               children: [
                 const Icon(Icons.people_alt, color: Colors.white, size: 28),

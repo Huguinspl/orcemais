@@ -2,7 +2,9 @@
 import 'package:gestorfy/routes/app_routes.dart';
 
 class CatalogoPage extends StatelessWidget {
-  const CatalogoPage({super.key});
+  final VoidCallback? onBack;
+
+  const CatalogoPage({super.key, this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +18,13 @@ class CatalogoPage extends StatelessWidget {
             pinned: true,
             automaticallyImplyLeading: false,
             backgroundColor: Colors.green.shade400,
+            leading:
+                onBack != null
+                    ? IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: onBack,
+                    )
+                    : null,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: const Text(

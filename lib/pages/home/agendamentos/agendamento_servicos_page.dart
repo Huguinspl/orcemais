@@ -63,11 +63,13 @@ class _ArquivoAnexoServico {
 class AgendamentoServicosPage extends StatefulWidget {
   final Agendamento? agendamento;
   final DateTime? dataInicial;
+  final Orcamento? orcamentoInicial;
 
   const AgendamentoServicosPage({
     super.key,
     this.agendamento,
     this.dataInicial,
+    this.orcamentoInicial,
   });
 
   @override
@@ -107,6 +109,26 @@ class _AgendamentoServicosPageState extends State<AgendamentoServicosPage> {
     if (widget.dataInicial != null) {
       _dataServico = widget.dataInicial;
       _horaServico = const TimeOfDay(hour: 10, minute: 0);
+    }
+
+    // Orçamento inicial passado diretamente
+    final orcamento = widget.orcamentoInicial;
+    if (orcamento != null) {
+      _servicoSelecionado = {
+        'nome':
+            'Orçamento #${orcamento.numero.toString().padLeft(4, '0')} - ${orcamento.cliente.nome}',
+        'descricao':
+            'Orçamento com ${orcamento.itens.length} ${orcamento.itens.length == 1 ? 'item' : 'itens'}',
+        'preco': orcamento.valorTotal,
+        'tipo': 'orcamento',
+        'orcamentoNumero': orcamento.numero,
+      };
+      _descricaoController.text =
+          'Orçamento #${orcamento.numero.toString().padLeft(4, '0')} - ${orcamento.cliente.nome}';
+      final valorFormatado =
+          'R\$ ${orcamento.valorTotal.toStringAsFixed(2).replaceAll('.', ',')}';
+      _valorController.text = valorFormatado;
+      _clienteSelecionado = orcamento.cliente;
     }
 
     // Modo edição

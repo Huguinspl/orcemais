@@ -221,7 +221,7 @@ class _NovoPecaMaterialPageState extends State<NovoPecaMaterialPage> {
           margin: const EdgeInsets.all(16),
         ),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

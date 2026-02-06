@@ -3,7 +3,9 @@ import 'package:gestorfy/routes/app_routes.dart';
 import 'personalizar_orcamento_page.dart';
 
 class MeuNegocioPage extends StatelessWidget {
-  const MeuNegocioPage({super.key});
+  final VoidCallback? onBack;
+
+  const MeuNegocioPage({super.key, this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +19,13 @@ class MeuNegocioPage extends StatelessWidget {
             pinned: true,
             automaticallyImplyLeading: false,
             backgroundColor: Colors.blue.shade400,
+            leading:
+                onBack != null
+                    ? IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: onBack,
+                    )
+                    : null,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: const Text(
