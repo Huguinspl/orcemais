@@ -5,7 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:orcemais/services/notification_handler.dart';
+import 'package:gestorfy/services/notification_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -187,8 +187,8 @@ class MessagingService {
 
     // Configuração Android
     final androidDetails = AndroidNotificationDetails(
-      'orcemais_channel',
-      'Orcemais Notificações',
+      'gestorfy_channel',
+      'Gestorfy Notificações',
       channelDescription: 'Notificações de orçamentos, recibos e agendamentos',
       importance: Importance.high,
       priority: Priority.high,

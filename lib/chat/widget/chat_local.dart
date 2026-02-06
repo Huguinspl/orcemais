@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
-import 'package:orcemais/chat/constants_chat.dart';
-import 'package:orcemais/chat/controller/controller_chat_local.dart';
+import 'package:gestorfy/chat/constants_chat.dart';
+import 'package:gestorfy/chat/controller/controller_chat_local.dart';
 
 class ChatLocal extends StatefulWidget {
   const ChatLocal({super.key});
@@ -47,29 +47,43 @@ class _ChatLocalState extends State<ChatLocal> {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ControllerChatLocal());
-    return Chat(
-      isAdm: false,
-      limitDurationRecord: const Duration(minutes: 3),
-      enviarEnter: kIsWeb,
-      textInicial: textChat,
-      onInitChat: () {
-        isOnline = true;
-      },
-      onCloseChat: (textController) {
-        isOnline = false;
-        textChat = textController;
-      },
-      onSendChat: (dateTime, admChat) {
-        admChat?.nome =
-            controller.nome.isNotEmpty ? controller.nome : admChat.nome;
-        controller.adicionarNome();
-        return admChat;
-      },
-      onUpdateChatAdm: (dateTime, admChat) async {
-        admChat.useridAdm = FirebaseAuth.instance.currentUser!.uid;
-        admChat.nome = controller.nome.isNotEmpty ? controller.nome : '';
-        return admChat;
-      },
+    return Theme(
+      data: Theme.of(context).copyWith(
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.blue.shade600,
+          foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      child: Chat(
+        isAdm: false,
+        limitDurationRecord: const Duration(minutes: 3),
+        enviarEnter: kIsWeb,
+        textInicial: textChat,
+        onInitChat: () {
+          isOnline = true;
+        },
+        onCloseChat: (textController) {
+          isOnline = false;
+          textChat = textController;
+        },
+        onSendChat: (dateTime, admChat) {
+          admChat?.nome =
+              controller.nome.isNotEmpty ? controller.nome : admChat.nome;
+          controller.adicionarNome();
+          return admChat;
+        },
+        onUpdateChatAdm: (dateTime, admChat) async {
+          admChat.useridAdm = FirebaseAuth.instance.currentUser!.uid;
+          admChat.nome = controller.nome.isNotEmpty ? controller.nome : '';
+          return admChat;
+        },
+      ),
     );
   }
 }

@@ -1,7 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:orcemais/providers/clients_provider.dart';
-import 'package:orcemais/pages/home/tabs/novo_cliente_page.dart'; // ← IMPORT NECESSÁRIO
+import 'package:gestorfy/providers/clients_provider.dart';
+import 'package:gestorfy/pages/home/tabs/novo_cliente_page.dart'; // ← IMPORT NECESSÁRIO
 
 class DetalheClientePage extends StatelessWidget {
   const DetalheClientePage({super.key});

@@ -98,7 +98,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
 
                     // Título
                     const Text(
-                      'Bem-vindo ao Orcemais!',
+                      'Bem-vindo ao Gestorfy!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 24,

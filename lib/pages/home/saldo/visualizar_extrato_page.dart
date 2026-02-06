@@ -131,7 +131,7 @@ class _VisualizarExtratoPageState extends State<VisualizarExtratoPage> {
 ${_gerarListaTransacoes()}
 
 ---
-Gerado pelo Orcemais em ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}
+Gerado pelo Gestorfy em ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}
 ''';
 
       await Share.share(
@@ -600,7 +600,7 @@ Gerado pelo Orcemais em ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Documento gerado pelo Orcemais',
+            'Documento gerado pelo Gestorfy',
             style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
           ),
           Text(

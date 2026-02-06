@@ -20,7 +20,7 @@ import 'providers/clients_provider.dart';
 import 'providers/services_provider.dart';
 import 'providers/pecas_provider.dart';
 import 'providers/assinatura_provider.dart';
-import 'package:orcemais/providers/orcamentos_provider.dart';
+import 'package:gestorfy/providers/orcamentos_provider.dart';
 import 'providers/agendamentos_provider.dart';
 import 'providers/recibos_provider.dart';
 import 'providers/despesas_provider.dart';

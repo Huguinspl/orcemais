@@ -110,7 +110,11 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
     {'nome': 'Sobrancelha', 'duracao': 15, 'icone': Icons.visibility},
     {'nome': 'Hidratação', 'duracao': 60, 'icone': Icons.water_drop},
     {'nome': 'Coloração', 'duracao': 90, 'icone': Icons.color_lens},
-    {'nome': 'Maquiagem', 'duracao': 60, 'icone': Icons.face_retouching_natural},
+    {
+      'nome': 'Maquiagem',
+      'duracao': 60,
+      'icone': Icons.face_retouching_natural,
+    },
     {'nome': 'Depilação', 'duracao': 45, 'icone': Icons.auto_fix_high},
     {'nome': 'Massagem', 'duracao': 60, 'icone': Icons.self_improvement},
     {'nome': 'Limpeza de Pele', 'duracao': 50, 'icone': Icons.clean_hands},
@@ -176,7 +180,9 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
       if (linha.startsWith('Título: ')) {
         _descricaoController.text = linha.replaceFirst('Título: ', '');
       } else if (linha.startsWith('Duração: ')) {
-        final duracaoStr = linha.replaceFirst('Duração: ', '').replaceAll(' minutos', '');
+        final duracaoStr = linha
+            .replaceFirst('Duração: ', '')
+            .replaceAll(' minutos', '');
         _duracaoMinutos = int.tryParse(duracaoStr) ?? 30;
       } else if (linha.startsWith('Valor: ')) {
         _valorController.text = linha.replaceFirst('Valor: ', '');
@@ -322,7 +328,8 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                   itemCount: _servicosRapidos.length,
                   itemBuilder: (_, i) {
                     final servico = _servicosRapidos[i];
-                    final isSelected = _tipoServicoSelecionado?['nome'] == servico['nome'];
+                    final isSelected =
+                        _tipoServicoSelecionado?['nome'] == servico['nome'];
                     return GestureDetector(
                       onTap: () {
                         setState(() {
@@ -335,11 +342,15 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? LinearGradient(
-                                  colors: [_corTema.shade400, _corTema.shade600],
-                                )
-                              : null,
+                          gradient:
+                              isSelected
+                                  ? LinearGradient(
+                                    colors: [
+                                      _corTema.shade400,
+                                      _corTema.shade600,
+                                    ],
+                                  )
+                                  : null,
                           color: isSelected ? null : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
@@ -352,18 +363,24 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                           children: [
                             Icon(
                               servico['icone'] as IconData,
-                              color: isSelected ? Colors.white : _corTema.shade600,
+                              color:
+                                  isSelected ? Colors.white : _corTema.shade600,
                               size: 32,
                             ),
                             const SizedBox(height: 8),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
                               child: Text(
                                 servico['nome'],
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: isSelected ? Colors.white : Colors.grey.shade800,
+                                  color:
+                                      isSelected
+                                          ? Colors.white
+                                          : Colors.grey.shade800,
                                 ),
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
@@ -375,7 +392,10 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                               '${servico['duracao']} min',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: isSelected ? Colors.white70 : Colors.grey.shade600,
+                                color:
+                                    isSelected
+                                        ? Colors.white70
+                                        : Colors.grey.shade600,
                               ),
                             ),
                           ],
@@ -429,41 +449,53 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
-                children: _duracoesPredefinidas.map((d) {
-                  final isSelected = d['minutos'] == _duracaoMinutos;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _duracaoMinutos = d['minutos'];
-                        _atualizarHoraFim();
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      decoration: BoxDecoration(
-                        gradient: isSelected
-                            ? LinearGradient(
-                                colors: [_corTema.shade400, _corTema.shade600],
-                              )
-                            : null,
-                        color: isSelected ? null : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected ? _corTema : Colors.grey.shade300,
+                children:
+                    _duracoesPredefinidas.map((d) {
+                      final isSelected = d['minutos'] == _duracaoMinutos;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _duracaoMinutos = d['minutos'];
+                            _atualizarHoraFim();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient:
+                                isSelected
+                                    ? LinearGradient(
+                                      colors: [
+                                        _corTema.shade400,
+                                        _corTema.shade600,
+                                      ],
+                                    )
+                                    : null,
+                            color: isSelected ? null : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color:
+                                  isSelected ? _corTema : Colors.grey.shade300,
+                            ),
+                          ),
+                          child: Text(
+                            d['label'],
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  isSelected
+                                      ? Colors.white
+                                      : Colors.grey.shade800,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        d['label'],
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white : Colors.grey.shade800,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
               ),
               const SizedBox(height: 16),
             ],
@@ -481,65 +513,66 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Text(
-              'Selecionar Cliente',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: _corTema.shade700,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      builder:
+          (ctx) => Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _buildOpcaoCliente(
-                  icon: Icons.people,
-                  label: 'Clientes',
-                  cor: Colors.blue,
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _navegarParaClientes();
-                  },
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                _buildOpcaoCliente(
-                  icon: Icons.contact_phone,
-                  label: 'Agenda',
-                  cor: Colors.green,
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _importarDaAgenda();
-                  },
+                Text(
+                  'Selecionar Cliente',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: _corTema.shade700,
+                  ),
                 ),
-                _buildOpcaoCliente(
-                  icon: Icons.person_add,
-                  label: 'Novo',
-                  cor: Colors.orange,
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _criarNovoCliente();
-                  },
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildOpcaoCliente(
+                      icon: Icons.people,
+                      label: 'Clientes',
+                      cor: Colors.blue,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _navegarParaClientes();
+                      },
+                    ),
+                    _buildOpcaoCliente(
+                      icon: Icons.contact_phone,
+                      label: 'Agenda',
+                      cor: Colors.green,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _importarDaAgenda();
+                      },
+                    ),
+                    _buildOpcaoCliente(
+                      icon: Icons.person_add,
+                      label: 'Novo',
+                      cor: Colors.orange,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _criarNovoCliente();
+                      },
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 16),
               ],
             ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -557,9 +590,7 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [cor.shade400, cor.shade600],
-              ),
+              gradient: LinearGradient(colors: [cor.shade400, cor.shade600]),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: Colors.white, size: 32),
@@ -591,83 +622,91 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
   Future<void> _importarDaAgenda() async {
     try {
       if (await FlutterContacts.requestPermission()) {
-        final contacts = await FlutterContacts.getContacts(withProperties: true);
+        final contacts = await FlutterContacts.getContacts(
+          withProperties: true,
+        );
         if (!mounted) return;
 
         final contatoSelecionado = await showModalBottomSheet<Contact>(
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
-          builder: (_) => Container(
-            height: MediaQuery.of(context).size.height * 0.75,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+          builder:
+              (_) => Container(
+                height: MediaQuery.of(context).size.height * 0.75,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'Selecionar da Agenda',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
+                child: Column(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 12),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: contacts.length,
-                    itemBuilder: (_, i) {
-                      final c = contacts[i];
-                      final telefone = c.phones.isNotEmpty ? c.phones.first.number : '';
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _corTema.shade100,
-                          child: Text(
-                            c.displayName.isNotEmpty ? c.displayName[0].toUpperCase() : '?',
-                            style: TextStyle(color: _corTema.shade700),
-                          ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Selecionar da Agenda',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
                         ),
-                        title: Text(c.displayName),
-                        subtitle: telefone.isNotEmpty ? Text(telefone) : null,
-                        onTap: () => Navigator.pop(context, c),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: contacts.length,
+                        itemBuilder: (_, i) {
+                          final c = contacts[i];
+                          final telefone =
+                              c.phones.isNotEmpty ? c.phones.first.number : '';
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: _corTema.shade100,
+                              child: Text(
+                                c.displayName.isNotEmpty
+                                    ? c.displayName[0].toUpperCase()
+                                    : '?',
+                                style: TextStyle(color: _corTema.shade700),
+                              ),
+                            ),
+                            title: Text(c.displayName),
+                            subtitle:
+                                telefone.isNotEmpty ? Text(telefone) : null,
+                            onTap: () => Navigator.pop(context, c),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
         );
 
         if (contatoSelecionado != null && mounted) {
           setState(() {
             _clienteSelecionado = Cliente(
               nome: contatoSelecionado.displayName,
-              celular: contatoSelecionado.phones.isNotEmpty
-                  ? contatoSelecionado.phones.first.number
-                  : '',
+              celular:
+                  contatoSelecionado.phones.isNotEmpty
+                      ? contatoSelecionado.phones.first.number
+                      : '',
             );
           });
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao acessar agenda: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao acessar agenda: $e')));
       }
     }
   }
@@ -690,65 +729,66 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Text(
-              'Adicionar Comprovante',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: _corTema.shade700,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      builder:
+          (ctx) => Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _buildOpcaoAnexo(
-                  icon: Icons.camera_alt,
-                  label: 'Câmera',
-                  cor: Colors.blue,
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _capturarFoto();
-                  },
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                _buildOpcaoAnexo(
-                  icon: Icons.photo_library,
-                  label: 'Galeria',
-                  cor: Colors.green,
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _selecionarDaGaleria();
-                  },
+                Text(
+                  'Adicionar Comprovante',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: _corTema.shade700,
+                  ),
                 ),
-                _buildOpcaoAnexo(
-                  icon: Icons.picture_as_pdf,
-                  label: 'PDF',
-                  cor: Colors.red,
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _selecionarPDF();
-                  },
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildOpcaoAnexo(
+                      icon: Icons.camera_alt,
+                      label: 'Câmera',
+                      cor: Colors.blue,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _capturarFoto();
+                      },
+                    ),
+                    _buildOpcaoAnexo(
+                      icon: Icons.photo_library,
+                      label: 'Galeria',
+                      cor: Colors.green,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _selecionarDaGaleria();
+                      },
+                    ),
+                    _buildOpcaoAnexo(
+                      icon: Icons.picture_as_pdf,
+                      label: 'PDF',
+                      cor: Colors.red,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _selecionarPDF();
+                      },
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 16),
               ],
             ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -766,9 +806,7 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [cor.shade400, cor.shade600],
-              ),
+              gradient: LinearGradient(colors: [cor.shade400, cor.shade600]),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: Colors.white, size: 32),
@@ -836,42 +874,55 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
     setState(() => _enviandoArquivo = true);
     try {
       final uid = context.read<UserProvider>().uid;
-      final nome = '${DateTime.now().millisecondsSinceEpoch}_${arquivo.path.split('/').last}';
-      final ref = FirebaseStorage.instance.ref().child('comprovantes/$uid/$nome');
+      final nome =
+          '${DateTime.now().millisecondsSinceEpoch}_${arquivo.path.split('/').last}';
+      final ref = FirebaseStorage.instance.ref().child(
+        'comprovantes/$uid/$nome',
+      );
       await ref.putFile(arquivo);
       final url = await ref.getDownloadURL();
 
       setState(() {
-        _arquivosAnexados.add(_ArquivoAnexoDiversos(nome: nome, url: url, tipo: tipo));
+        _arquivosAnexados.add(
+          _ArquivoAnexoDiversos(nome: nome, url: url, tipo: tipo),
+        );
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao enviar arquivo: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao enviar arquivo: $e')));
       }
     } finally {
       if (mounted) setState(() => _enviandoArquivo = false);
     }
   }
 
-  Future<void> _uploadArquivoWeb(Uint8List bytes, String nomeOriginal, String tipo) async {
+  Future<void> _uploadArquivoWeb(
+    Uint8List bytes,
+    String nomeOriginal,
+    String tipo,
+  ) async {
     setState(() => _enviandoArquivo = true);
     try {
       final uid = context.read<UserProvider>().uid;
       final nome = '${DateTime.now().millisecondsSinceEpoch}_$nomeOriginal';
-      final ref = FirebaseStorage.instance.ref().child('comprovantes/$uid/$nome');
+      final ref = FirebaseStorage.instance.ref().child(
+        'comprovantes/$uid/$nome',
+      );
       await ref.putData(bytes);
       final url = await ref.getDownloadURL();
 
       setState(() {
-        _arquivosAnexados.add(_ArquivoAnexoDiversos(nome: nome, url: url, tipo: tipo));
+        _arquivosAnexados.add(
+          _ArquivoAnexoDiversos(nome: nome, url: url, tipo: tipo),
+        );
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao enviar arquivo: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao enviar arquivo: $e')));
       }
     } finally {
       if (mounted) setState(() => _enviandoArquivo = false);
@@ -920,7 +971,9 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
         observacoesCompletas.writeln('Valor: ${_valorController.text}');
       }
       if (_observacoesController.text.isNotEmpty) {
-        observacoesCompletas.writeln('Observações: ${_observacoesController.text}');
+        observacoesCompletas.writeln(
+          'Observações: ${_observacoesController.text}',
+        );
       }
 
       // Adiciona comprovantes
@@ -1009,7 +1062,9 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
         backgroundColor: corTema.shade600,
         foregroundColor: Colors.white,
         title: Text(
-          widget.agendamento != null ? 'Editar Agendamento' : 'Agendamento Rápido',
+          widget.agendamento != null
+              ? 'Editar Agendamento'
+              : 'Agendamento Rápido',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -1030,10 +1085,7 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
               ),
             )
           else
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: _salvar,
-            ),
+            IconButton(icon: const Icon(Icons.check), onPressed: _salvar),
         ],
       ),
       body: Form(
@@ -1045,7 +1097,10 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
             children: [
               // ========== SERVIÇO RÁPIDO ==========
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -1070,12 +1125,14 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                                 : 'Selecionar serviço rápido',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: _tipoServicoSelecionado != null
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                              color: _tipoServicoSelecionado != null
-                                  ? corTema.shade700
-                                  : Colors.grey.shade500,
+                              fontWeight:
+                                  _tipoServicoSelecionado != null
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                              color:
+                                  _tipoServicoSelecionado != null
+                                      ? corTema.shade700
+                                      : Colors.grey.shade500,
                             ),
                           ),
                         ],
@@ -1089,7 +1146,11 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                           color: corTema.shade100,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.add, color: corTema.shade700, size: 20),
+                        child: Icon(
+                          Icons.add,
+                          color: corTema.shade700,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],
@@ -1144,11 +1205,16 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                               children: [
                                 const Text(
                                   'Data',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 Text(
                                   _dataAgendamento != null
-                                      ? DateFormat('dd/MM/yyyy').format(_dataAgendamento!)
+                                      ? DateFormat(
+                                        'dd/MM/yyyy',
+                                      ).format(_dataAgendamento!)
                                       : 'Selecionar',
                                   style: TextStyle(
                                     fontSize: 16,
@@ -1183,7 +1249,10 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                               children: [
                                 const Text(
                                   'Início',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 Text(
                                   _horaInicio != null
@@ -1228,7 +1297,10 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                               children: [
                                 const Text(
                                   'Duração',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 Text(
                                   _duracaoMinutos >= 60
@@ -1258,17 +1330,25 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.access_time_filled, color: corTema.shade600),
+                          Icon(
+                            Icons.access_time_filled,
+                            color: corTema.shade600,
+                          ),
                           const SizedBox(width: 12),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
                                 'Término',
-                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                               Text(
-                                _horaFim != null ? _horaFim!.format(context) : '--:--',
+                                _horaFim != null
+                                    ? _horaFim!.format(context)
+                                    : '--:--',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -1287,7 +1367,10 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
 
               // ========== CLIENTE ==========
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -1307,15 +1390,18 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _clienteSelecionado?.nome ?? 'Nenhum cliente selecionado',
+                            _clienteSelecionado?.nome ??
+                                'Nenhum cliente selecionado',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: _clienteSelecionado != null
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                              color: _clienteSelecionado != null
-                                  ? Colors.teal.shade700
-                                  : Colors.grey.shade500,
+                              fontWeight:
+                                  _clienteSelecionado != null
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                              color:
+                                  _clienteSelecionado != null
+                                      ? Colors.teal.shade700
+                                      : Colors.grey.shade500,
                             ),
                           ),
                         ],
@@ -1329,7 +1415,11 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                           color: Colors.teal.shade100,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.add, color: Colors.teal.shade700, size: 20),
+                        child: Icon(
+                          Icons.add,
+                          color: Colors.teal.shade700,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],
@@ -1345,7 +1435,10 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                 decoration: InputDecoration(
                   labelText: 'Valor (opcional)',
                   hintText: 'R\$ 0,00',
-                  prefixIcon: Icon(Icons.attach_money, color: Colors.green.shade600),
+                  prefixIcon: Icon(
+                    Icons.attach_money,
+                    color: Colors.green.shade600,
+                  ),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -1380,12 +1473,16 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                         const SizedBox(width: 12),
                         const Text(
                           'Repetir Agendamento',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         const Spacer(),
                         Switch(
                           value: _repetirParcelar,
-                          onChanged: (v) => setState(() => _repetirParcelar = v),
+                          onChanged:
+                              (v) => setState(() => _repetirParcelar = v),
                           activeColor: corTema,
                         ),
                       ],
@@ -1400,20 +1497,27 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                               children: [
                                 const Text(
                                   'Quantidade',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
                                     IconButton(
-                                      onPressed: _quantidadeRepeticoes > 2
-                                          ? () => setState(() => _quantidadeRepeticoes--)
-                                          : null,
+                                      onPressed:
+                                          _quantidadeRepeticoes > 2
+                                              ? () => setState(
+                                                () => _quantidadeRepeticoes--,
+                                              )
+                                              : null,
                                       icon: Icon(
                                         Icons.remove_circle,
-                                        color: _quantidadeRepeticoes > 2
-                                            ? corTema
-                                            : Colors.grey,
+                                        color:
+                                            _quantidadeRepeticoes > 2
+                                                ? corTema
+                                                : Colors.grey,
                                       ),
                                     ),
                                     Text(
@@ -1425,14 +1529,18 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                                       ),
                                     ),
                                     IconButton(
-                                      onPressed: _quantidadeRepeticoes < 52
-                                          ? () => setState(() => _quantidadeRepeticoes++)
-                                          : null,
+                                      onPressed:
+                                          _quantidadeRepeticoes < 52
+                                              ? () => setState(
+                                                () => _quantidadeRepeticoes++,
+                                              )
+                                              : null,
                                       icon: Icon(
                                         Icons.add_circle,
-                                        color: _quantidadeRepeticoes < 52
-                                            ? corTema
-                                            : Colors.grey,
+                                        color:
+                                            _quantidadeRepeticoes < 52
+                                                ? corTema
+                                                : Colors.grey,
                                       ),
                                     ),
                                   ],
@@ -1446,19 +1554,32 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                               children: [
                                 const Text(
                                   'Frequência',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 DropdownButton<String>(
                                   value: _tipoRepeticao,
                                   isExpanded: true,
                                   items: const [
-                                    DropdownMenuItem(value: 'semanal', child: Text('Semanal')),
-                                    DropdownMenuItem(value: 'quinzenal', child: Text('Quinzenal')),
-                                    DropdownMenuItem(value: 'mensal', child: Text('Mensal')),
+                                    DropdownMenuItem(
+                                      value: 'semanal',
+                                      child: Text('Semanal'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'quinzenal',
+                                      child: Text('Quinzenal'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'mensal',
+                                      child: Text('Mensal'),
+                                    ),
                                   ],
                                   onChanged: (v) {
-                                    if (v != null) setState(() => _tipoRepeticao = v);
+                                    if (v != null)
+                                      setState(() => _tipoRepeticao = v);
                                   },
                                 ),
                               ],
@@ -1489,7 +1610,10 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                         const SizedBox(width: 8),
                         const Text(
                           'Comprovantes',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         const Spacer(),
                         if (_enviandoArquivo)
@@ -1508,25 +1632,28 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _arquivosAnexados.map((arq) {
-                          return Chip(
-                            avatar: Icon(
-                              arq.tipo == 'image' ? Icons.image : Icons.picture_as_pdf,
-                              size: 18,
-                              color: corTema,
-                            ),
-                            label: Text(
-                              arq.nome.length > 15
-                                  ? '${arq.nome.substring(0, 12)}...'
-                                  : arq.nome,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            deleteIcon: const Icon(Icons.close, size: 18),
-                            onDeleted: () {
-                              setState(() => _arquivosAnexados.remove(arq));
-                            },
-                          );
-                        }).toList(),
+                        children:
+                            _arquivosAnexados.map((arq) {
+                              return Chip(
+                                avatar: Icon(
+                                  arq.tipo == 'image'
+                                      ? Icons.image
+                                      : Icons.picture_as_pdf,
+                                  size: 18,
+                                  color: corTema,
+                                ),
+                                label: Text(
+                                  arq.nome.length > 15
+                                      ? '${arq.nome.substring(0, 12)}...'
+                                      : arq.nome,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                deleteIcon: const Icon(Icons.close, size: 18),
+                                onDeleted: () {
+                                  setState(() => _arquivosAnexados.remove(arq));
+                                },
+                              );
+                            }).toList(),
                       ),
                     ],
                     const SizedBox(height: 12),
@@ -1543,7 +1670,11 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_a_photo, color: corTema.shade600, size: 20),
+                            Icon(
+                              Icons.add_a_photo,
+                              color: corTema.shade600,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Adicionar foto ou arquivo',
@@ -1605,31 +1736,32 @@ class _AgendamentoDiversosPageState extends State<AgendamentoDiversosPage> {
                     ),
                     elevation: 4,
                   ),
-                  child: _salvando
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.check, size: 24),
-                            const SizedBox(width: 8),
-                            Text(
-                              _repetirParcelar
-                                  ? 'Salvar $_quantidadeRepeticoes Agendamentos'
-                                  : 'Salvar Agendamento',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                  child:
+                      _salvando
+                          ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
                             ),
-                          ],
-                        ),
+                          )
+                          : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.check, size: 24),
+                              const SizedBox(width: 8),
+                              Text(
+                                _repetirParcelar
+                                    ? 'Salvar $_quantidadeRepeticoes Agendamentos'
+                                    : 'Salvar Agendamento',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                 ),
               ),
               const SizedBox(height: 32),

@@ -282,7 +282,7 @@ class ExtratoPdfGenerator {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'Documento gerado pelo Orcemais',
+            'Documento gerado pelo Gestorfy',
             style: pw.TextStyle(font: font, fontSize: 8, color: PdfColors.grey),
           ),
           pw.Text(

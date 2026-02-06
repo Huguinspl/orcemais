@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:orcemais/routes/app_routes.dart';
+import 'package:gestorfy/routes/app_routes.dart';
 
 /// Serviço para tratar ações de notificações e navegar para páginas específicas
 class NotificationHandler {
