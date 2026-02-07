@@ -1,13 +1,18 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/feature_card.dart';
 import '../../widgets/home_menu.dart';
 import '../../../routes/app_routes.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/agendamentos_provider.dart';
+import '../../providers/transacoes_provider.dart';
 import '../../services/notification_service.dart';
+import 'receitas/receitas_page.dart';
+import 'despesas/despesas_transacoes_page.dart';
+import 'saldo/extrato_page.dart';
 
-class HomeBody extends StatelessWidget {
+class HomeBody extends StatefulWidget {
   final VoidCallback? onNotificationPressed;
   final VoidCallback? onNotificationLongPressed;
   final VoidCallback? onLogout;
@@ -19,12 +24,67 @@ class HomeBody extends StatelessWidget {
     this.onLogout,
   });
 
+  @override
+  State<HomeBody> createState() => _HomeBodyState();
+}
+
+class _HomeBodyState extends State<HomeBody> {
+  bool _ocultarValores = false;
+
   void _placeholder(BuildContext ctx, String msg) {
     ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
         content: Text('$msg (em construção)'),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  Widget _buildFinanceiroItem({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required double valor,
+    required Color color,
+    required NumberFormat currencyFormat,
+    required VoidCallback onTap,
+    required bool ocultar,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              ocultar ? '•••••' : currencyFormat.format(valor),
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -78,8 +138,8 @@ class HomeBody extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
-                onPressed: onNotificationPressed,
-                onLongPress: onNotificationLongPressed,
+                onPressed: widget.onNotificationPressed,
+                onLongPress: widget.onNotificationLongPressed,
                 tooltip: 'Notificações (Pressione longo para teste)',
                 color: Colors.white,
               ),
@@ -91,7 +151,7 @@ class HomeBody extends StatelessWidget {
                 tooltip: 'Chat',
                 color: Colors.white,
               ),
-              if (onLogout != null) HomeMenu(onLogout: onLogout!),
+              if (widget.onLogout != null) HomeMenu(onLogout: widget.onLogout!),
               const SizedBox(width: 8),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -106,34 +166,133 @@ class HomeBody extends StatelessWidget {
                 child: SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 56),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.home_rounded,
-                          size: 50,
-                          color: Colors.white.withOpacity(0.3),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Gestão completa do seu negócio',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Orçamentos • Recibos • Agendamentos',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
+                    child: Consumer<TransacoesProvider>(
+                      builder: (context, transacoes, _) {
+                        final currencyFormat = NumberFormat.currency(
+                          locale: 'pt_BR',
+                          symbol: 'R\$',
+                          decimalDigits: 2,
+                        );
+                        final saldo = transacoes.saldo;
+                        final isPositivo = saldo >= 0;
+
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Card de receitas, despesas e saldo
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  // Receitas
+                                  _buildFinanceiroItem(
+                                    context: context,
+                                    icon: Icons.arrow_upward_rounded,
+                                    label: 'Receitas',
+                                    valor: transacoes.totalReceitas,
+                                    color: Colors.greenAccent.shade200,
+                                    currencyFormat: currencyFormat,
+                                    ocultar: _ocultarValores,
+                                    onTap:
+                                        () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => const ReceitasPage(),
+                                          ),
+                                        ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 36,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  // Despesas
+                                  _buildFinanceiroItem(
+                                    context: context,
+                                    icon: Icons.arrow_downward_rounded,
+                                    label: 'Despesas',
+                                    valor: transacoes.totalDespesas,
+                                    color: Colors.redAccent.shade200,
+                                    currencyFormat: currencyFormat,
+                                    ocultar: _ocultarValores,
+                                    onTap:
+                                        () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) =>
+                                                    const DespesasTransacoesPage(),
+                                          ),
+                                        ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 36,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  // Saldo
+                                  _buildFinanceiroItem(
+                                    context: context,
+                                    icon: Icons.account_balance_wallet_rounded,
+                                    label: 'Saldo',
+                                    valor: saldo.abs(),
+                                    color: Colors.lightBlueAccent.shade100,
+                                    currencyFormat: currencyFormat,
+                                    ocultar: _ocultarValores,
+                                    onTap:
+                                        () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => const ExtratoPage(),
+                                          ),
+                                        ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 36,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  // Ícone de olho para ocultar/mostrar valores
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _ocultarValores = !_ocultarValores;
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Icon(
+                                        _ocultarValores
+                                            ? Icons.visibility_off_rounded
+                                            : Icons.visibility_rounded,
+                                        color: Colors.white.withOpacity(0.8),
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

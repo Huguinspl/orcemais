@@ -880,315 +880,324 @@ class _NovaDespesaPageState extends State<NovaDespesaPage> {
 
     final isEdicao = widget.transacao != null;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: corTema.shade600,
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-            // Se tiver callback, chama para reabrir o modal
-            if (widget.onVoltarParaModal != null) {
-              widget.onVoltarParaModal!();
-            }
-          },
-        ),
-        title: Text(
-          isEdicao ? 'Editar Despesa' : 'Nova Despesa',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [corTema.shade50, Colors.white],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          backgroundColor: corTema.shade600,
+          foregroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+              // Se tiver callback, chama para reabrir o modal
+              if (widget.onVoltarParaModal != null) {
+                widget.onVoltarParaModal!();
+              }
+            },
           ),
+          title: Text(
+            isEdicao ? 'Editar Despesa' : 'Nova Despesa',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          elevation: 0,
         ),
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // ========== REPETIR / PARCELAR ==========
-                    InkWell(
-                      onTap: () {
-                        if (!_repetirParcelar) {
-                          setState(() => _repetirParcelar = true);
-                          _mostrarConfigRepeticao();
-                        } else {
-                          setState(() => _repetirParcelar = false);
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.repeat, color: corTema.shade600),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Repetir / Parcelar',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [corTema.shade50, Colors.white],
+            ),
+          ),
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ========== REPETIR / PARCELAR ==========
+                      InkWell(
+                        onTap: () {
+                          if (!_repetirParcelar) {
+                            setState(() => _repetirParcelar = true);
+                            _mostrarConfigRepeticao();
+                          } else {
+                            setState(() => _repetirParcelar = false);
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.repeat,
+                                        color: corTema.shade600,
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                Switch(
-                                  value: _repetirParcelar,
-                                  onChanged: (v) {
-                                    if (v) {
-                                      setState(() => _repetirParcelar = true);
-                                      _mostrarConfigRepeticao();
-                                    } else {
-                                      setState(() => _repetirParcelar = false);
-                                    }
-                                  },
-                                  activeColor: corTema.shade600,
-                                ),
-                              ],
-                            ),
-                            if (_repetirParcelar) ...[
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: corTema.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.info_outline,
-                                      size: 16,
-                                      color: corTema.shade600,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '$_quantidadeRepeticoes x ${_tipoRepeticao == 'semanal'
-                                          ? 'Semanal'
-                                          : _tipoRepeticao == 'quinzenal'
-                                          ? 'Quinzenal'
-                                          : 'Mensal'}',
-                                      style: TextStyle(
-                                        color: corTema.shade700,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 13,
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        'Repetir / Parcelar',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    GestureDetector(
-                                      onTap: _mostrarConfigRepeticao,
-                                      child: Icon(
-                                        Icons.edit,
+                                    ],
+                                  ),
+                                  Switch(
+                                    value: _repetirParcelar,
+                                    onChanged: (v) {
+                                      if (v) {
+                                        setState(() => _repetirParcelar = true);
+                                        _mostrarConfigRepeticao();
+                                      } else {
+                                        setState(
+                                          () => _repetirParcelar = false,
+                                        );
+                                      }
+                                    },
+                                    activeColor: corTema.shade600,
+                                  ),
+                                ],
+                              ),
+                              if (_repetirParcelar) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: corTema.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
                                         size: 16,
                                         color: corTema.shade600,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '$_quantidadeRepeticoes x ${_tipoRepeticao == 'semanal'
+                                            ? 'Semanal'
+                                            : _tipoRepeticao == 'quinzenal'
+                                            ? 'Quinzenal'
+                                            : 'Mensal'}',
+                                        style: TextStyle(
+                                          color: corTema.shade700,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      GestureDetector(
+                                        onTap: _mostrarConfigRepeticao,
+                                        child: Icon(
+                                          Icons.edit,
+                                          size: 16,
+                                          color: corTema.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== FORNECEDOR ==========
-                    TextFormField(
-                      controller: _fornecedorController,
-                      decoration: InputDecoration(
-                        labelText: 'Fornecedor (opcional)',
-                        prefixIcon: Icon(
-                          Icons.business,
-                          color: corTema.shade600,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== COMPROVANTES ==========
-                    _buildCardAnexos(),
-                    const SizedBox(height: 16),
-
-                    // ========== DESCRIÇÃO ==========
-                    TextFormField(
-                      controller: _descricaoController,
-                      decoration: InputDecoration(
-                        labelText: 'Descrição',
-                        prefixIcon: const Icon(Icons.description),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator:
-                          (v) =>
-                              v == null || v.isEmpty
-                                  ? 'Informe a descrição'
-                                  : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== VALOR ==========
-                    TextFormField(
-                      controller: _valorController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [CurrencyInputFormatterDespesa()],
-                      decoration: InputDecoration(
-                        labelText: 'Valor',
-                        prefixIcon: const Icon(Icons.attach_money),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Informe o valor';
-                        final valor = _parseMoeda(v);
-                        if (valor == null || valor <= 0) {
-                          return 'Valor inválido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== CATEGORIA ==========
-                    DropdownButtonFormField<CategoriaTransacao>(
-                      value: _categoriaSelecionada,
-                      decoration: InputDecoration(
-                        labelText: 'Categoria',
-                        prefixIcon: const Icon(Icons.category),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      items: _getCategorias(),
-                      onChanged:
-                          (v) => setState(() => _categoriaSelecionada = v),
-                      validator:
-                          (v) => v == null ? 'Selecione uma categoria' : null,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ========== DATA DA DESPESA ==========
-                    ListTile(
-                      leading: Icon(
-                        Icons.calendar_today,
-                        color: corTema.shade600,
-                      ),
-                      title: const Text('Data da Despesa'),
-                      subtitle: Text(
-                        dateFormat.format(_dataTransacao),
-                        style: TextStyle(
-                          color: corTema.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: corTema.shade300),
-                      ),
-                      tileColor: corTema.shade50,
-                      onTap: _selecionarDataTransacao,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== OBSERVAÇÕES ==========
-                    TextFormField(
-                      controller: _observacoesController,
-                      decoration: InputDecoration(
-                        labelText: 'Observações (opcional)',
-                        prefixIcon: const Icon(Icons.notes),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ========== BOTÃO SALVAR ==========
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _salvando ? null : _salvar,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: corTema.shade600,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child:
-                            _salvando
-                                ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                                : Text(
-                                  isEdicao
-                                      ? 'Atualizar Despesa'
-                                      : 'Salvar Despesa',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+
+                      // ========== FORNECEDOR ==========
+                      TextFormField(
+                        controller: _fornecedorController,
+                        decoration: InputDecoration(
+                          labelText: 'Fornecedor (opcional)',
+                          prefixIcon: Icon(
+                            Icons.business,
+                            color: corTema.shade600,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== COMPROVANTES ==========
+                      _buildCardAnexos(),
+                      const SizedBox(height: 16),
+
+                      // ========== DESCRIÇÃO ==========
+                      TextFormField(
+                        controller: _descricaoController,
+                        decoration: InputDecoration(
+                          labelText: 'Descrição',
+                          prefixIcon: const Icon(Icons.description),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator:
+                            (v) =>
+                                v == null || v.isEmpty
+                                    ? 'Informe a descrição'
+                                    : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== VALOR ==========
+                      TextFormField(
+                        controller: _valorController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [CurrencyInputFormatterDespesa()],
+                        decoration: InputDecoration(
+                          labelText: 'Valor',
+                          prefixIcon: const Icon(Icons.attach_money),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Informe o valor';
+                          final valor = _parseMoeda(v);
+                          if (valor == null || valor <= 0) {
+                            return 'Valor inválido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== CATEGORIA ==========
+                      DropdownButtonFormField<CategoriaTransacao>(
+                        value: _categoriaSelecionada,
+                        decoration: InputDecoration(
+                          labelText: 'Categoria',
+                          prefixIcon: const Icon(Icons.category),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: _getCategorias(),
+                        onChanged:
+                            (v) => setState(() => _categoriaSelecionada = v),
+                        validator:
+                            (v) => v == null ? 'Selecione uma categoria' : null,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ========== DATA DA DESPESA ==========
+                      ListTile(
+                        leading: Icon(
+                          Icons.calendar_today,
+                          color: corTema.shade600,
+                        ),
+                        title: const Text('Data da Despesa'),
+                        subtitle: Text(
+                          dateFormat.format(_dataTransacao),
+                          style: TextStyle(
+                            color: corTema.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: corTema.shade300),
+                        ),
+                        tileColor: corTema.shade50,
+                        onTap: _selecionarDataTransacao,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== OBSERVAÇÕES ==========
+                      TextFormField(
+                        controller: _observacoesController,
+                        decoration: InputDecoration(
+                          labelText: 'Observações (opcional)',
+                          prefixIcon: const Icon(Icons.notes),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ========== BOTÃO SALVAR ==========
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _salvando ? null : _salvar,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: corTema.shade600,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child:
+                              _salvando
+                                  ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : Text(
+                                    isEdicao
+                                        ? 'Atualizar Despesa'
+                                        : 'Salvar Despesa',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

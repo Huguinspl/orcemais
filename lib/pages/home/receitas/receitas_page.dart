@@ -280,175 +280,178 @@ class _ReceitasPageState extends State<ReceitasPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Receitas',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.green.shade600, Colors.green.shade400],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Receitas',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          centerTitle: true,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.green.shade600, Colors.green.shade400],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
           ),
         ),
-      ),
-      body: GestureDetector(
-        onHorizontalDragEnd: _mudarCategoriaPorSwipe,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.green.shade50, Colors.white, Colors.white],
+        body: GestureDetector(
+          onHorizontalDragEnd: _mudarCategoriaPorSwipe,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.green.shade50, Colors.white, Colors.white],
+              ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildSearchBar(),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.trending_up,
-                        color: Colors.green.shade700,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Suas Receitas',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                            letterSpacing: -0.5,
-                          ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                _buildSearchBar(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade100,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        Text(
-                          'Gerencie suas entradas',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                          ),
+                        child: Icon(
+                          Icons.trending_up,
+                          color: Colors.green.shade700,
+                          size: 24,
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Suas Receitas',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          Text(
+                            'Gerencie suas entradas',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Consumer<TransacoesProvider>(
-                builder: (context, provider, child) {
-                  final Map<String, int> contagemCategoria = {};
-                  contagemCategoria['Todas'] = provider.receitas.length;
-                  for (var categoria in _categorias) {
-                    if (categoria == 'Todas') continue;
-                    final cat = _getCategoriaFromString(categoria);
-                    contagemCategoria[categoria] =
-                        provider.receitas
-                            .where((r) => r.categoria == cat)
-                            .length;
-                  }
-                  return _buildCategoriaFilterBar(contagemCategoria);
-                },
-              ),
-              Expanded(
-                child: Consumer<TransacoesProvider>(
+                Consumer<TransacoesProvider>(
                   builder: (context, provider, child) {
-                    if (provider.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                    final Map<String, int> contagemCategoria = {};
+                    contagemCategoria['Todas'] = provider.receitas.length;
+                    for (var categoria in _categorias) {
+                      if (categoria == 'Todas') continue;
+                      final cat = _getCategoriaFromString(categoria);
+                      contagemCategoria[categoria] =
+                          provider.receitas
+                              .where((r) => r.categoria == cat)
+                              .length;
                     }
-
-                    final listaFiltrada =
-                        provider.receitas.where((receita) {
-                          final filtroCategoria =
-                              _filtroSelecionado == 'Todas' ||
-                              receita.categoria ==
-                                  _getCategoriaFromString(_filtroSelecionado);
-                          final filtroBusca =
-                              _termoBusca.isEmpty ||
-                              receita.descricao.toLowerCase().contains(
-                                _termoBusca.toLowerCase(),
-                              );
-                          return filtroCategoria && filtroBusca;
-                        }).toList();
-
-                    if (listaFiltrada.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.search_off,
-                                size: 64,
-                                color: Colors.grey.shade400,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Text(
-                              'Nenhuma receita encontrada',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Tente ajustar os filtros ou adicionar uma nova',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
-                      itemCount: listaFiltrada.length,
-                      itemBuilder: (context, index) {
-                        return _buildReceitaCard(listaFiltrada[index]);
-                      },
-                    );
+                    return _buildCategoriaFilterBar(contagemCategoria);
                   },
                 ),
-              ),
-            ],
+                Expanded(
+                  child: Consumer<TransacoesProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      final listaFiltrada =
+                          provider.receitas.where((receita) {
+                            final filtroCategoria =
+                                _filtroSelecionado == 'Todas' ||
+                                receita.categoria ==
+                                    _getCategoriaFromString(_filtroSelecionado);
+                            final filtroBusca =
+                                _termoBusca.isEmpty ||
+                                receita.descricao.toLowerCase().contains(
+                                  _termoBusca.toLowerCase(),
+                                );
+                            return filtroCategoria && filtroBusca;
+                          }).toList();
+
+                      if (listaFiltrada.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.search_off,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                'Nenhuma receita encontrada',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Tente ajustar os filtros ou adicionar uma nova',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
+                        itemCount: listaFiltrada.length,
+                        itemBuilder: (context, index) {
+                          return _buildReceitaCard(listaFiltrada[index]);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _abrirFormulario(),
-        tooltip: 'Nova receita',
-        icon: const Icon(Icons.add),
-        label: const Text('Nova Receita'),
-        backgroundColor: Colors.green.shade600,
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _abrirFormulario(),
+          tooltip: 'Nova receita',
+          icon: const Icon(Icons.add),
+          label: const Text('Nova Receita'),
+          backgroundColor: Colors.green.shade600,
+        ),
       ),
     );
   }

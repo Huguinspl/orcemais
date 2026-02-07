@@ -819,339 +819,344 @@ class _NovaDespesaAPagarPageState extends State<NovaDespesaAPagarPage> {
 
     final isEdicao = widget.agendamento != null;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: corTema.shade600,
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _voltarParaModal,
-        ),
-        title: Text(
-          isEdicao ? 'Editar Despesa a Pagar' : 'Nova Despesa a Pagar',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [corTema.shade50, Colors.white],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          backgroundColor: corTema.shade600,
+          foregroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _voltarParaModal,
           ),
+          title: Text(
+            isEdicao ? 'Editar Despesa a Pagar' : 'Nova Despesa a Pagar',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          elevation: 0,
         ),
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // ========== REPETIR / PARCELAR ==========
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.repeat, color: corTema.shade600),
-                              const SizedBox(width: 12),
-                              const Text(
-                                'Repetir / Parcelar',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Switch(
-                            value: _repetirParcelar,
-                            onChanged:
-                                (v) => setState(() => _repetirParcelar = v),
-                            activeColor: corTema.shade600,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== FORNECEDOR ==========
-                    TextFormField(
-                      controller: _fornecedorController,
-                      decoration: InputDecoration(
-                        labelText: 'Fornecedor (opcional)',
-                        prefixIcon: Icon(
-                          Icons.business,
-                          color: corTema.shade600,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== COMPROVANTES ==========
-                    _buildCardAnexos(),
-                    const SizedBox(height: 16),
-
-                    // ========== DESCRIÇÃO ==========
-                    TextFormField(
-                      controller: _descricaoController,
-                      decoration: InputDecoration(
-                        labelText: 'Descrição',
-                        prefixIcon: const Icon(Icons.description),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator:
-                          (v) =>
-                              v == null || v.isEmpty
-                                  ? 'Informe a descrição'
-                                  : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== VALOR ==========
-                    TextFormField(
-                      controller: _valorController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [CurrencyInputFormatterDespesaAPagar()],
-                      decoration: InputDecoration(
-                        labelText: 'Valor',
-                        prefixIcon: const Icon(Icons.attach_money),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Informe o valor';
-                        final valor = _parseMoeda(v);
-                        if (valor == null || valor <= 0) {
-                          return 'Valor inválido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== CATEGORIA ==========
-                    DropdownButtonFormField<CategoriaTransacao>(
-                      value: _categoriaSelecionada,
-                      decoration: InputDecoration(
-                        labelText: 'Categoria',
-                        prefixIcon: const Icon(Icons.category),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      items: _getCategorias(),
-                      onChanged:
-                          (v) => setState(() => _categoriaSelecionada = v),
-                      validator:
-                          (v) => v == null ? 'Selecione uma categoria' : null,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ========== DATA DO PAGAMENTO ==========
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            size: 16,
-                            color: Colors.orange.shade700,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Previsto',
-                            style: TextStyle(
-                              color: Colors.orange.shade700,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.calendar_today,
-                        color: Colors.orange.shade600,
-                      ),
-                      title: const Text('Data do Pagamento'),
-                      subtitle: Text(
-                        _dataPagamento != null
-                            ? dateFormat.format(_dataPagamento!)
-                            : 'Selecionar data',
-                        style: TextStyle(
-                          color: Colors.orange.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.orange.shade300),
-                      ),
-                      tileColor: Colors.orange.shade50,
-                      onTap: _selecionarDataPagamento,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ========== HORA DO PAGAMENTO ==========
-                    ListTile(
-                      leading: Icon(
-                        Icons.access_time,
-                        color: Colors.orange.shade600,
-                      ),
-                      title: const Text('Hora do Pagamento'),
-                      subtitle: Text(
-                        _horaPagamento != null
-                            ? '${_horaPagamento!.hour.toString().padLeft(2, '0')}:${_horaPagamento!.minute.toString().padLeft(2, '0')}'
-                            : 'Selecionar hora',
-                        style: TextStyle(
-                          color: Colors.orange.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.orange.shade300),
-                      ),
-                      tileColor: Colors.orange.shade50,
-                      onTap: _selecionarHoraPagamento,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== CHECKBOX SALVAR EM AGENDAMENTO ==========
-                    if (widget.fromControleFinanceiro) ...[
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [corTema.shade50, Colors.white],
+            ),
+          ),
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ========== REPETIR / PARCELAR ==========
                       Container(
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.shade200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
-                        child: CheckboxListTile(
-                          value: _salvarEmAgendamento,
-                          onChanged:
-                              (v) => setState(
-                                () => _salvarEmAgendamento = v ?? true,
-                              ),
-                          title: const Text(
-                            'Salvar em Agendamento',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            _salvarEmAgendamento
-                                ? 'A despesa também aparecerá na aba de Agendamentos'
-                                : 'A despesa será salva apenas no Controle Financeiro',
-                            style: TextStyle(
-                              color: Colors.blue.shade700,
-                              fontSize: 12,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.repeat, color: corTema.shade600),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Repetir / Parcelar',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          secondary: Icon(
-                            _salvarEmAgendamento
-                                ? Icons.event_available
-                                : Icons.event_busy,
-                            color: Colors.blue.shade600,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          activeColor: Colors.blue.shade600,
+                            Switch(
+                              value: _repetirParcelar,
+                              onChanged:
+                                  (v) => setState(() => _repetirParcelar = v),
+                              activeColor: corTema.shade600,
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 16),
-                    ],
 
-                    // ========== OBSERVAÇÕES ==========
-                    TextFormField(
-                      controller: _observacoesController,
-                      decoration: InputDecoration(
-                        labelText: 'Observações (opcional)',
-                        prefixIcon: const Icon(Icons.notes),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ========== BOTÃO SALVAR ==========
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _salvando ? null : _salvar,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: corTema.shade600,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
+                      // ========== FORNECEDOR ==========
+                      TextFormField(
+                        controller: _fornecedorController,
+                        decoration: InputDecoration(
+                          labelText: 'Fornecedor (opcional)',
+                          prefixIcon: Icon(
+                            Icons.business,
+                            color: corTema.shade600,
+                          ),
+                          border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          filled: true,
+                          fillColor: Colors.white,
                         ),
-                        child:
-                            _salvando
-                                ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                                : const Text(
-                                  'Salvar Despesa a Pagar',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+
+                      // ========== COMPROVANTES ==========
+                      _buildCardAnexos(),
+                      const SizedBox(height: 16),
+
+                      // ========== DESCRIÇÃO ==========
+                      TextFormField(
+                        controller: _descricaoController,
+                        decoration: InputDecoration(
+                          labelText: 'Descrição',
+                          prefixIcon: const Icon(Icons.description),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator:
+                            (v) =>
+                                v == null || v.isEmpty
+                                    ? 'Informe a descrição'
+                                    : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== VALOR ==========
+                      TextFormField(
+                        controller: _valorController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          CurrencyInputFormatterDespesaAPagar(),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: 'Valor',
+                          prefixIcon: const Icon(Icons.attach_money),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Informe o valor';
+                          final valor = _parseMoeda(v);
+                          if (valor == null || valor <= 0) {
+                            return 'Valor inválido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== CATEGORIA ==========
+                      DropdownButtonFormField<CategoriaTransacao>(
+                        value: _categoriaSelecionada,
+                        decoration: InputDecoration(
+                          labelText: 'Categoria',
+                          prefixIcon: const Icon(Icons.category),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: _getCategorias(),
+                        onChanged:
+                            (v) => setState(() => _categoriaSelecionada = v),
+                        validator:
+                            (v) => v == null ? 'Selecione uma categoria' : null,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ========== DATA DO PAGAMENTO ==========
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.schedule,
+                              size: 16,
+                              color: Colors.orange.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Previsto',
+                              style: TextStyle(
+                                color: Colors.orange.shade700,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ListTile(
+                        leading: Icon(
+                          Icons.calendar_today,
+                          color: Colors.orange.shade600,
+                        ),
+                        title: const Text('Data do Pagamento'),
+                        subtitle: Text(
+                          _dataPagamento != null
+                              ? dateFormat.format(_dataPagamento!)
+                              : 'Selecionar data',
+                          style: TextStyle(
+                            color: Colors.orange.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.orange.shade300),
+                        ),
+                        tileColor: Colors.orange.shade50,
+                        onTap: _selecionarDataPagamento,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // ========== HORA DO PAGAMENTO ==========
+                      ListTile(
+                        leading: Icon(
+                          Icons.access_time,
+                          color: Colors.orange.shade600,
+                        ),
+                        title: const Text('Hora do Pagamento'),
+                        subtitle: Text(
+                          _horaPagamento != null
+                              ? '${_horaPagamento!.hour.toString().padLeft(2, '0')}:${_horaPagamento!.minute.toString().padLeft(2, '0')}'
+                              : 'Selecionar hora',
+                          style: TextStyle(
+                            color: Colors.orange.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.orange.shade300),
+                        ),
+                        tileColor: Colors.orange.shade50,
+                        onTap: _selecionarHoraPagamento,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== CHECKBOX SALVAR EM AGENDAMENTO ==========
+                      if (widget.fromControleFinanceiro) ...[
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: CheckboxListTile(
+                            value: _salvarEmAgendamento,
+                            onChanged:
+                                (v) => setState(
+                                  () => _salvarEmAgendamento = v ?? true,
+                                ),
+                            title: const Text(
+                              'Salvar em Agendamento',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            subtitle: Text(
+                              _salvarEmAgendamento
+                                  ? 'A despesa também aparecerá na aba de Agendamentos'
+                                  : 'A despesa será salva apenas no Controle Financeiro',
+                              style: TextStyle(
+                                color: Colors.blue.shade700,
+                                fontSize: 12,
+                              ),
+                            ),
+                            secondary: Icon(
+                              _salvarEmAgendamento
+                                  ? Icons.event_available
+                                  : Icons.event_busy,
+                              color: Colors.blue.shade600,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            activeColor: Colors.blue.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // ========== OBSERVAÇÕES ==========
+                      TextFormField(
+                        controller: _observacoesController,
+                        decoration: InputDecoration(
+                          labelText: 'Observações (opcional)',
+                          prefixIcon: const Icon(Icons.notes),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ========== BOTÃO SALVAR ==========
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _salvando ? null : _salvar,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: corTema.shade600,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child:
+                              _salvando
+                                  ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Text(
+                                    'Salvar Despesa a Pagar',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

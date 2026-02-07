@@ -7,6 +7,7 @@ import '../../routes/app_routes.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/business_provider.dart';
 import '../../providers/agendamentos_provider.dart';
+import '../../providers/transacoes_provider.dart';
 import '../../services/notification_service.dart';
 import '../../services/tutorial_service.dart';
 import '../../widgets/home_menu.dart';
@@ -44,8 +45,12 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final prov = context.read<UserProvider>();
+        final transacoesProv = context.read<TransacoesProvider>();
+        final userId = FirebaseAuth.instance.currentUser?.uid;
+
         await Future.wait([
           prov.carregarDoFirestore(),
+          if (userId != null) transacoesProv.carregarTransacoes(userId),
           Future.delayed(const Duration(seconds: 2)),
         ]);
       } finally {

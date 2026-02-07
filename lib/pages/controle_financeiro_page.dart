@@ -2014,12 +2014,14 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
     final resultado = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder:
           (context) => Container(
-            margin: const EdgeInsets.all(16),
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            height: MediaQuery.of(context).size.height * 0.52,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -2028,159 +2030,154 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
                 ),
               ],
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 12),
-                  // Barra de arraste + Botão fechar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 48), // Espaço para balancear
-                        Expanded(
-                          child: Center(
-                            child: Container(
-                              width: 40,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                // Barra de arraste + Botão fechar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 48), // Espaço para balancear
+                      Expanded(
+                        child: Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(2),
                             ),
                           ),
                         ),
-                        // Botão X para fechar
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: Icon(Icons.close, color: Colors.grey.shade600),
-                          tooltip: 'Fechar',
-                        ),
-                      ],
-                    ),
+                      ),
+                      // Botão X para fechar
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(Icons.close, color: Colors.grey.shade600),
+                        tooltip: 'Fechar',
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Nova Transação',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Selecione o tipo de transação',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Nova Transação',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Selecione o tipo',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 12),
 
-                  // Transações Atuais
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                // Grid 2x2
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Transações Atuais',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            // Botão Receita
-                            Expanded(
-                              child: _buildTipoTransacaoButton(
-                                context: context,
-                                tipo: TipoTransacao.receita,
-                                isFutura: false,
-                                titulo: 'Receita',
-                                subtitulo: 'Entrada de dinheiro',
-                                icone: Icons.trending_up,
-                                cor: Colors.green,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Botão Despesa
-                            Expanded(
-                              child: _buildTipoTransacaoButton(
-                                context: context,
-                                tipo: TipoTransacao.despesa,
-                                isFutura: false,
-                                titulo: 'Despesa',
-                                subtitulo: 'Saída de dinheiro',
-                                icone: Icons.trending_down,
-                                cor: Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Transações Futuras
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.schedule,
-                              size: 16,
-                              color: Colors.orange.shade600,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Transações Futuras',
+                        // Transações Atuais
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4, bottom: 8),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Transações Atuais',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.grey.shade600,
                               ),
                             ),
-                          ],
+                          ),
+                        ),
+                        // Primeira linha: Receita e Despesa
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _buildTipoTransacaoButtonCompacto(
+                                  context: context,
+                                  tipo: TipoTransacao.receita,
+                                  isFutura: false,
+                                  titulo: 'Receita',
+                                  icone: Icons.trending_up,
+                                  cor: Colors.green,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildTipoTransacaoButtonCompacto(
+                                  context: context,
+                                  tipo: TipoTransacao.despesa,
+                                  isFutura: false,
+                                  titulo: 'Despesa',
+                                  icone: Icons.trending_down,
+                                  cor: Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Transações Futuras
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4, bottom: 8),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                size: 14,
+                                color: Colors.orange.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Transações Futuras',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Segunda linha: A Receber e A Pagar
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _buildTipoTransacaoButtonCompacto(
+                                  context: context,
+                                  tipo: TipoTransacao.receita,
+                                  isFutura: true,
+                                  titulo: 'A Receber',
+                                  icone: Icons.call_made,
+                                  cor: Colors.teal,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildTipoTransacaoButtonCompacto(
+                                  context: context,
+                                  tipo: TipoTransacao.despesa,
+                                  isFutura: true,
+                                  titulo: 'A Pagar',
+                                  icone: Icons.call_received,
+                                  cor: Colors.orange,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            // Botão Receita a Receber
-                            Expanded(
-                              child: _buildTipoTransacaoButton(
-                                context: context,
-                                tipo: TipoTransacao.receita,
-                                isFutura: true,
-                                titulo: 'A Receber',
-                                subtitulo: 'Receita futura',
-                                icone: Icons.call_made,
-                                cor: Colors.teal,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Botão Despesa a Pagar
-                            Expanded(
-                              child: _buildTipoTransacaoButton(
-                                context: context,
-                                tipo: TipoTransacao.despesa,
-                                isFutura: true,
-                                titulo: 'A Pagar',
-                                subtitulo: 'Despesa futura',
-                                icone: Icons.call_received,
-                                cor: Colors.orange,
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
     );
@@ -2293,6 +2290,51 @@ class _ControleFinanceiroPageState extends State<ControleFinanceiroPage>
             Text(
               subtitulo,
               style: const TextStyle(color: Colors.white70, fontSize: 11),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTipoTransacaoButtonCompacto({
+    required BuildContext context,
+    required TipoTransacao tipo,
+    required bool isFutura,
+    required String titulo,
+    required IconData icone,
+    required MaterialColor cor,
+  }) {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context, {'tipo': tipo, 'isFutura': isFutura}),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [cor.shade400, cor.shade600],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: cor.withOpacity(0.3),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icone, color: Colors.white, size: 36),
+            const SizedBox(height: 8),
+            Text(
+              titulo,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

@@ -183,7 +183,7 @@ class _AgendamentosPageState extends State<AgendamentosPage>
       builder:
           (context) => Container(
             margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            height: MediaQuery.of(context).size.height * 0.52,
+            height: MediaQuery.of(context).size.height * 0.55,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -197,13 +197,32 @@ class _AgendamentosPageState extends State<AgendamentosPage>
             ),
             child: Column(
               children: [
-                const SizedBox(height: 10),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+                const SizedBox(height: 12),
+                // Barra de arraste + Botão fechar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 48), // Espaço para balancear
+                      Expanded(
+                        child: Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Botão X para fechar
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(Icons.close, color: Colors.grey.shade600),
+                        tooltip: 'Fechar',
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -298,25 +317,39 @@ class _AgendamentosPageState extends State<AgendamentosPage>
     // Se selecionou um tipo, abre a página correspondente
     if (tipo != null && mounted) {
       Widget pagina;
+      final callback =
+          () => _mostrarCardNovoAgendamento(dataInicial: dataInicial);
 
       switch (tipo) {
         case 'servicos':
-          pagina = AgendamentoServicosPage(dataInicial: dataInicial);
+          pagina = AgendamentoServicosPage(
+            dataInicial: dataInicial,
+            onVoltarParaSelecao: callback,
+          );
           break;
         case 'vendas':
-          pagina = AgendamentoVendasPage(dataInicial: dataInicial);
+          pagina = AgendamentoVendasPage(
+            dataInicial: dataInicial,
+            onVoltarParaSelecao: callback,
+          );
           break;
         case 'a_receber':
-          pagina = const AgendamentoAReceberPage();
+          pagina = AgendamentoAReceberPage(onVoltarParaSelecao: callback);
           break;
         case 'a_pagar':
-          pagina = const AgendamentoAPagarPage();
+          pagina = AgendamentoAPagarPage(onVoltarParaSelecao: callback);
           break;
         case 'diversos':
-          pagina = AgendamentoDiversosPage(dataInicial: dataInicial);
+          pagina = AgendamentoDiversosPage(
+            dataInicial: dataInicial,
+            onVoltarParaSelecao: callback,
+          );
           break;
         default:
-          pagina = AgendamentoServicosPage(dataInicial: dataInicial);
+          pagina = AgendamentoServicosPage(
+            dataInicial: dataInicial,
+            onVoltarParaSelecao: callback,
+          );
       }
 
       await Navigator.of(

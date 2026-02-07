@@ -60,8 +60,14 @@ class _ArquivoAnexoVenda {
 class AgendamentoVendasPage extends StatefulWidget {
   final Agendamento? agendamento;
   final DateTime? dataInicial;
+  final VoidCallback? onVoltarParaSelecao;
 
-  const AgendamentoVendasPage({super.key, this.agendamento, this.dataInicial});
+  const AgendamentoVendasPage({
+    super.key,
+    this.agendamento,
+    this.dataInicial,
+    this.onVoltarParaSelecao,
+  });
 
   @override
   State<AgendamentoVendasPage> createState() => _AgendamentoVendasPageState();
@@ -1581,48 +1587,160 @@ class _AgendamentoVendasPageState extends State<AgendamentoVendasPage> {
     final corTema = _corTema;
     final dateFormat = DateFormat('dd/MM/yyyy');
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: corTema.shade600,
-        foregroundColor: Colors.white,
-        title: Text(
-          widget.agendamento != null ? 'Editar Agendamento' : 'Nova Venda',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [corTema.shade50, Colors.white],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          backgroundColor: corTema.shade600,
+          foregroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+              if (widget.onVoltarParaSelecao != null) {
+                widget.onVoltarParaSelecao!();
+              }
+            },
           ),
+          title: Text(
+            widget.agendamento != null ? 'Editar Agendamento' : 'Nova Venda',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          elevation: 0,
         ),
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // ========== REPETIR / PARCELAR ==========
-                    InkWell(
-                      onTap: () {
-                        if (!_repetirParcelar) {
-                          setState(() => _repetirParcelar = true);
-                          _mostrarConfigRepeticao();
-                        } else {
-                          setState(() => _repetirParcelar = false);
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [corTema.shade50, Colors.white],
+            ),
+          ),
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ========== REPETIR / PARCELAR ==========
+                      InkWell(
+                        onTap: () {
+                          if (!_repetirParcelar) {
+                            setState(() => _repetirParcelar = true);
+                            _mostrarConfigRepeticao();
+                          } else {
+                            setState(() => _repetirParcelar = false);
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.repeat,
+                                        color: corTema.shade600,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        'Repetir / Parcelar',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Switch(
+                                    value: _repetirParcelar,
+                                    onChanged: (v) {
+                                      if (v) {
+                                        setState(() => _repetirParcelar = true);
+                                        _mostrarConfigRepeticao();
+                                      } else {
+                                        setState(
+                                          () => _repetirParcelar = false,
+                                        );
+                                      }
+                                    },
+                                    activeColor: corTema.shade600,
+                                  ),
+                                ],
+                              ),
+                              if (_repetirParcelar) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: corTema.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        size: 16,
+                                        color: corTema.shade600,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '$_quantidadeRepeticoes x ${_tipoRepeticao == 'semanal'
+                                            ? 'Semanal'
+                                            : _tipoRepeticao == 'quinzenal'
+                                            ? 'Quinzenal'
+                                            : 'Mensal'}',
+                                        style: TextStyle(
+                                          color: corTema.shade700,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      GestureDetector(
+                                        onTap: _mostrarConfigRepeticao,
+                                        child: Icon(
+                                          Icons.edit,
+                                          size: 16,
+                                          color: corTema.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== VINCULAR PRODUTO/MATERIAL ==========
+                      Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
@@ -1632,544 +1750,454 @@ class _AgendamentoVendasPageState extends State<AgendamentoVendasPage> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.grey.shade300),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.repeat, color: corTema.shade600),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Repetir / Parcelar',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Switch(
-                                  value: _repetirParcelar,
-                                  onChanged: (v) {
-                                    if (v) {
-                                      setState(() => _repetirParcelar = true);
-                                      _mostrarConfigRepeticao();
-                                    } else {
-                                      setState(() => _repetirParcelar = false);
-                                    }
-                                  },
-                                  activeColor: corTema.shade600,
-                                ),
-                              ],
+                            Icon(
+                              Icons.inventory_2,
+                              color: Colors.purple.shade600,
                             ),
-                            if (_repetirParcelar) ...[
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Venda de Produto/Material',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _produtoSelecionado != null
+                                        ? '${_produtoSelecionado!['nome'] ?? ''}${_produtoSelecionado!['marca'] != null && _produtoSelecionado!['marca'].toString().isNotEmpty ? ' - ${_produtoSelecionado!['marca']}' : ''}'
+                                        : 'Nenhum produto selecionado',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight:
+                                          _produtoSelecionado != null
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
+                                      color:
+                                          _produtoSelecionado != null
+                                              ? Colors.purple.shade700
+                                              : Colors.grey.shade500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: _mostrarOpcoesProduto,
+                              icon: Container(
+                                padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: corTema.shade50,
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.purple.shade100,
+                                  shape: BoxShape.circle,
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.info_outline,
-                                      size: 16,
-                                      color: corTema.shade600,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '$_quantidadeRepeticoes x ${_tipoRepeticao == 'semanal'
-                                          ? 'Semanal'
-                                          : _tipoRepeticao == 'quinzenal'
-                                          ? 'Quinzenal'
-                                          : 'Mensal'}',
-                                      style: TextStyle(
-                                        color: corTema.shade700,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    GestureDetector(
-                                      onTap: _mostrarConfigRepeticao,
-                                      child: Icon(
-                                        Icons.edit,
-                                        size: 16,
-                                        color: corTema.shade600,
-                                      ),
-                                    ),
-                                  ],
+                                child: Icon(
+                                  Icons.add,
+                                  color: Colors.purple.shade700,
+                                  size: 20,
                                 ),
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // ========== VINCULAR PRODUTO/MATERIAL ==========
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.inventory_2,
-                            color: Colors.purple.shade600,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Venda de Produto/Material',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _produtoSelecionado != null
-                                      ? '${_produtoSelecionado!['nome'] ?? ''}${_produtoSelecionado!['marca'] != null && _produtoSelecionado!['marca'].toString().isNotEmpty ? ' - ${_produtoSelecionado!['marca']}' : ''}'
-                                      : 'Nenhum produto selecionado',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight:
-                                        _produtoSelecionado != null
-                                            ? FontWeight.w600
-                                            : FontWeight.normal,
-                                    color:
-                                        _produtoSelecionado != null
-                                            ? Colors.purple.shade700
-                                            : Colors.grey.shade500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: _mostrarOpcoesProduto,
-                            icon: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.purple.shade100,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.add,
-                                color: Colors.purple.shade700,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ========== CLIENTE ==========
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.person, color: Colors.blue.shade600),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Cliente',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _clienteSelecionado != null
-                                      ? _clienteSelecionado!.nome
-                                      : 'Nenhum cliente selecionado',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight:
-                                        _clienteSelecionado != null
-                                            ? FontWeight.w600
-                                            : FontWeight.normal,
-                                    color:
-                                        _clienteSelecionado != null
-                                            ? Colors.blue.shade700
-                                            : Colors.grey.shade500,
-                                  ),
-                                ),
-                                if (_clienteSelecionado?.celular.isNotEmpty ==
-                                    true)
-                                  Text(
-                                    _clienteSelecionado!.celular,
+                      // ========== CLIENTE ==========
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.person, color: Colors.blue.shade600),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Cliente',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade600,
+                                      fontSize: 14,
+                                      color: Colors.grey,
                                     ),
                                   ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _clienteSelecionado != null
+                                        ? _clienteSelecionado!.nome
+                                        : 'Nenhum cliente selecionado',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight:
+                                          _clienteSelecionado != null
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
+                                      color:
+                                          _clienteSelecionado != null
+                                              ? Colors.blue.shade700
+                                              : Colors.grey.shade500,
+                                    ),
+                                  ),
+                                  if (_clienteSelecionado?.celular.isNotEmpty ==
+                                      true)
+                                    Text(
+                                      _clienteSelecionado!.celular,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: _mostrarOpcoesCliente,
+                              icon: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade100,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  color: Colors.blue.shade700,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ========== COMPROVANTES ==========
+                      _buildCardAnexos(),
+                      const SizedBox(height: 24),
+
+                      // Titulo com indicador do tipo
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [corTema.shade600, corTema.shade400],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.shopping_cart,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Dados da Venda',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'Agende uma venda futura',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                          IconButton(
-                            onPressed: _mostrarOpcoesCliente,
-                            icon: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade100,
-                                shape: BoxShape.circle,
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Descricao
+                      TextFormField(
+                        controller: _descricaoController,
+                        decoration: InputDecoration(
+                          labelText: 'Descricao',
+                          prefixIcon: const Icon(Icons.description),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: corTema.shade600,
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Digite uma descricao';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Valor
+                      TextFormField(
+                        controller: _valorController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          CurrencyInputFormatter(),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: 'Valor *',
+                          prefixIcon: Icon(
+                            Icons.attach_money,
+                            color: corTema.shade600,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: corTema.shade600,
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: (value) {
+                          if (value == null ||
+                              value.isEmpty ||
+                              _parseMoeda(value) == 0) {
+                            return 'Informe um valor valido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Data e Hora
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: _selecionarData,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today,
+                                      color: corTema.shade600,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        _dataVenda != null
+                                            ? dateFormat.format(_dataVenda!)
+                                            : 'Data',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color:
+                                              _dataVenda != null
+                                                  ? Colors.black87
+                                                  : Colors.grey.shade500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              child: Icon(
-                                Icons.add,
-                                color: Colors.blue.shade700,
-                                size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: InkWell(
+                              onTap: _selecionarHora,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.access_time,
+                                      color: corTema.shade600,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        _horaVenda != null
+                                            ? _horaVenda!.format(context)
+                                            : 'Hora',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color:
+                                              _horaVenda != null
+                                                  ? Colors.black87
+                                                  : Colors.grey.shade500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // ========== COMPROVANTES ==========
-                    _buildCardAnexos(),
-                    const SizedBox(height: 24),
-
-                    // Titulo com indicador do tipo
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [corTema.shade600, corTema.shade400],
+                      // Status
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _status,
+                            isExpanded: true,
+                            icon: Icon(
+                              Icons.arrow_drop_down,
+                              color: corTema.shade600,
                             ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.shopping_cart,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Dados da Venda',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Agende uma venda futura',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Descricao
-                    TextFormField(
-                      controller: _descricaoController,
-                      decoration: InputDecoration(
-                        labelText: 'Descricao',
-                        prefixIcon: const Icon(Icons.description),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: corTema.shade600,
-                            width: 2,
+                            items:
+                                [
+                                      'Pendente',
+                                      'Confirmado',
+                                      'Concluido',
+                                      'Cancelado',
+                                    ]
+                                    .map(
+                                      (s) => DropdownMenuItem(
+                                        value: s,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              _getStatusIcon(s),
+                                              color: _getStatusColor(s),
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(s),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                            onChanged: (v) {
+                              if (v != null) setState(() => _status = v);
+                            },
                           ),
                         ),
-                        filled: true,
-                        fillColor: Colors.white,
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Digite uma descricao';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Valor
-                    TextFormField(
-                      controller: _valorController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        CurrencyInputFormatter(),
-                      ],
-                      decoration: InputDecoration(
-                        labelText: 'Valor *',
-                        prefixIcon: Icon(
-                          Icons.attach_money,
-                          color: corTema.shade600,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: corTema.shade600,
-                            width: 2,
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator: (value) {
-                        if (value == null ||
-                            value.isEmpty ||
-                            _parseMoeda(value) == 0) {
-                          return 'Informe um valor valido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Data e Hora
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: _selecionarData,
+                      // Observacoes
+                      TextFormField(
+                        controller: _observacoesController,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          labelText: 'Observacoes',
+                          prefixIcon: const Icon(Icons.notes),
+                          border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.calendar_today,
-                                    color: corTema.shade600,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      _dataVenda != null
-                                          ? dateFormat.format(_dataVenda!)
-                                          : 'Data',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color:
-                                            _dataVenda != null
-                                                ? Colors.black87
-                                                : Colors.grey.shade500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: InkWell(
-                            onTap: _selecionarHora,
+                          focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.access_time,
-                                    color: corTema.shade600,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      _horaVenda != null
-                                          ? _horaVenda!.format(context)
-                                          : 'Hora',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color:
-                                            _horaVenda != null
-                                                ? Colors.black87
-                                                : Colors.grey.shade500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            borderSide: BorderSide(
+                              color: corTema.shade600,
+                              width: 2,
                             ),
                           ),
+                          filled: true,
+                          fillColor: Colors.white,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Status
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
                       ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _status,
-                          isExpanded: true,
-                          icon: Icon(
-                            Icons.arrow_drop_down,
-                            color: corTema.shade600,
+                      const SizedBox(height: 32),
+
+                      // Botao Salvar
+                      ElevatedButton(
+                        onPressed: _salvando ? null : _salvar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: corTema.shade600,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          items:
-                              [
-                                    'Pendente',
-                                    'Confirmado',
-                                    'Concluido',
-                                    'Cancelado',
-                                  ]
-                                  .map(
-                                    (s) => DropdownMenuItem(
-                                      value: s,
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            _getStatusIcon(s),
-                                            color: _getStatusColor(s),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Text(s),
-                                        ],
+                          elevation: 3,
+                        ),
+                        child:
+                            _salvando
+                                ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.save),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      widget.agendamento != null
+                                          ? 'Atualizar'
+                                          : 'Salvar Agendamento',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  )
-                                  .toList(),
-                          onChanged: (v) {
-                            if (v != null) setState(() => _status = v);
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Observacoes
-                    TextFormField(
-                      controller: _observacoesController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        labelText: 'Observacoes',
-                        prefixIcon: const Icon(Icons.notes),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: corTema.shade600,
-                            width: 2,
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Botao Salvar
-                    ElevatedButton(
-                      onPressed: _salvando ? null : _salvar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: corTema.shade600,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 3,
-                      ),
-                      child:
-                          _salvando
-                              ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                                  ],
                                 ),
-                              )
-                              : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.save),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    widget.agendamento != null
-                                        ? 'Atualizar'
-                                        : 'Salvar Agendamento',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

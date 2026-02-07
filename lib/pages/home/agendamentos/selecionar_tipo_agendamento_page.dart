@@ -225,8 +225,6 @@ class SelecionarTipoAgendamentoPage extends StatelessWidget {
         break;
     }
 
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => pagina));
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => pagina));
   }
 }
